@@ -7,23 +7,35 @@ import PublicLayout from "../../components/public/PublicLayout";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { publicDataAPI } from "../../services/publicData";
 
-const GalleryTile = ({ artwork, priority = false }) => {
+const tileStyles = [
+  "sm:col-span-2 lg:col-span-2 aspect-[16/10]",
+  "aspect-[4/5]",
+  "aspect-square",
+  "aspect-[3/4]",
+  "sm:col-span-2 aspect-[5/3]",
+  "aspect-[4/5]",
+  "aspect-square",
+  "lg:col-span-2 aspect-[16/11]",
+];
+
+const GalleryTile = ({ artwork, priority = false, index = 0 }) => {
   const thumbnail = artwork?.images?.[0]?.url;
   const title = artwork?.title || "Untitled artwork";
+  const tileClass = tileStyles[index % tileStyles.length];
 
   return (
-    <article className="mb-6 break-inside-avoid">
+    <article className={tileClass}>
       <Link
         to={`/artwork/${artwork._id}`}
         aria-label={`View ${title}`}
-        className="group block overflow-hidden bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+        className="group block h-full overflow-hidden bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
       >
-        <div className="relative overflow-hidden bg-ivory">
+        <div className="relative h-full overflow-hidden bg-ivory">
           {thumbnail ? (
             <img
               src={thumbnail}
               alt={title}
-              className="block h-auto w-full transition-transform duration-700 group-hover:scale-[1.035] group-focus-visible:scale-[1.035]"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.055] group-focus-visible:scale-[1.055]"
               loading={priority ? "eager" : "lazy"}
               fetchPriority={priority ? "high" : "auto"}
             />
@@ -166,9 +178,9 @@ const GalleryPage = () => {
               <p className="mt-3 text-sm text-slate/60">Try another category.</p>
             </div>
           ) : (
-            <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 2xl:columns-4">
+            <div className="grid auto-rows-auto grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {artworks.map((artwork, index) => (
-                <GalleryTile key={artwork._id} artwork={artwork} priority={index < 3} />
+                <GalleryTile key={artwork._id} artwork={artwork} index={index} priority={index < 3} />
               ))}
             </div>
           )}
