@@ -6,6 +6,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./components/shared/AuthContext";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
+import ScrollToTop from "./components/shared/ScrollToTop";
 
 // ── Public pages
 import HomePage           from "./pages/public/HomePage";
@@ -27,6 +28,7 @@ import SettingsPage       from "./pages/admin/SettingsPage";
 
 const App = () => (
   <AuthProvider>
+    <ScrollToTop />
     {/* Toast notifications — styled to match the gold palette */}
     <Toaster
       position="top-right"

@@ -1,35 +1,87 @@
 // pages/public/GalleryPage.jsx
-// Full artwork gallery with search, filters, quick preview, and polished pagination.
+// Public gallery redesigned as an image-first editorial masonry view.
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
-import ArtworkCard from "../../components/public/ArtworkCard";
-import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { publicDataAPI } from "../../services/publicData";
 
-const formatPrice = (price) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(price || 0);
+const GalleryTile = ({ artwork, priority = false }) => {
+  const thumbnail = artwork?.images?.[0]?.url;
+  const title = artwork?.title || "Untitled artwork";
 
-const GalleryPreview = ({ artwork, onClose }) => {
-  if (!artwork) return null;
-  return <ArtworkPreviewModal artwork={artwork} onClose={onClose} />;
+  return (
+    <article className="mb-6 break-inside-avoid">
+      <Link
+        to={`/artwork/${artwork._id}`}
+        aria-label={`View ${title}`}
+        className="group block overflow-hidden bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+      >
+        <div className="relative overflow-hidden bg-ivory">
+          {thumbnail ? (
+            <img
+              src={thumbnail}
+              alt={title}
+              className="block h-auto w-full transition-transform duration-700 group-hover:scale-[1.035] group-focus-visible:scale-[1.035]"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
+            />
+          ) : (
+            <div className="flex aspect-artwork w-full items-center justify-center bg-gray-100 text-sm text-slate/45">
+              Image coming soon
+            </div>
+          )}
+
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.68))] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 p-5 text-white opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+            {artwork?.category && (
+              <p className="mb-2 text-[10px] font-label uppercase tracking-[0.2em] text-white/72">
+                {artwork.category}
+              </p>
+            )}
+            <h3 className="font-display text-2xl font-light leading-tight text-white">
+              {title}
+            </h3>
+            <p className="mt-3 text-[11px] font-label uppercase tracking-[0.18em] text-white/76">
+              View details
+            </p>
+          </div>
+
+          {artwork?.isFeatured && (
+            <span className="absolute left-3 top-3 bg-gold px-2.5 py-1 text-[10px] font-label uppercase tracking-[0.18em] text-white">
+              Featured
+            </span>
+          )}
+        </div>
+      </Link>
+    </article>
+  );
 };
 
-const FilterBadge = ({ label, onRemove }) => (
-  <button
-    type="button"
-    onClick={onRemove}
-    className="inline-flex items-center gap-2 bg-white px-3 py-2 text-xs font-label tracking-widest uppercase text-charcoal ring-1 ring-charcoal/10 hover:ring-gold hover:text-gold transition-colors"
-  >
-    {label}
-    <span aria-hidden="true">x</span>
-  </button>
+const CategoryFilter = ({ categories, active, onChange }) => (
+  <div className="overflow-x-auto pb-2" aria-label="Artwork categories">
+    <div className="flex min-w-max items-center justify-center gap-2 text-sm text-slate/58">
+      {["all", ...categories].map((category, index) => {
+        const label = category === "all" ? "All" : category;
+        const isActive = active === category;
+
+        return (
+          <button
+            key={category}
+            type="button"
+            onClick={() => onChange(category)}
+            className={`px-2 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 ${
+              isActive ? "border-b border-gold text-gold" : "hover:text-charcoal"
+            }`}
+          >
+            {label}
+            {index < categories.length && <span className="ml-4 text-slate/35" aria-hidden="true">|</span>}
+          </button>
+        );
+      })}
+    </div>
+  </div>
 );
 
 const GalleryPage = () => {
@@ -37,58 +89,37 @@ const GalleryPage = () => {
   const [categories, setCategories] = useState([]);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
-  const [preview, setPreview] = useState(null);
-
-  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
   const [category, setCategory] = useState("all");
-  const [available, setAvailable] = useState("all");
   const [page, setPage] = useState(1);
 
   const fetchArtworks = useCallback(async () => {
     setLoading(true);
+    setError("");
+
     try {
-      const params = { page, limit: 12 };
-      if (search) params.search = search;
+      const params = { page, limit: 18 };
       if (category !== "all") params.category = category;
-      if (available !== "all") params.available = available;
 
       const res = await publicDataAPI.getArtworks(params);
       setArtworks(res.items || []);
       setPagination(res.pagination || {});
-    } catch (err) {
-      console.error("Gallery fetch error:", err);
+    } catch {
+      setError("The gallery could not be loaded. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [search, category, available, page]);
+  }, [category, page]);
 
   useEffect(() => {
     publicDataAPI.getCategories()
       .then((items) => setCategories(items || []))
-      .catch(console.error);
+      .catch(() => setCategories([]));
   }, []);
 
   useEffect(() => {
     fetchArtworks();
   }, [fetchArtworks]);
-
-  useEffect(() => {
-    const closeOnEscape = (event) => {
-      if (event.key === "Escape") setPreview(null);
-    };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, []);
-
-  const resetFilters = () => {
-    setSearch("");
-    setCategory("all");
-    setAvailable("all");
-    setPage(1);
-  };
-
-  const activeFilterCount = [search, category !== "all", available !== "all"].filter(Boolean).length;
-  const availableLabel = available === "true" ? "Available for Enquiry" : available === "false" ? "Not Available for Enquiry" : "";
 
   return (
     <PublicLayout>
@@ -99,117 +130,45 @@ const GalleryPage = () => {
             The Gallery
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-sm md:text-base text-white/60 leading-relaxed">
-            Browse original artworks by mood, medium, availability, and collection.
+            Browse the collection by category in a clean, artwork-first view.
           </p>
         </div>
       </div>
 
-      <section className="section bg-ivory">
+      <section className="section bg-white">
         <div className="container-site">
-          <div className="mb-8 bg-ivory/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-ivory/80 lg:sticky lg:top-20 lg:z-30">
-            <div
-              className="bg-white p-4 shadow-sm ring-1 ring-black/5"
-              style={{ borderRadius: "var(--theme-card-radius)" }}
-            >
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_220px_220px_auto]">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search artworks..."
-                    value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                    className="input-field pl-10"
-                  />
-                  <svg
-                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-
-                <select
-                  value={category}
-                  onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-                  className="input-field"
-                >
-                  <option value="all">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={available}
-                  onChange={(e) => { setAvailable(e.target.value); setPage(1); }}
-                  className="input-field"
-                >
-                  <option value="all">All Availability</option>
-                  <option value="true">Available for Enquiry</option>
-                  <option value="false">Not Available for Enquiry</option>
-                </select>
-
-                <button
-                  type="button"
-                  onClick={resetFilters}
-                  className="btn-secondary whitespace-nowrap"
-                  disabled={activeFilterCount === 0}
-                >
-                  Clear
-                </button>
-              </div>
-
-              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <p className="text-sm text-slate/60">
-                  {pagination.total !== undefined
-                    ? `${pagination.total} artwork${pagination.total === 1 ? "" : "s"} found`
-                    : "Searching the collection"}
-                </p>
-                {activeFilterCount > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {search && <FilterBadge label={`Search: ${search}`} onRemove={() => { setSearch(""); setPage(1); }} />}
-                    {category !== "all" && <FilterBadge label={category} onRemove={() => { setCategory("all"); setPage(1); }} />}
-                    {available !== "all" && <FilterBadge label={availableLabel} onRemove={() => { setAvailable("all"); setPage(1); }} />}
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="mb-10">
+            <CategoryFilter
+              categories={categories}
+              active={category}
+              onChange={(nextCategory) => {
+                setCategory(nextCategory);
+                setPage(1);
+              }}
+            />
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {Array.from({ length: 8 }, (_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div
-                    className="aspect-artwork bg-white/80 ring-1 ring-black/5"
-                    style={{ borderRadius: "var(--theme-card-radius)" }}
-                  />
-                  <div className="mt-4 h-3 w-1/3 bg-white" />
-                  <div className="mt-3 h-5 w-2/3 bg-white" />
-                </div>
-              ))}
+            <div className="flex min-h-[42vh] items-center justify-center">
+              <LoadingSpinner size="lg" />
             </div>
-          ) : artworks.length === 0 ? (
-            <div
-              className="bg-white py-20 text-center shadow-sm ring-1 ring-black/5"
-              style={{ borderRadius: "var(--theme-card-radius)" }}
-            >
-              <p className="font-display text-3xl text-charcoal mb-3">No artworks found</p>
-              <p className="text-slate/60 text-sm">Try adjusting your search or filters.</p>
-              <button type="button" onClick={resetFilters} className="mt-6 btn-secondary">
-                Clear Filters
+          ) : error ? (
+            <div className="mx-auto max-w-xl border border-charcoal/10 bg-ivory px-6 py-12 text-center">
+              <p className="font-display text-3xl text-charcoal">Gallery unavailable</p>
+              <p className="mt-3 text-sm leading-6 text-slate/60">{error}</p>
+              <button type="button" onClick={fetchArtworks} className="btn-secondary mt-6">
+                Retry
               </button>
             </div>
+          ) : artworks.length === 0 ? (
+            <div className="mx-auto max-w-xl border border-charcoal/10 bg-ivory px-6 py-12 text-center">
+              <p className="font-display text-3xl text-charcoal">No artworks found</p>
+              <p className="mt-3 text-sm text-slate/60">Try another category.</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {artworks.map((artwork) => (
-                <ArtworkCard
-                  key={artwork._id}
-                  artwork={artwork}
-                  onPreview={() => setPreview(artwork)}
-                />
+            <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 2xl:columns-4">
+              {artworks.map((artwork, index) => (
+                <GalleryTile key={artwork._id} artwork={artwork} priority={index < 3} />
               ))}
             </div>
           )}
@@ -222,39 +181,17 @@ const GalleryPage = () => {
               <div className="flex flex-wrap justify-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setPage((value) => Math.max(1, value - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 border border-charcoal/20 text-sm font-label disabled:opacity-30 hover:bg-charcoal hover:text-white transition-colors"
+                  className="border border-charcoal/20 px-4 py-2 text-sm font-label transition-colors hover:bg-charcoal hover:text-white disabled:opacity-30"
                 >
                   Prev
                 </button>
-                {Array.from({ length: pagination.pages }, (_, i) => i + 1)
-                  .filter((p) => pagination.pages <= 7 || p === 1 || p === pagination.pages || Math.abs(p - page) <= 1)
-                  .map((p, index, visiblePages) => {
-                    const previous = visiblePages[index - 1];
-                    const showGap = previous && p - previous > 1;
-                    return (
-                      <span key={p} className="flex gap-2">
-                        {showGap && <span className="px-2 py-2 text-sm text-slate/40">...</span>}
-                        <button
-                          type="button"
-                          onClick={() => setPage(p)}
-                          className={`px-4 py-2 text-sm font-label transition-colors ${
-                            p === page
-                              ? "bg-charcoal text-white"
-                              : "border border-charcoal/20 hover:bg-charcoal hover:text-white"
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      </span>
-                    );
-                  })}
                 <button
                   type="button"
-                  onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+                  onClick={() => setPage((value) => Math.min(pagination.pages, value + 1))}
                   disabled={page === pagination.pages}
-                  className="px-4 py-2 border border-charcoal/20 text-sm font-label disabled:opacity-30 hover:bg-charcoal hover:text-white transition-colors"
+                  className="border border-charcoal/20 px-4 py-2 text-sm font-label transition-colors hover:bg-charcoal hover:text-white disabled:opacity-30"
                 >
                   Next
                 </button>
@@ -263,8 +200,6 @@ const GalleryPage = () => {
           )}
         </div>
       </section>
-
-      <GalleryPreview artwork={preview} onClose={() => setPreview(null)} />
     </PublicLayout>
   );
 };
