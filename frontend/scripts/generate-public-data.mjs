@@ -23,13 +23,17 @@ const fetchSnapshot = async () => {
   return response.json();
 };
 
-const validateSnapshot = (snapshot, label) => {
+const validateSnapshot = (snapshot, label, { allowEmpty = true } = {}) => {
   if (!snapshot || typeof snapshot !== "object") {
     throw new Error(`${label} is not an object`);
   }
 
   if (!Array.isArray(snapshot.artworks)) {
     throw new Error(`${label} must contain an artworks array`);
+  }
+
+  if (!allowEmpty && snapshot.artworks.length === 0) {
+    throw new Error(`${label} was rejected because it contains no artworks`);
   }
 
   if (!Array.isArray(snapshot.categories)) {
@@ -45,15 +49,24 @@ const readExistingSnapshot = async () => {
 };
 
 try {
+  let existingSnapshot = null;
+  try {
+    existingSnapshot = await readExistingSnapshot();
+  } catch {
+    existingSnapshot = null;
+  }
+
   const snapshot = await fetchSnapshot();
 
   if (!snapshot) {
-    await readExistingSnapshot();
+    if (!existingSnapshot) await readExistingSnapshot();
     console.log("No PUBLIC_DATA_API_URL or VITE_API_URL set. Existing public data snapshot retained.");
     process.exit(0);
   }
 
-  validateSnapshot(snapshot, "Live public data snapshot");
+  validateSnapshot(snapshot, "Live public data snapshot", {
+    allowEmpty: !existingSnapshot || existingSnapshot.artworks.length === 0,
+  });
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(snapshot, null, 2)}\n`);
   console.log(`Live public data snapshot generated at ${outputPath}`);

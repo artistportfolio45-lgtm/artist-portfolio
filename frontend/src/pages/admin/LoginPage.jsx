@@ -6,7 +6,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
 
 const LoginPage = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [secondFactor, setSecondFactor] = useState({ code: "", useRecoveryCode: false });
@@ -15,10 +15,10 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!authLoading && isAuthenticated) {
       navigate("/admin/dashboard", { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -203,8 +203,7 @@ const LoginPage = () => {
             </button>
           ) : (
             <p className="mt-6 text-xs text-center text-slate/40">
-              First time? Seed admin via{" "}
-              <code className="bg-gray-100 px-1 rounded">POST /api/auth/seed</code>
+              First-time admin access is configured from the backend environment.
             </p>
           )}
         </div>

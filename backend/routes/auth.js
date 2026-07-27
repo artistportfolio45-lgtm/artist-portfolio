@@ -270,42 +270,4 @@ router.put("/change-password", protect, async (req, res) => {
   }
 });
 
-// @route   POST /api/auth/seed
-// @desc    Seed the one-time admin user
-// @access  Public, but only creates an admin when none exists
-router.post("/seed", async (req, res) => {
-  try {
-    const existingAdmin = await User.findOne({ role: "admin" });
-    if (existingAdmin) {
-      return errorResponse(res, 400, "Admin already exists");
-    }
-
-    const email = process.env.ADMIN_EMAIL;
-    const password = process.env.ADMIN_PASSWORD;
-
-    if (!email || !password) {
-      return errorResponse(res, 500, "ADMIN_EMAIL and ADMIN_PASSWORD must be configured before seeding");
-    }
-
-    if (password.length < 8) {
-      return errorResponse(res, 400, "Seed password must be at least 8 characters");
-    }
-
-    const admin = await User.create({ email, password, role: "admin" });
-    await logActivity(req, {
-      admin: admin._id,
-      action: "Initial admin seeded",
-      module: "auth",
-      metadata: { email: admin.email },
-    });
-
-    return successResponse(res, 201, "Admin created", {
-      user: { id: admin._id, email: admin.email, role: admin.role },
-    });
-  } catch (error) {
-    console.error("Seed error:", error);
-    return errorResponse(res, 500, "Server error");
-  }
-});
-
 module.exports = router;

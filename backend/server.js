@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
+const { assertAdminSeedConfig, seedAdminAccount } = require("./utils/adminSeed");
 const {
   generalRateLimiter,
   loginRateLimiter,
@@ -151,6 +152,21 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB();
+
+  if (process.env.SEED_ADMIN_ON_START === "true" || process.env.RESET_ADMIN_2FA_ON_START === "true") {
+    assertAdminSeedConfig({
+      mongoUri: process.env.MONGO_URI,
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+    });
+
+    await seedAdminAccount({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+      resetTwoFactor: process.env.RESET_ADMIN_2FA_ON_START === "true",
+    });
+    console.log("Startup admin seed completed. Remove SEED_ADMIN_ON_START after confirming access.");
+  }
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || "development"} mode`);
