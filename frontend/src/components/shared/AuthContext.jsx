@@ -2,7 +2,7 @@
 // Global auth state — login, logout, token persistence
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { authAPI } from "../../services/api";
+import { authAPI, clearStoredAuth } from "../../services/api";
 
 const AuthContext = createContext(null);
 
@@ -22,10 +22,14 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     if (token) {
       authAPI.me()
-        .then((res) => setUser((res.data.data || res.data).user))
+        .then((res) => {
+          const userData = (res.data.data || res.data).user;
+          if (!userData) throw new Error("Invalid session response");
+          localStorage.setItem("user", JSON.stringify(userData));
+          setUser(userData);
+        })
         .catch(() => {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
+          clearStoredAuth();
           setUser(null);
         })
         .finally(() => setLoading(false));
@@ -49,9 +53,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    clearStoredAuth();
     setUser(null);
+    window.history.replaceState(null, "", "/admin/login");
   };
 
   return (

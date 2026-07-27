@@ -113,7 +113,12 @@ const GalleryPage = () => {
       const params = { page, limit: 18 };
       if (category !== "all") params.category = category;
 
-      const res = await publicDataAPI.getArtworks(params);
+      const res = await publicDataAPI.getArtworks(params, {
+        onLiveData: (liveRes) => {
+          setArtworks(liveRes.items || []);
+          setPagination(liveRes.pagination || {});
+        },
+      });
       setArtworks(res.items || []);
       setPagination(res.pagination || {});
     } catch {
@@ -124,7 +129,7 @@ const GalleryPage = () => {
   }, [category, page]);
 
   useEffect(() => {
-    publicDataAPI.getCategories()
+    publicDataAPI.getCategories({ onLiveData: (items) => setCategories(items || []) })
       .then((items) => setCategories(items || []))
       .catch(() => setCategories([]));
   }, []);

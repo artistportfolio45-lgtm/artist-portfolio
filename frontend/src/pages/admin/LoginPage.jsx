@@ -11,6 +11,7 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [secondFactor, setSecondFactor] = useState({ code: "", useRecoveryCode: false });
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
+  const [twoFactorSetup, setTwoFactorSetup] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -34,7 +35,16 @@ const LoginPage = () => {
 
       if (result?.requiresTwoFactor) {
         setRequiresTwoFactor(true);
-        toast.success("Enter your authenticator code");
+        if (result.setupRequired) {
+          setTwoFactorSetup({
+            qrCode: result.qrCode,
+            manualKey: result.manualKey,
+          });
+          toast.success("Scan the QR code, then enter the authenticator code");
+        } else {
+          setTwoFactorSetup(null);
+          toast.success("Enter your authenticator code");
+        }
         return;
       }
 
@@ -109,33 +119,55 @@ const LoginPage = () => {
             </div>
 
             {requiresTwoFactor && (
-              <div>
-                <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                  {secondFactor.useRecoveryCode ? "Recovery Code" : "Authenticator Code"}
-                </label>
-                <input
-                  type="text"
-                  value={secondFactor.code}
-                  onChange={(e) => setSecondFactor({ ...secondFactor, code: e.target.value })}
-                  className="input-field"
-                  placeholder={secondFactor.useRecoveryCode ? "ABCD-EFGH-IJKL-MNOP" : "123456"}
-                  required
-                  autoComplete="one-time-code"
-                  inputMode={secondFactor.useRecoveryCode ? "text" : "numeric"}
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSecondFactor((prev) => ({
-                      ...prev,
-                      code: "",
-                      useRecoveryCode: !prev.useRecoveryCode,
-                    }))
-                  }
-                  className="text-xs text-slate/50 hover:text-charcoal mt-2"
-                >
-                  {secondFactor.useRecoveryCode ? "Use authenticator code instead" : "Use a recovery code instead"}
-                </button>
+              <div className="space-y-4">
+                {twoFactorSetup?.qrCode && (
+                  <div className="space-y-3">
+                    <img
+                      src={twoFactorSetup.qrCode}
+                      alt="Google Authenticator setup QR code"
+                      className="mx-auto h-48 w-48 border border-gray-100"
+                    />
+                    <div>
+                      <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
+                        Manual Key
+                      </label>
+                      <code className="block bg-gray-50 border border-gray-100 px-3 py-2 text-sm break-all">
+                        {twoFactorSetup.manualKey}
+                      </code>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
+                    {secondFactor.useRecoveryCode ? "Recovery Code" : "Authenticator Code"}
+                  </label>
+                  <input
+                    type="text"
+                    value={secondFactor.code}
+                    onChange={(e) => setSecondFactor({ ...secondFactor, code: e.target.value })}
+                    className="input-field"
+                    placeholder={secondFactor.useRecoveryCode ? "ABCD-EFGH-IJKL-MNOP" : "123456"}
+                    required
+                    autoComplete="one-time-code"
+                    inputMode={secondFactor.useRecoveryCode ? "text" : "numeric"}
+                  />
+                  {!twoFactorSetup && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSecondFactor((prev) => ({
+                          ...prev,
+                          code: "",
+                          useRecoveryCode: !prev.useRecoveryCode,
+                        }))
+                      }
+                      className="text-xs text-slate/50 hover:text-charcoal mt-2"
+                    >
+                      {secondFactor.useRecoveryCode ? "Use authenticator code instead" : "Use a recovery code instead"}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -162,6 +194,7 @@ const LoginPage = () => {
               type="button"
               onClick={() => {
                 setRequiresTwoFactor(false);
+                setTwoFactorSetup(null);
                 setSecondFactor({ code: "", useRecoveryCode: false });
               }}
               className="mt-6 text-xs text-center text-slate/40 hover:text-charcoal w-full"

@@ -32,7 +32,7 @@ const ArtworkDetailPage = () => {
   const [form, setForm] = useState(emptyInquiryForm);
 
   useEffect(() => {
-    publicDataAPI.getArtworkById(id)
+    publicDataAPI.getArtworkById(id, { onLiveData: setArtwork })
       .then((item) => {
         if (!item) throw new Error("Artwork not found");
         setArtwork(item);

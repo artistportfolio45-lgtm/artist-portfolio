@@ -25,7 +25,12 @@ const getUserWithSecurityFields = (id) => {
 };
 
 const verifyTotpCode = (user, token) => {
-  const secret = user.getTwoFactorSecret();
+  let secret;
+  try {
+    secret = user.getTwoFactorSecret();
+  } catch (error) {
+    return false;
+  }
   if (!secret || !token) return false;
 
   return speakeasy.totp.verify({

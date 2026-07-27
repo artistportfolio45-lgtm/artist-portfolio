@@ -16,7 +16,16 @@ const { triggerStaticRebuild } = require("../utils/staticRebuild");
 // @access  Public
 router.get("/", async (req, res) => {
   try {
-    const { search, category, available, featured, page = 1, limit = 12 } = req.query;
+    const {
+      search,
+      category,
+      available,
+      featured,
+      page = 1,
+      limit = 12,
+      sort = "createdAt",
+      order = "desc",
+    } = req.query;
 
     const query = {};
 
@@ -37,13 +46,27 @@ router.get("/", async (req, res) => {
     // Featured filter
     if (featured === "true") query.isFeatured = true;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const safeSortFields = new Set([
+      "createdAt",
+      "updatedAt",
+      "title",
+      "category",
+      "price",
+      "year",
+      "isAvailable",
+      "isFeatured",
+    ]);
+    const sortField = safeSortFields.has(sort) ? sort : "createdAt";
+    const sortDirection = order === "asc" ? 1 : -1;
+    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
+    const skip = (pageNumber - 1) * pageSize;
 
     const [artworks, total] = await Promise.all([
       Artwork.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ [sortField]: sortDirection })
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(pageSize),
       Artwork.countDocuments(query),
     ]);
 
@@ -52,9 +75,9 @@ router.get("/", async (req, res) => {
       artworks,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit)),
+        page: pageNumber,
+        limit: pageSize,
+        pages: Math.ceil(total / pageSize),
       },
     });
   } catch (error) {

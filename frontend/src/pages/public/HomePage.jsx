@@ -18,9 +18,15 @@ const HomePage = () => {
 
   useEffect(() => {
     Promise.allSettled([
-      publicDataAPI.getArtworks({ featured: "true", limit: 6 }),
-      publicDataAPI.getArtworks({ limit: 8 }),
-      publicDataAPI.getProfile(),
+      publicDataAPI.getArtworks(
+        { featured: "true", limit: 6 },
+        { onLiveData: (res) => setFeatured(res.items || []) }
+      ),
+      publicDataAPI.getArtworks(
+        { limit: 8 },
+        { onLiveData: (res) => setLatestArtworks(res.items || []) }
+      ),
+      publicDataAPI.getProfile({ onLiveData: setProfile }),
     ])
       .then(([featuredRes, latestRes, profileRes]) => {
         if (featuredRes.status === "fulfilled") {

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-public-data.mjs && vite build",
+    "prebuild": "node scripts/generate-public-data.mjs",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

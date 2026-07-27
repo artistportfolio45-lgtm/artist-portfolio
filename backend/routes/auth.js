@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const qrcode = require("qrcode");
 const speakeasy = require("speakeasy");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
@@ -25,6 +26,17 @@ const errorResponse = (res, statusCode, message, errors = []) => {
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  });
+};
+
+const verifyTotpCode = (secret, token) => {
+  if (!secret || !token) return false;
+
+  return speakeasy.totp.verify({
+    secret,
+    encoding: "base32",
+    token: String(token).trim(),
+    window: 1,
   });
 };
 
@@ -82,7 +94,56 @@ router.post("/login", async (req, res) => {
       return errorResponse(res, 401, "Invalid credentials");
     }
 
-    if (user.twoFactorEnabled) {
+    if (!user.twoFactorEnabled) {
+      if (!twoFactorCode) {
+        const secret = speakeasy.generateSecret({
+          name: `Artist Portfolio (${user.email})`,
+          issuer: "Artist Portfolio",
+          length: 20,
+        });
+
+        user.setTwoFactorSecret(secret.base32);
+        await user.save();
+        const qrCode = await qrcode.toDataURL(secret.otpauth_url);
+
+        await logActivity(req, {
+          admin: user._id,
+          action: "Initial two-factor setup requested",
+          module: "auth",
+          metadata: { email: user.email },
+        });
+
+        return successResponse(res, 200, "Two-factor setup required", {
+          requiresTwoFactor: true,
+          setupRequired: true,
+          qrCode,
+          manualKey: secret.base32,
+          user: { email: user.email },
+        });
+      }
+
+      let secret;
+      try {
+        secret = user.getTwoFactorSecret();
+      } catch (error) {
+        user.twoFactorSecret = null;
+        await user.save();
+        return errorResponse(res, 401, "Two-factor setup expired. Sign in again to restart setup.");
+      }
+
+      if (!verifyTotpCode(secret, twoFactorCode)) {
+        await logActivity(req, {
+          admin: user._id,
+          action: "Failed initial two-factor setup verification",
+          module: "auth",
+          metadata: { email: user.email },
+        });
+        return errorResponse(res, 401, "Invalid two-factor authentication code");
+      }
+
+      await user.generateBackupRecoveryCodes();
+      user.twoFactorEnabled = true;
+    } else {
       const hasAuthenticatorCode = Boolean(twoFactorCode);
       const hasRecoveryCode = Boolean(recoveryCode);
 
@@ -102,13 +163,22 @@ router.post("/login", async (req, res) => {
       let secondFactorValid = false;
 
       if (hasAuthenticatorCode) {
-        const secret = user.getTwoFactorSecret();
-        secondFactorValid = speakeasy.totp.verify({
-          secret,
-          encoding: "base32",
-          token: String(twoFactorCode).trim(),
-          window: 1,
-        });
+        try {
+          const secret = user.getTwoFactorSecret();
+          secondFactorValid = verifyTotpCode(secret, twoFactorCode);
+        } catch (error) {
+          await logActivity(req, {
+            admin: user._id,
+            action: "Two-factor secret could not be decrypted",
+            module: "auth",
+            metadata: { email: user.email },
+          });
+          return errorResponse(
+            res,
+            401,
+            "Two-factor setup must be reset by running the admin seed reset command"
+          );
+        }
       }
 
       if (!secondFactorValid && hasRecoveryCode) {

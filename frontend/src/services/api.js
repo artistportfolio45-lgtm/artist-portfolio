@@ -1,11 +1,28 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
+
+export const clearStoredAuth = () => {
+  [
+    "token",
+    "refreshToken",
+    "user",
+    "admin",
+    "totpVerified",
+    "twoFactorVerified",
+    "requiresTwoFactor",
+    "session",
+    "auth",
+  ].forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+};
 
 const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
-  timeout: 12000,
+  timeout: 60000,
 });
 
 api.interceptors.request.use(
@@ -32,13 +49,10 @@ api.interceptors.response.use(
     const isOnLoginPage = window.location.pathname === "/admin/login";
 
     if (error.response?.status === 401 && !isLoginRequest && !isOnLoginPage) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
+      clearStoredAuth();
 
       if (window.location.pathname.startsWith("/admin")) {
-        window.location.href = "/admin/login";
+        window.location.replace("/admin/login");
       }
     }
 

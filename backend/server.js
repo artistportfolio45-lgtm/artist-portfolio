@@ -22,6 +22,21 @@ const getOrigin = (value) => {
   }
 };
 
+const getCorsOrigin = (value) => {
+  if (!value) return null;
+
+  try {
+    const origin = new URL(value).origin;
+    if (origin.startsWith("https://") || origin.startsWith("http://localhost")) {
+      return origin;
+    }
+  } catch (error) {
+    return null;
+  }
+
+  return null;
+};
+
 const connectSrc = [
   "'self'",
   getOrigin(process.env.FRONTEND_URL),
@@ -29,6 +44,12 @@ const connectSrc = [
   getOrigin(process.env.RENDER_EXTERNAL_URL),
   "http://localhost:5173",
   "http://localhost:5000",
+].filter(Boolean);
+
+const allowedOrigins = [
+  getCorsOrigin(process.env.FRONTEND_URL),
+  "https://artistportfolio45.netlify.app",
+  "http://localhost:5173",
 ].filter(Boolean);
 
 // Security: hide Express and trust Render's proxy before IP-based rate limiting.
@@ -75,7 +96,14 @@ app.use(
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
   })
 );
