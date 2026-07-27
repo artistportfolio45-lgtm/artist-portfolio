@@ -46,19 +46,32 @@ const verifyTotpCode = (secret, token) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password, twoFactorCode, recoveryCode } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return errorResponse(res, 400, "Email and password are required");
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select(
+    const user = await User.findOne({ email: normalizedEmail }).select(
       "+twoFactorSecret +backupRecoveryCodes"
     );
     if (!user) {
+      console.warn("Admin login failed: user not found", { email: normalizedEmail });
       await logActivity(req, {
         action: "Failed login for unknown email",
         module: "auth",
-        metadata: { email: email.toLowerCase().trim() },
+        metadata: { email: normalizedEmail },
+      });
+      return errorResponse(res, 401, "Invalid credentials");
+    }
+
+    if (user.isActive === false) {
+      console.warn("Admin login failed: account inactive", { email: user.email });
+      await logActivity(req, {
+        admin: user._id,
+        action: "Failed login for inactive account",
+        module: "auth",
+        metadata: { email: user.email },
       });
       return errorResponse(res, 401, "Invalid credentials");
     }
@@ -76,8 +89,14 @@ router.post("/login", async (req, res) => {
       user.accountLockedUntil = null;
     }
 
+    if (!String(user.password || "").startsWith("$2")) {
+      console.warn("Admin login failed: malformed stored password hash", { email: user.email });
+      return errorResponse(res, 401, "Invalid credentials");
+    }
+
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
+      console.warn("Admin login failed: password mismatch", { email: user.email });
       user.failedLoginAttempts += 1;
 
       if (user.failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {

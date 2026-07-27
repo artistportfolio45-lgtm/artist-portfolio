@@ -66,6 +66,10 @@ const userSchema = new mongoose.Schema(
       enum: ["admin"],
       default: "admin",
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     twoFactorEnabled: {
       type: Boolean,
       default: false,

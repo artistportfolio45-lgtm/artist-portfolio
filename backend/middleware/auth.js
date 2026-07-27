@@ -24,6 +24,10 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "User not found", errors: [] });
     }
 
+    if (req.user.isActive === false) {
+      return res.status(401).json({ success: false, message: "User inactive", errors: [] });
+    }
+
     next();
   } catch (error) {
     return res.status(401).json({

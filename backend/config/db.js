@@ -10,22 +10,24 @@ const getDatabaseName = (uri) => {
 };
 
 const connectDB = async () => {
-  if (!process.env.MONGO_URI) {
-    console.error("MongoDB Connection Error: MONGO_URI is not set in .env");
+  const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+
+  if (!mongoUri) {
+    console.error("MongoDB Connection Error: MONGO_URI or MONGODB_URI is not set");
     process.exit(1);
   }
 
   try {
-    const dbName = getDatabaseName(process.env.MONGO_URI);
+    const dbName = getDatabaseName(mongoUri);
     if (process.env.NODE_ENV === "production" && dbName !== "artistPortfolio") {
-      throw new Error(`MONGO_URI must target /artistPortfolio in production; current database is "${dbName || "unknown"}"`);
+      throw new Error(`MongoDB URI must target /artistPortfolio in production; current database is "${dbName || "unknown"}"`);
     }
 
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    const conn = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
     });
 
-    console.log(`MongoDB connected: ${conn.connection.host}/${conn.connection.name}`);
+    console.log(`Connected to MongoDB database: ${conn.connection.name}`);
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
 

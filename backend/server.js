@@ -5,7 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
-const { assertAdminSeedConfig, seedAdminAccount } = require("./utils/adminSeed");
+const { assertAdminSeedConfig, ensureAdminUser, getMongoUri } = require("./utils/adminSeed");
 const {
   generalRateLimiter,
   loginRateLimiter,
@@ -155,12 +155,12 @@ const startServer = async () => {
 
   if (process.env.SEED_ADMIN_ON_START === "true" || process.env.RESET_ADMIN_2FA_ON_START === "true") {
     assertAdminSeedConfig({
-      mongoUri: process.env.MONGO_URI,
+      mongoUri: getMongoUri(),
       email: process.env.ADMIN_EMAIL,
       password: process.env.ADMIN_PASSWORD,
     });
 
-    await seedAdminAccount({
+    await ensureAdminUser({
       email: process.env.ADMIN_EMAIL,
       password: process.env.ADMIN_PASSWORD,
       resetTwoFactor: process.env.RESET_ADMIN_2FA_ON_START === "true",

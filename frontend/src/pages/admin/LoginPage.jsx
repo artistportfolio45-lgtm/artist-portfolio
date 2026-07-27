@@ -31,7 +31,7 @@ const LoginPage = () => {
           : { twoFactorCode: secondFactor.code }
         : undefined;
 
-      const result = await login(form.email, form.password, payload);
+      const result = await login(form.email.trim().toLowerCase(), form.password, payload);
 
       if (result?.requiresTwoFactor) {
         setRequiresTwoFactor(true);

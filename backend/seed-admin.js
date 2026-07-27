@@ -1,21 +1,22 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const { assertAdminSeedConfig, seedAdminAccount } = require("./utils/adminSeed");
+const { assertAdminSeedConfig, ensureAdminUser, getMongoUri } = require("./utils/adminSeed");
 
 const seedAdmin = async () => {
-  const { MONGO_URI, ADMIN_EMAIL, ADMIN_PASSWORD, RESET_ADMIN_TOTP, RESET_ADMIN_2FA_ON_START } = process.env;
+  const { ADMIN_EMAIL, ADMIN_PASSWORD, RESET_ADMIN_TOTP, RESET_ADMIN_2FA_ON_START } = process.env;
+  const mongoUri = getMongoUri();
 
   assertAdminSeedConfig({
-    mongoUri: MONGO_URI,
+    mongoUri,
     email: ADMIN_EMAIL,
     password: ADMIN_PASSWORD,
   });
 
-  await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 10000 });
+  await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
   console.log(`Connected to MongoDB database: ${mongoose.connection.name}`);
 
   const resetTwoFactor = RESET_ADMIN_TOTP === "true" || RESET_ADMIN_2FA_ON_START === "true";
-  await seedAdminAccount({
+  await ensureAdminUser({
     email: ADMIN_EMAIL,
     password: ADMIN_PASSWORD,
     resetTwoFactor,
