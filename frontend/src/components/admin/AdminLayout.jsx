@@ -21,7 +21,7 @@ const AdminLayout = ({ children }) => {
   const handleLogout = () => {
     logout();
     toast.success("Logged out");
-    navigate("/admin/login");
+    navigate("/admin/login", { replace: true });
   };
 
   const Sidebar = () => (

@@ -49,7 +49,7 @@ const LoginPage = () => {
       }
 
       toast.success("Welcome back!");
-      navigate("/admin/dashboard");
+      navigate("/admin/dashboard", { replace: true });
     } catch (err) {
       const message =
         err.response?.data?.message ||

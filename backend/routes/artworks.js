@@ -7,7 +7,6 @@ const Artwork = require("../models/Artwork");
 const { protect } = require("../middleware/auth");
 const { uploadRateLimiter } = require("../middleware/rateLimiter");
 const { uploadArtwork, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
 
 // ─── PUBLIC ROUTES ──────────────────────────────────────────────────────────
 
@@ -147,7 +146,6 @@ router.post("/", uploadRateLimiter, protect, uploadArtwork.array("images", 10), 
       images,
     });
 
-    triggerStaticRebuild("artwork-created");
     res.status(201).json({ success: true, message: "Artwork created", artwork });
   } catch (error) {
     console.error("Create artwork error:", error);
@@ -178,7 +176,6 @@ router.put("/:id", protect, async (req, res) => {
     if (year !== undefined) artwork.year = year ? parseInt(year) : null;
 
     await artwork.save();
-    triggerStaticRebuild("artwork-updated");
     res.json({ success: true, message: "Artwork updated", artwork });
   } catch (error) {
     console.error("Update artwork error:", error);
@@ -205,7 +202,6 @@ router.post("/:id/images", uploadRateLimiter, protect, uploadArtwork.array("imag
     artwork.images.push(...newImages);
     await artwork.save();
 
-    triggerStaticRebuild("artwork-images-added");
     res.json({ success: true, message: "Images added", artwork });
   } catch (error) {
     console.error("Add images error:", error);
@@ -233,7 +229,6 @@ router.delete("/:id/images/:publicId", protect, async (req, res) => {
     artwork.images = artwork.images.filter((img) => img.publicId !== publicId);
     await artwork.save();
 
-    triggerStaticRebuild("artwork-image-removed");
     res.json({ success: true, message: "Image removed", artwork });
   } catch (error) {
     console.error("Delete image error:", error);
@@ -259,7 +254,6 @@ router.delete("/:id", protect, async (req, res) => {
 
     await artwork.deleteOne();
 
-    triggerStaticRebuild("artwork-deleted");
     res.json({ success: true, message: "Artwork deleted" });
   } catch (error) {
     console.error("Delete artwork error:", error);

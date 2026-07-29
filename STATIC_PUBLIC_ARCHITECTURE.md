@@ -1,14 +1,20 @@
-# Static Public Portfolio Architecture
+# Live Public Portfolio Architecture
 
 ## Request Flow
 
-Public visitors no longer call the Render API.
+Public visitors call the Render API first.
+
+```text
+Visitor -> Netlify React app -> Render Express API -> MongoDB Atlas -> Cloudinary image URLs
+```
+
+If the live API is unavailable, the frontend falls back to the static JSON snapshot.
 
 ```text
 Visitor -> Netlify React app -> /data/portfolio.json -> Cloudinary image URLs
 ```
 
-The admin dashboard still uses the backend.
+The admin dashboard also uses the backend.
 
 ```text
 Artist -> /admin -> Render Express API -> MongoDB Atlas -> Cloudinary
@@ -18,13 +24,14 @@ Artist -> /admin -> Render Express API -> MongoDB Atlas -> Cloudinary
 
 1. The artist edits artwork, profile, logo, or settings in the admin dashboard.
 2. The Express API saves the change in MongoDB or Cloudinary.
-3. The API calls `NETLIFY_BUILD_HOOK_URL` when that environment variable is set.
-4. Netlify starts a new frontend build.
-5. `npm run build` runs `scripts/generate-public-data.mjs`.
-6. That script fetches `${VITE_API_URL}/public-data` and writes `public/data/portfolio.json`.
-7. Vite builds and deploys the static site.
+3. Public gallery refreshes fetch the latest API data with no-store cache busters.
+4. No Netlify build hook runs for individual artwork create, update, image, or delete operations.
+5. If a static JSON refresh is needed, an admin can trigger `POST /api/public-data/rebuild`, or use a scheduled/batched deployment process.
+6. Netlify runs `npm run build`, which runs `scripts/generate-public-data.mjs`.
+7. That script fetches `${VITE_API_URL}/public-data` and writes `public/data/portfolio.json`.
+8. Vite builds and deploys the fallback snapshot.
 
-Render cold starts can still happen during admin work or Netlify builds, but not during normal visitor page loads.
+Render cold starts can happen for public visitors because the live API is now the primary runtime data source.
 
 ## Folder Structure
 
@@ -46,7 +53,7 @@ frontend/
   src/
     services/
       api.js               # Admin/backend API client
-      publicData.js        # Public static JSON client
+      publicData.js        # Public live API client with static JSON fallback
       netlifyForms.js      # Public form submission to Netlify Forms
 ```
 

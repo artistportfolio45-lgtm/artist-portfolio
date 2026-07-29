@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const { protect } = require("../middleware/auth");
 const { buildPublicSnapshot } = require("../utils/publicSnapshot");
+const { triggerStaticRebuild } = require("../utils/staticRebuild");
 
 router.get("/", async (req, res) => {
   try {
@@ -14,6 +16,23 @@ router.get("/", async (req, res) => {
   } catch (error) {
     console.error("Public data export error:", error);
     res.status(500).json({ success: false, message: "Failed to export public data" });
+  }
+});
+
+router.post("/rebuild", protect, async (req, res) => {
+  try {
+    const result = await triggerStaticRebuild(req.body?.reason || "manual-public-data-rebuild");
+    if (!result.triggered) {
+      return res.status(400).json({
+        success: false,
+        message: result.message || "Netlify build hook is not configured",
+      });
+    }
+
+    res.json({ success: true, message: "Netlify rebuild triggered" });
+  } catch (error) {
+    console.error("Manual public data rebuild error:", error);
+    res.status(500).json({ success: false, message: "Failed to trigger rebuild" });
   }
 });
 

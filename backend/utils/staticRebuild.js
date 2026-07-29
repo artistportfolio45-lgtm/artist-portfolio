@@ -1,12 +1,8 @@
-let lastTriggerAt = 0;
-
 const triggerStaticRebuild = async (reason) => {
   const hookUrl = process.env.NETLIFY_BUILD_HOOK_URL;
-  if (!hookUrl) return;
-
-  const now = Date.now();
-  if (now - lastTriggerAt < 30000) return;
-  lastTriggerAt = now;
+  if (!hookUrl) {
+    return { triggered: false, message: "NETLIFY_BUILD_HOOK_URL is not configured" };
+  }
 
   try {
     const response = await fetch(hookUrl, {
@@ -17,9 +13,13 @@ const triggerStaticRebuild = async (reason) => {
 
     if (!response.ok) {
       console.error(`Netlify rebuild hook failed: ${response.status}`);
+      return { triggered: false, message: `Netlify rebuild hook failed: ${response.status}` };
     }
+
+    return { triggered: true };
   } catch (error) {
     console.error("Netlify rebuild hook error:", error.message);
+    return { triggered: false, message: error.message };
   }
 };
 

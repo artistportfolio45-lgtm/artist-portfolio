@@ -19,6 +19,11 @@ export const clearStoredAuth = () => {
   });
 };
 
+export const clearLegacyPersistentAuth = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+};
+
 const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
@@ -27,7 +32,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -108,6 +113,10 @@ export const settingsAPI = {
 
 export const activityAPI = {
   getAll: (params) => api.get("/activity", { params }),
+};
+
+export const publicSnapshotAPI = {
+  rebuild: (reason = "manual-public-data-rebuild") => api.post("/public-data/rebuild", { reason }),
 };
 
 export default api;

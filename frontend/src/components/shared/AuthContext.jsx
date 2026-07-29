@@ -2,7 +2,7 @@
 // Global auth state — login, logout, token persistence
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { authAPI, clearStoredAuth } from "../../services/api";
+import { authAPI, clearLegacyPersistentAuth, clearStoredAuth } from "../../services/api";
 
 const AuthContext = createContext(null);
 
@@ -12,21 +12,27 @@ export const AuthProvider = ({ children }) => {
 
   // Verify token on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    clearLegacyPersistentAuth();
+
+    const token = sessionStorage.getItem("token");
     if (token) {
       authAPI.me()
         .then((res) => {
           const userData = (res.data.data || res.data).user;
           if (!userData) throw new Error("Invalid session response");
-          localStorage.setItem("user", JSON.stringify(userData));
+          sessionStorage.setItem("user", JSON.stringify(userData));
           setUser(userData);
         })
         .catch(() => {
           clearStoredAuth();
           setUser(null);
+          if (window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
+            window.location.replace("/admin/login");
+          }
         })
         .finally(() => setLoading(false));
     } else {
+      sessionStorage.removeItem("user");
       setLoading(false);
     }
   }, []);
@@ -39,8 +45,9 @@ export const AuthProvider = ({ children }) => {
     }
 
     const { token, user: userData } = authData;
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
+    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("user", JSON.stringify(userData));
+    clearLegacyPersistentAuth();
     setUser(userData);
     return userData;
   };

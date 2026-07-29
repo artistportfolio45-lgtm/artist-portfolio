@@ -6,7 +6,6 @@ const router = express.Router();
 const ArtistProfile = require("../models/ArtistProfile");
 const { protect } = require("../middleware/auth");
 const { uploadProfile, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
 
 // Helper: get or create the single profile document
 const getOrCreateProfile = async () => {
@@ -51,7 +50,6 @@ router.put("/", protect, async (req, res) => {
 
     await profile.save();
 
-    triggerStaticRebuild("profile-updated");
     res.json({ success: true, message: "Profile updated", profile });
   } catch (error) {
     console.error("Update profile error:", error);
@@ -84,7 +82,6 @@ router.put("/photo", protect, uploadProfile.single("photo"), async (req, res) =>
     profile.profilePhotoPublicId = uploadedPhoto.publicId;
     await profile.save();
 
-    triggerStaticRebuild("profile-photo-updated");
     res.json({ success: true, message: "Profile photo updated", profile });
   } catch (error) {
     console.error("Photo upload error:", error);

@@ -26,7 +26,7 @@ Place this `README.md` at the project root, beside `frontend` and `backend`.
 - Admin-controlled website themes with preset palettes and custom colors
 - SEO metadata, theme colors, and maintenance mode settings
 - Inquiry/contact form
-- Static public portfolio data for fast public pages
+- Live public portfolio data from the backend API with static JSON fallback
 - Netlify Forms support for public contact and artwork inquiries
 - Admin activity logs
 - MongoDB Atlas database support
@@ -146,7 +146,7 @@ FRONTEND_URL=http://localhost:5173
 # Backend URL for security headers in deployed environments
 BACKEND_URL=http://localhost:5000
 
-# Optional static public data export and rebuild hook
+# Optional static public data export and manual rebuild hook
 PUBLIC_DATA_EXPORT_KEY=optional_shared_secret
 NETLIFY_BUILD_HOOK_URL=https://api.netlify.com/build_hooks/...
 ```
@@ -504,7 +504,15 @@ Public data:
 GET /api/public-data
 ```
 
-This endpoint exports the public snapshot used by the static frontend. If `PUBLIC_DATA_EXPORT_KEY` is set on the backend, requests must include the same value in the `x-static-export-key` header.
+This endpoint exports the public snapshot used as a fallback by the frontend. If `PUBLIC_DATA_EXPORT_KEY` is set on the backend, requests must include the same value in the `x-static-export-key` header.
+
+Manual static rebuild:
+
+```text
+POST /api/public-data/rebuild
+```
+
+This protected admin endpoint triggers `NETLIFY_BUILD_HOOK_URL` when configured. Artwork, profile, and settings saves do not trigger Netlify builds automatically.
 
 Inquiries:
 
@@ -516,17 +524,27 @@ PATCH  /api/inquiries/:id/read
 DELETE /api/inquiries/:id
 ```
 
-Public contact and artwork inquiry forms submit through Netlify Forms in the current static public architecture. The `/api/inquiries` routes still exist for stored MongoDB inquiries and admin/history workflows.
+Public contact and artwork inquiry forms submit through Netlify Forms. The `/api/inquiries` routes still exist for stored MongoDB inquiries and admin/history workflows.
 
-## Static Public Site Flow
+## Public Site Data Flow
 
-Public visitors load portfolio content from:
+Public visitors load portfolio content from the live backend API first:
+
+```text
+GET /api/artworks
+GET /api/artworks/:id
+GET /api/artworks/categories
+GET /api/profile
+GET /api/settings
+```
+
+The frontend sends no-store cache busters with public API reads, so artwork create, edit, and delete changes appear after a browser refresh without redeploying Netlify. If the live API is unavailable, the frontend falls back to:
 
 ```text
 frontend/public/data/portfolio.json
 ```
 
-Admin changes still go through the backend and MongoDB. When artwork, profile, or settings data changes, the backend calls `NETLIFY_BUILD_HOOK_URL` if it is configured. Netlify then runs the frontend build, regenerates `portfolio.json`, and deploys the updated static site.
+That JSON snapshot can still be refreshed by a manual rebuild, or by a scheduled/batched deployment process outside individual artwork operations.
 
 See `STATIC_PUBLIC_ARCHITECTURE.md` for the fuller deployment notes.
 

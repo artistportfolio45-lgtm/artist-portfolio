@@ -6,7 +6,6 @@ const router = express.Router();
 const Settings = require("../models/Settings");
 const { protect } = require("../middleware/auth");
 const { uploadLogo, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
 
 // Helper: get or create the single settings document
 const getOrCreateSettings = async () => {
@@ -109,7 +108,6 @@ router.put("/", protect, async (req, res) => {
 
     await settings.save();
 
-    triggerStaticRebuild("settings-updated");
     res.json({ success: true, message: "Settings updated", settings });
   } catch (error) {
     console.error("Update settings error:", error);
@@ -142,7 +140,6 @@ router.put("/logo", protect, uploadLogo.single("logo"), async (req, res) => {
     settings.logoPublicId = uploadedLogo.publicId;
     await settings.save();
 
-    triggerStaticRebuild("settings-logo-updated");
     res.json({ success: true, message: "Logo updated", settings });
   } catch (error) {
     console.error("Logo upload error:", error);
