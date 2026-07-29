@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import PublicLayout from "../../components/public/PublicLayout";
 import { publicDataAPI } from "../../services/publicData";
+import { inquiryAPI } from "../../services/api";
 import { submitNetlifyForm } from "../../services/netlifyForms";
 import { validateInquiryForm } from "../../services/inquiryValidation";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -59,26 +60,43 @@ const ContactPage = () => {
     setSubmitting(true);
     try {
       const selectedArtwork = artworks.find((artwork) => artwork._id === form.artworkId);
-
-      await submitNetlifyForm("contact", {
+      const payload = {
         name: data.name,
         email: data.email,
-        phone: data.phone,
-        subject: data.subject,
+        phone: data.phone || undefined,
+        subject: data.subject || "General Enquiry",
         message: data.message,
         inquiryType: selectedArtwork ? "artwork" : "contact",
         sourcePage: window.location.href,
+      };
+
+      if (selectedArtwork) {
+        payload.artwork = selectedArtwork._id;
+        payload.artworkTitle = selectedArtwork.title;
+        payload.artworkUrl = `${window.location.origin}/artwork/${selectedArtwork._id}`;
+      }
+
+      await inquiryAPI.create(payload);
+
+      submitNetlifyForm("contact", {
+        ...payload,
         artworkId: selectedArtwork?._id,
         artworkTitle: selectedArtwork?.title || "General Enquiry",
-        artworkUrl: selectedArtwork ? `${window.location.origin}/artwork/${selectedArtwork._id}` : undefined,
+      }).catch((error) => {
+        console.warn("Netlify backup enquiry submission failed after backend save.", error);
       });
 
       toast.success("Thank you. Your message has been sent successfully.");
       setSent(true);
       setErrors({});
       setForm(emptyForm);
-    } catch {
-      const message = "We could not send your message. Please try again.";
+    } catch (error) {
+      console.error("Backend enquiry submission failed:", error);
+      const message =
+        error.response?.data?.message ||
+        (error.request
+          ? "We could not reach the enquiry service. Please try again."
+          : "We could not send your message. Please try again.");
       setErrors({ form: message });
       toast.error(message);
     } finally {

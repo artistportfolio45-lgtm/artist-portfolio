@@ -17,9 +17,24 @@ const inquirySchema = new mongoose.Schema(
       trim: true,
     },
     phone: { type: String, default: "" },
+    subject: {
+      type: String,
+      trim: true,
+      default: "General Enquiry",
+    },
     message: {
       type: String,
       required: [true, "Message is required"],
+    },
+    inquiryType: {
+      type: String,
+      enum: ["contact", "artwork"],
+      default: "contact",
+    },
+    artwork: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Artwork",
+      default: null,
     },
     artworkInterested: {
       // Reference to Artwork — optional (general inquiries allowed)
@@ -29,6 +44,14 @@ const inquirySchema = new mongoose.Schema(
     },
     artworkTitle: {
       // Stored separately so it remains readable even if artwork is deleted
+      type: String,
+      default: "",
+    },
+    artworkUrl: {
+      type: String,
+      default: "",
+    },
+    sourcePage: {
       type: String,
       default: "",
     },

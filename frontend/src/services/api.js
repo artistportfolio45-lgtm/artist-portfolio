@@ -98,6 +98,7 @@ export const artworkAPI = {
 };
 
 export const inquiryAPI = {
+  create: (data) => api.post("/inquiries", data),
   submit: (data) => api.post("/inquiries", data),
   getAll: (params) => api.get("/inquiries", { params }),
   getById: (id) => api.get(`/inquiries/${id}`),

@@ -3,16 +3,32 @@
 
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const Inquiry = require("../models/Inquiry");
 const Artwork = require("../models/Artwork");
 const { protect } = require("../middleware/auth");
+
+const trimOptional = (value) => (typeof value === "string" ? value.trim() : "");
 
 // @route   POST /api/inquiries
 // @desc    Submit an inquiry (public)
 // @access  Public
 router.post("/", async (req, res) => {
   try {
-    const { name, email, phone, message, artworkId } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      subject,
+      message,
+      inquiryType,
+      artwork,
+      artworkId,
+      artworkInterested,
+      artworkTitle: submittedArtworkTitle,
+      artworkUrl,
+      sourcePage,
+    } = req.body;
 
     if (!name || !email || !message) {
       return res.status(400).json({ success: false, message: "Name, email, and message are required" });
@@ -26,22 +42,32 @@ router.post("/", async (req, res) => {
 
     let artworkTitle = "";
     let artworkRef = null;
+    const requestedArtworkId = artwork || artworkId || artworkInterested;
 
-    if (artworkId) {
-      const artwork = await Artwork.findById(artworkId).select("title");
-      if (artwork) {
-        artworkTitle = artwork.title;
-        artworkRef = artworkId;
+    if (requestedArtworkId) {
+      if (!mongoose.Types.ObjectId.isValid(requestedArtworkId)) {
+        return res.status(400).json({ success: false, message: "Invalid artwork selected" });
+      }
+
+      const artworkDoc = await Artwork.findById(requestedArtworkId).select("title");
+      if (artworkDoc) {
+        artworkTitle = artworkDoc.title;
+        artworkRef = artworkDoc._id;
       }
     }
 
     const inquiry = await Inquiry.create({
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      phone: phone || "",
+      phone: trimOptional(phone),
+      subject: trimOptional(subject) || "General Enquiry",
       message: message.trim(),
+      inquiryType: inquiryType === "artwork" || artworkRef ? "artwork" : "contact",
+      artwork: artworkRef,
       artworkInterested: artworkRef,
-      artworkTitle,
+      artworkTitle: artworkTitle || trimOptional(submittedArtworkTitle),
+      artworkUrl: trimOptional(artworkUrl),
+      sourcePage: trimOptional(sourcePage),
     });
 
     res.status(201).json({ success: true, message: "Inquiry submitted successfully", inquiry });
