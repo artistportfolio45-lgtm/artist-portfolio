@@ -44,7 +44,7 @@ function createStorage(opts) {
 const artworkStorage = createStorage({
   params: {
     folder: "artist-portfolio/artworks",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "avif"],
     transformation: [{ quality: "auto", fetch_format: "auto" }],
   },
 });
@@ -74,6 +74,8 @@ const uploadLogo = multer({ storage: logoStorage });
 const getCloudinaryFileInfo = (file) => ({
   url: file?.path || file?.secure_url || file?.url,
   publicId: file?.filename || file?.public_id || file?.publicId,
+  ...(Number(file?.width) > 0 ? { width: Number(file.width) } : {}),
+  ...(Number(file?.height) > 0 ? { height: Number(file.height) } : {}),
 });
 
 module.exports = {

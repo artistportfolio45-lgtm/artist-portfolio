@@ -6,24 +6,26 @@ const mongoose = require("mongoose");
 const imageSchema = new mongoose.Schema({
   url: { type: String, required: true },       // Cloudinary secure URL
   publicId: { type: String, required: true },  // For Cloudinary deletion
+  width: { type: Number, default: null },
+  height: { type: Number, default: null },
 });
 
 const artworkSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, "Title is required"],
       trim: true,
+      default: "Untitled",
     },
     description: { type: String, default: "" },
     category: {
       type: String,
-      required: [true, "Category is required"],
       trim: true,
+      default: "Uncategorized",
     },
     price: {
       type: Number,
-      required: [true, "Price is required"],
+      default: null,
       min: 0,
     },
     medium: { type: String, default: "" },       // e.g., Oil on Canvas

@@ -22,6 +22,7 @@ const EMPTY_FORM = {
   isAvailable: true,
   isFeatured: false,
 };
+const RECOMMENDED_FIELDS = ["title", "category", "price", "medium", "dimensions", "year", "description"];
 
 const ArtworkFormPage = () => {
   const { id } = useParams();           // undefined in create mode
@@ -35,7 +36,10 @@ const ArtworkFormPage = () => {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [deletingImg, setDeletingImg] = useState(null);
+  const [incompleteWarningShown, setIncompleteWarningShown] = useState(false);
+  const [incompleteFields, setIncompleteFields] = useState([]);
   const fileInputRef = useRef();
+  const fieldRefs = useRef({});
 
   // ── Load existing artwork when in edit mode ──────────────────────────────
   useEffect(() => {
@@ -101,15 +105,67 @@ const ArtworkFormPage = () => {
   };
 
   // ── Field change helper ──────────────────────────────────────────────────
-  const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (String(value).trim()) {
+      setIncompleteFields((prev) => prev.filter((field) => field !== key));
+    }
+  };
+
+  const recommendedFieldProps = (key, baseClass) => {
+    const incomplete = incompleteFields.includes(key);
+    return {
+      id: `artwork-${key}`,
+      ref: (node) => { fieldRefs.current[key] = node; },
+      className: `${baseClass} ${incomplete ? "border-red-400 bg-red-50/70 focus:border-red-500 focus:ring-red-300" : ""}`,
+      "aria-invalid": incomplete ? "true" : undefined,
+      "aria-describedby": incomplete ? `artwork-${key}-hint` : undefined,
+    };
+  };
+
+  const IncompleteHint = ({ field }) => incompleteFields.includes(field) ? (
+    <p id={`artwork-${field}-hint`} className="mt-1.5 text-xs text-red-600">
+      Recommended for a richer portfolio entry. You may leave this blank and submit again.
+    </p>
+  ) : null;
 
   // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.title.trim()) { toast.error("Title is required"); return; }
-    if (!form.category.trim()) { toast.error("Category is required"); return; }
-    if (form.price === "" || isNaN(Number(form.price))) { toast.error("A valid price is required"); return; }
+    if (!isEdit && newFiles.length === 0) {
+      toast.error("Please add at least one image");
+      fileInputRef.current?.focus();
+      return;
+    }
+
+    if (form.price !== "" && (!Number.isFinite(Number(form.price)) || Number(form.price) < 0)) {
+      toast.error("Price must be a valid non-negative number");
+      fieldRefs.current.price?.focus();
+      return;
+    }
+
+    if (form.year !== "" && (!Number.isInteger(Number(form.year)) || Number(form.year) < 0)) {
+      toast.error("Year must be a valid non-negative whole number");
+      fieldRefs.current.year?.focus();
+      return;
+    }
+
+    const missingFields = RECOMMENDED_FIELDS.filter((field) => !String(form[field] ?? "").trim());
+    if (!isEdit && missingFields.length > 0 && !incompleteWarningShown) {
+      setIncompleteWarningShown(true);
+      setIncompleteFields(missingFields);
+      toast("Some artwork details are incomplete. Review the highlighted fields, or click Add Artwork again to continue without them.", {
+        icon: "!",
+        duration: 6000,
+      });
+      requestAnimationFrame(() => {
+        const firstField = fieldRefs.current[missingFields[0]];
+        firstField?.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstField?.focus({ preventScroll: true });
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -138,15 +194,13 @@ const ArtworkFormPage = () => {
         navigate("/admin/artworks");
       } else {
         // Create mode — send everything in one multipart request
-        if (newFiles.length === 0) {
-          toast.error("Please add at least one image");
-          return;
-        }
         const formData = new FormData();
         Object.entries(form).forEach(([k, v]) => formData.append(k, v));
         formData.append("images", newFiles[0]);
 
         await artworkAPI.create(formData);
+        setIncompleteWarningShown(false);
+        setIncompleteFields([]);
         toast.success("Artwork created!");
         navigate("/admin/artworks");
       }
@@ -179,7 +233,13 @@ const ArtworkFormPage = () => {
           </h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          {!isEdit && incompleteWarningShown && incompleteFields.length > 0 && (
+            <div role="status" className="border border-amber-300 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900">
+              <strong className="font-medium">Some details are incomplete.</strong>{" "}
+              Complete the highlighted fields for a richer portfolio entry, or click Add Artwork again to continue.
+            </div>
+          )}
           {/* ── Basic Information ──────────────────────────────── */}
           <div className="bg-white p-6 shadow-sm">
             <h2 className="font-display text-xl font-light mb-5">Basic Information</h2>
@@ -188,32 +248,32 @@ const ArtworkFormPage = () => {
               {/* Title */}
               <div className="sm:col-span-2">
                 <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                  Title <span className="text-red-400">*</span>
+                  Title <span className="normal-case tracking-normal text-slate/40">(recommended)</span>
                 </label>
                 <input
                   type="text"
                   value={form.title}
                   onChange={(e) => set("title", e.target.value)}
-                  className="input-field"
+                  {...recommendedFieldProps("title", "input-field")}
                   placeholder="e.g. Crimson Horizon"
-                  required
                 />
+                <IncompleteHint field="title" />
               </div>
 
               {/* Category */}
               <div>
                 <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                  Category <span className="text-red-400">*</span>
+                  Category <span className="normal-case tracking-normal text-slate/40">(recommended)</span>
                 </label>
                 <input
                   type="text"
                   value={form.category}
                   onChange={(e) => set("category", e.target.value)}
-                  className="input-field"
+                  {...recommendedFieldProps("category", "input-field")}
                   placeholder="e.g. Landscape, Portrait, Abstract"
                   list="category-suggestions"
-                  required
                 />
+                <IncompleteHint field="category" />
                 <datalist id="category-suggestions">
                   {["Landscape", "Portrait", "Abstract", "Still Life", "Figurative", "Seascape", "Cityscape", "Wildlife"].map((c) => (
                     <option key={c} value={c} />
@@ -224,7 +284,7 @@ const ArtworkFormPage = () => {
               {/* Price */}
               <div>
                 <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                  Price (₹) <span className="text-red-400">*</span>
+                  Price (₹) <span className="normal-case tracking-normal text-slate/40">(recommended)</span>
                 </label>
                 <input
                   type="number"
@@ -232,10 +292,10 @@ const ArtworkFormPage = () => {
                   step="1"
                   value={form.price}
                   onChange={(e) => set("price", e.target.value)}
-                  className="input-field"
+                  {...recommendedFieldProps("price", "input-field")}
                   placeholder="e.g. 25000"
-                  required
                 />
+                <IncompleteHint field="price" />
               </div>
 
               {/* Medium */}
@@ -247,10 +307,11 @@ const ArtworkFormPage = () => {
                   type="text"
                   value={form.medium}
                   onChange={(e) => set("medium", e.target.value)}
-                  className="input-field"
+                  {...recommendedFieldProps("medium", "input-field")}
                   placeholder="e.g. Oil on Canvas"
                   list="medium-suggestions"
                 />
+                <IncompleteHint field="medium" />
                 <datalist id="medium-suggestions">
                   {["Oil on Canvas", "Acrylic on Canvas", "Watercolour on Paper", "Mixed Media", "Charcoal on Paper", "Pastel on Board"].map((m) => (
                     <option key={m} value={m} />
@@ -267,9 +328,10 @@ const ArtworkFormPage = () => {
                   type="text"
                   value={form.dimensions}
                   onChange={(e) => set("dimensions", e.target.value)}
-                  className="input-field"
+                  {...recommendedFieldProps("dimensions", "input-field")}
                   placeholder='e.g. 24" × 36" or 60 × 90 cm'
                 />
+                <IncompleteHint field="dimensions" />
               </div>
 
               {/* Year */}
@@ -283,9 +345,10 @@ const ArtworkFormPage = () => {
                   max={new Date().getFullYear()}
                   value={form.year}
                   onChange={(e) => set("year", e.target.value)}
-                  className="input-field"
+                  {...recommendedFieldProps("year", "input-field")}
                   placeholder={new Date().getFullYear()}
                 />
+                <IncompleteHint field="year" />
               </div>
 
               {/* Description */}
@@ -296,10 +359,11 @@ const ArtworkFormPage = () => {
                 <textarea
                   value={form.description}
                   onChange={(e) => set("description", e.target.value)}
-                  className="textarea-field"
+                  {...recommendedFieldProps("description", "textarea-field")}
                   rows={4}
                   placeholder="Describe the artwork, its inspiration, or technique…"
                 />
+                <IncompleteHint field="description" />
               </div>
             </div>
           </div>
@@ -433,11 +497,11 @@ const ArtworkFormPage = () => {
               <p className="text-sm text-slate/60 mb-1">
                 Click to select one image
               </p>
-              <p className="text-xs text-slate/40">JPG, PNG, or WebP. Use Bulk Add to create many artworks.</p>
+              <p className="text-xs text-slate/40">JPG, JPEG, PNG, WebP, or AVIF.</p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif"
                 className="hidden"
                 onChange={handleFiles}
               />
@@ -457,7 +521,7 @@ const ArtworkFormPage = () => {
             >
               {saving
                 ? <><LoadingSpinner size="sm" light />{isEdit ? "Saving…" : "Creating…"}</>
-                : isEdit ? "Save Changes" : "Create Artwork"
+                : isEdit ? "Save Changes" : "Add Artwork"
               }
             </button>
             <Link to="/admin/artworks" className="btn-secondary">

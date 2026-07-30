@@ -23,6 +23,20 @@ const toPlainObject = (document) => {
   return document.toObject ? document.toObject({ versionKey: false }) : document;
 };
 
+const normalizeArtwork = (artwork) => ({
+  ...artwork,
+  title: artwork.title?.trim() || "Untitled",
+  description: artwork.description?.trim() || "",
+  category: artwork.category?.trim() || "Uncategorized",
+  price: Number.isFinite(artwork.price) && artwork.price >= 0 ? artwork.price : null,
+  medium: artwork.medium?.trim() || "",
+  dimensions: artwork.dimensions?.trim() || "",
+  year: Number.isFinite(artwork.year) ? artwork.year : null,
+  isAvailable: artwork.isAvailable !== false,
+  isFeatured: artwork.isFeatured === true,
+  images: Array.isArray(artwork.images) ? artwork.images.filter((image) => image?.url) : [],
+});
+
 const buildPublicSnapshot = async () => {
   const [settings, profile, artworks, categories] = await Promise.all([
     getOrCreateSettings(),
@@ -35,8 +49,11 @@ const buildPublicSnapshot = async () => {
     generatedAt: new Date().toISOString(),
     settings: toPlainObject(settings),
     profile: toPlainObject(profile),
-    artworks,
-    categories: categories.filter(Boolean).sort(),
+    artworks: artworks.map(normalizeArtwork),
+    categories: [...new Set([
+      ...categories.filter(Boolean),
+      ...artworks.map((artwork) => artwork.category?.trim() || "Uncategorized"),
+    ])].sort(),
   };
 };
 

@@ -1,7 +1,7 @@
 // pages/public/ArtworkDetailPage.jsx
 // Single artwork detail page with gallery and inquiry form.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import BackButton from "../../components/shared/BackButton";
@@ -11,6 +11,7 @@ import { validateInquiryForm } from "../../services/inquiryValidation";
 import { PageLoader } from "../../components/shared/LoadingSpinner";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
+import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
 
 const emptyInquiryForm = {
   name: "",
@@ -30,6 +31,8 @@ const ArtworkDetailPage = () => {
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState(emptyInquiryForm);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const artworkImageRef = useRef(null);
 
   useEffect(() => {
     publicDataAPI.getArtworkById(id, { onLiveData: setArtwork })
@@ -108,11 +111,14 @@ const ArtworkDetailPage = () => {
     );
   }
 
-  const formattedPrice = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(artwork.price);
+  const formattedPrice = artwork.price === null || artwork.price === undefined
+    ? null
+    : new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }).format(artwork.price);
+  const hasFacts = Boolean(artwork.medium || artwork.dimensions || artwork.year);
 
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const primaryImage = artwork.images?.[0]?.url || "";
@@ -133,19 +139,28 @@ const ArtworkDetailPage = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
             <div>
-              <div className="aspect-artwork bg-gray-50 overflow-hidden mb-4">
+              <button
+                ref={artworkImageRef}
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="group mb-4 flex min-h-[48vh] w-full cursor-zoom-in items-center justify-center overflow-hidden bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 lg:min-h-[68vh]"
+                aria-label={`Open full-screen preview of ${artwork.title}`}
+              >
                 {artwork.images?.[activeImage]?.url ? (
                   <img
                     src={artwork.images[activeImage].url}
                     alt={`${artwork.title} image ${activeImage + 1}`}
-                    className="w-full h-full object-contain"
+                    width={artwork.images[activeImage].width || undefined}
+                    height={artwork.images[activeImage].height || undefined}
+                    className="max-h-[78vh] h-auto w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+                    decoding="async"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <span className="text-gray-200 text-8xl">&#128444;</span>
                   </div>
                 )}
-              </div>
+              </button>
 
               {artwork.images?.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-2">
@@ -167,7 +182,9 @@ const ArtworkDetailPage = () => {
             </div>
 
             <div className="flex flex-col">
-              <p className="eyebrow mb-3">{artwork.category}</p>
+              {artwork.category && artwork.category !== "Uncategorized" && (
+                <p className="eyebrow mb-3">{artwork.category}</p>
+              )}
               <h1 className="font-display text-4xl md:text-5xl font-light text-charcoal mb-4 leading-tight">
                 {artwork.title}
               </h1>
@@ -178,9 +195,11 @@ const ArtworkDetailPage = () => {
                 {artwork.isAvailable ? "Available for Enquiry" : "Not Available for Enquiry"}
               </span>
 
-              <p className="font-display text-3xl text-charcoal mb-8">{formattedPrice}</p>
+              {formattedPrice && (
+                <p className="font-display text-3xl text-charcoal mb-8">{formattedPrice}</p>
+              )}
 
-              <div className="grid grid-cols-2 gap-4 mb-8 border-t border-b border-gray-100 py-6">
+              {hasFacts && <div className="grid grid-cols-2 gap-4 mb-8 border-t border-b border-gray-100 py-6">
                 {artwork.medium && (
                   <div>
                     <p className="text-xs font-label text-slate/50 tracking-widest uppercase mb-1">Medium</p>
@@ -199,7 +218,7 @@ const ArtworkDetailPage = () => {
                     <p className="text-sm text-charcoal">{artwork.year}</p>
                   </div>
                 )}
-              </div>
+              </div>}
 
               {artwork.description && (
                 <p className="text-slate leading-relaxed mb-8 font-light">{artwork.description}</p>
@@ -353,6 +372,17 @@ const ArtworkDetailPage = () => {
           </div>
         </div>
       </div>
+      {previewOpen && (
+        <ArtworkPreviewModal
+          artwork={artwork}
+          initialIndex={activeImage}
+          onIndexChange={setActiveImage}
+          onClose={() => {
+            setPreviewOpen(false);
+            requestAnimationFrame(() => artworkImageRef.current?.focus());
+          }}
+        />
+      )}
     </PublicLayout>
   );
 };

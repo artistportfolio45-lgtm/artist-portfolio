@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkCard from "../../components/public/ArtworkCard";
-import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
 import { publicDataAPI } from "../../services/publicData";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -14,7 +13,6 @@ const HomePage = () => {
   const [featured, setFeatured] = useState([]);
   const [latestArtworks, setLatestArtworks] = useState([]);
   const [profile, setProfile] = useState(null);
-  const [previewArtwork, setPreviewArtwork] = useState(null);
 
   useEffect(() => {
     Promise.allSettled([
@@ -104,7 +102,6 @@ const HomePage = () => {
                 <ArtworkCard
                   key={artwork._id}
                   artwork={artwork}
-                  onPreview={() => setPreviewArtwork(artwork)}
                 />
               ))}
             </div>
@@ -143,7 +140,6 @@ const HomePage = () => {
                 <ArtworkCard
                   key={artwork._id}
                   artwork={artwork}
-                  onPreview={() => setPreviewArtwork(artwork)}
                 />
               ))}
             </div>
@@ -209,7 +205,6 @@ const HomePage = () => {
           </Link>
         </div>
       </section>
-      <ArtworkPreviewModal artwork={previewArtwork} onClose={() => setPreviewArtwork(null)} />
     </PublicLayout>
   );
 };

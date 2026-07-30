@@ -36,6 +36,8 @@ const normalizeImage = (image) => {
     ...image,
     url,
     publicId: image.publicId || image.public_id || image.cloudinaryPublicId || "",
+    width: Number(image.width) > 0 ? Number(image.width) : null,
+    height: Number(image.height) > 0 ? Number(image.height) : null,
   };
 };
 
@@ -55,13 +57,29 @@ export const normalizeArtwork = (artwork) => {
     artwork.thumbnail,
   ]
     .map(normalizeImage)
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((image, index, all) => all.findIndex((candidate) => candidate.url === image.url) === index);
+  const rawPrice =
+    artwork.price === "" || artwork.price === undefined || artwork.price === null
+      ? null
+      : Number(artwork.price);
+  const rawYear =
+    artwork.year === "" || artwork.year === undefined || artwork.year === null
+      ? null
+      : Number(artwork.year);
 
   return {
     ...artwork,
     _id: String(id || ""),
+    title: String(artwork.title || "").trim() || "Untitled",
+    description: String(artwork.description || "").trim(),
+    category: String(artwork.category || "").trim() || "Uncategorized",
+    price: Number.isFinite(rawPrice) && rawPrice >= 0 ? rawPrice : null,
+    medium: String(artwork.medium || "").trim(),
+    dimensions: String(artwork.dimensions || "").trim(),
+    year: Number.isFinite(rawYear) ? rawYear : null,
     images,
-    isAvailable,
+    isAvailable: isAvailable !== false,
     isFeatured: artwork.isFeatured ?? artwork.featured ?? false,
   };
 };
@@ -95,9 +113,10 @@ const pickPagination = (data, total) => {
 const normalizePortfolio = (data) => {
   const payload = unwrap(data);
   const artworks = normalizeArtworksArray(pickArtworks(payload));
-  const categories = Array.isArray(payload?.categories)
-    ? payload.categories.filter(Boolean).sort()
-    : [...new Set(artworks.map((artwork) => artwork.category).filter(Boolean))].sort();
+  const categories = [...new Set([
+    ...(Array.isArray(payload?.categories) ? payload.categories : []),
+    ...artworks.map((artwork) => artwork.category || "Uncategorized"),
+  ].filter(Boolean))].sort();
 
   return {
     ...emptyPortfolio,
@@ -162,7 +181,11 @@ const sortArtworks = (artworks, sort = "createdAt", order = "desc") => {
     const second = b?.[sortKey];
 
     if (sortKey === "price" || sortKey === "year") {
-      return ((Number(first) || 0) - (Number(second) || 0)) * direction;
+      const firstMissing = first === null || first === undefined || first === "";
+      const secondMissing = second === null || second === undefined || second === "";
+      if (firstMissing !== secondMissing) return firstMissing ? 1 : -1;
+      if (firstMissing) return 0;
+      return (Number(first) - Number(second)) * direction;
     }
 
     if (sortKey === "isAvailable" || sortKey === "isFeatured") {

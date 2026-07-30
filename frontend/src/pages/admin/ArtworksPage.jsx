@@ -58,7 +58,13 @@ const ArtworksPage = () => {
       const first = a[sort.key];
       const second = b[sort.key];
 
-      if (sort.key === "price") return ((first || 0) - (second || 0)) * direction;
+      if (sort.key === "price") {
+        const firstMissing = first === null || first === undefined || first === "";
+        const secondMissing = second === null || second === undefined || second === "";
+        if (firstMissing !== secondMissing) return firstMissing ? 1 : -1;
+        if (firstMissing) return 0;
+        return (Number(first) - Number(second)) * direction;
+      }
       if (sort.key === "isAvailable") return (Number(Boolean(first)) - Number(Boolean(second))) * direction;
       if (sort.key === "createdAt") return (new Date(first) - new Date(second)) * direction;
 
@@ -90,12 +96,15 @@ const ArtworksPage = () => {
     }
   };
 
-  const formatPrice = (price) =>
-    new Intl.NumberFormat("en-IN", {
+  const formatPrice = (price) => {
+    const numericPrice = Number(price);
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) return "No price";
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
-    }).format(price || 0);
+    }).format(numericPrice);
+  };
 
   const sortMark = (key) => {
     if (sort.key !== key) return "";
@@ -204,19 +213,21 @@ const ArtworksPage = () => {
                     <tr key={artwork._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
                         {artwork.images?.[0]?.url ? (
-                          <img src={artwork.images[0].url} alt={artwork.title} className="w-12 h-12 object-cover" />
+                          <img src={artwork.images[0].url} alt={artwork.title || "Untitled"} className="w-12 h-12 object-cover" />
                         ) : (
                           <div className="w-12 h-12 bg-gray-100 flex items-center justify-center text-xs text-slate/35">None</div>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <p className="font-medium text-charcoal">{artwork.title}</p>
+                        <p className="font-medium text-charcoal">{artwork.title?.trim() || "Untitled"}</p>
                         {artwork.isFeatured && (
                           <span className="text-[10px] font-label tracking-widest uppercase text-gold">Featured</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 hidden md:table-cell text-slate/60">{artwork.category}</td>
-                      <td className="px-4 py-3 hidden lg:table-cell text-slate/60">{formatPrice(artwork.price)}</td>
+                      <td className="px-4 py-3 hidden md:table-cell text-slate/60">{artwork.category?.trim() || "Uncategorized"}</td>
+                      <td className="px-4 py-3 hidden lg:table-cell text-slate/60">
+                        {artwork.price === null || artwork.price === undefined || artwork.price === "" ? "No price" : formatPrice(artwork.price)}
+                      </td>
                       <td className="px-4 py-3">
                         <span
                           className={`text-xs px-2 py-1 font-label tracking-widest uppercase ${

@@ -150,3 +150,37 @@
 .aspect-artwork {
   aspect-ratio: 4 / 5;
 }
+
+.gallery-masonry {
+  column-count: 1;
+  column-gap: 8px;
+}
+
+.gallery-masonry-item {
+  width: 100%;
+  margin-bottom: 8px;
+  break-inside: avoid;
+}
+
+@media (min-width: 640px) {
+  .gallery-masonry {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gallery-masonry {
+    column-count: 3;
+    column-gap: 12px;
+  }
+
+  .gallery-masonry-item {
+    margin-bottom: 12px;
+  }
+}
+
+@media (min-width: 1500px) {
+  .gallery-masonry {
+    column-count: 4;
+  }
+}

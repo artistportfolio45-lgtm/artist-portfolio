@@ -8,6 +8,20 @@ const { protect } = require("../middleware/auth");
 const { uploadRateLimiter } = require("../middleware/rateLimiter");
 const { uploadArtwork, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
 
+const optionalText = (value) => (typeof value === "string" ? value.trim() : "");
+const normalizePrice = (value) => {
+  if (value === undefined || value === null || String(value).trim() === "") return null;
+  return Number(value);
+};
+const normalizeYear = (value) => {
+  if (value === undefined || value === null || String(value).trim() === "") return null;
+  return Number(value);
+};
+const invalidPrice = (value) => value !== null && (!Number.isFinite(value) || value < 0);
+const invalidYear = (value) => value !== null && (!Number.isInteger(value) || value < 0);
+const discardUploadedImages = (images) =>
+  Promise.allSettled(images.map((image) => cloudinary.uploader.destroy(image.publicId)));
+
 // ─── PUBLIC ROUTES ──────────────────────────────────────────────────────────
 
 // @route   GET /api/artworks
@@ -35,7 +49,16 @@ router.get("/", async (req, res) => {
 
     // Category filter
     if (category && category !== "all") {
-      query.category = { $regex: category, $options: "i" };
+      if (category.trim().toLowerCase() === "uncategorized") {
+        query.$or = [
+          { category: { $regex: /^uncategorized$/i } },
+          { category: { $exists: false } },
+          { category: null },
+          { category: "" },
+        ];
+      } else {
+        query.category = { $regex: category, $options: "i" };
+      }
     }
 
     // Availability filter
@@ -90,8 +113,19 @@ router.get("/", async (req, res) => {
 // @access  Public
 router.get("/categories", async (req, res) => {
   try {
-    const categories = await Artwork.distinct("category");
-    res.json({ success: true, categories: categories.filter(Boolean).sort() });
+    const [categories, incompleteCount] = await Promise.all([
+      Artwork.distinct("category"),
+      Artwork.countDocuments({
+        $or: [
+          { category: { $exists: false } },
+          { category: null },
+          { category: "" },
+        ],
+      }),
+    ]);
+    const normalized = categories.map((item) => item?.trim()).filter(Boolean);
+    if (incompleteCount > 0) normalized.push("Uncategorized");
+    res.json({ success: true, categories: [...new Set(normalized)].sort() });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
@@ -122,10 +156,6 @@ router.post("/", uploadRateLimiter, protect, uploadArtwork.array("images", 10), 
   try {
     const { title, description, category, price, medium, dimensions, isAvailable, isFeatured, year } = req.body;
 
-    if (!title || !category || price === undefined) {
-      return res.status(400).json({ success: false, message: "Title, category, and price are required" });
-    }
-
     // Map uploaded files to image objects
     const images = (req.files || []).map(getCloudinaryFileInfo).filter((img) => img.url && img.publicId);
 
@@ -133,16 +163,34 @@ router.post("/", uploadRateLimiter, protect, uploadArtwork.array("images", 10), 
       return res.status(400).json({ success: false, message: "Please upload at least one artwork image" });
     }
 
+    const normalizedPrice = normalizePrice(price);
+    if (invalidPrice(normalizedPrice)) {
+      await discardUploadedImages(images);
+      return res.status(400).json({
+        success: false,
+        message: "Price must be a valid non-negative number",
+      });
+    }
+
+    const normalizedYear = normalizeYear(year);
+    if (invalidYear(normalizedYear)) {
+      await discardUploadedImages(images);
+      return res.status(400).json({
+        success: false,
+        message: "Year must be a valid non-negative whole number",
+      });
+    }
+
     const artwork = await Artwork.create({
-      title,
-      description,
-      category,
-      price: parseFloat(price),
-      medium,
-      dimensions,
+      title: optionalText(title) || "Untitled",
+      description: optionalText(description),
+      category: optionalText(category) || "Uncategorized",
+      price: normalizedPrice,
+      medium: optionalText(medium),
+      dimensions: optionalText(dimensions),
       isAvailable: isAvailable === "false" ? false : true,
       isFeatured: isFeatured === "true",
-      year: year ? parseInt(year) : null,
+      year: normalizedYear,
       images,
     });
 
@@ -165,15 +213,33 @@ router.put("/:id", protect, async (req, res) => {
       return res.status(404).json({ success: false, message: "Artwork not found" });
     }
 
-    if (title !== undefined) artwork.title = title;
-    if (description !== undefined) artwork.description = description;
-    if (category !== undefined) artwork.category = category;
-    if (price !== undefined) artwork.price = parseFloat(price);
-    if (medium !== undefined) artwork.medium = medium;
-    if (dimensions !== undefined) artwork.dimensions = dimensions;
+    if (title !== undefined) artwork.title = optionalText(title) || "Untitled";
+    if (description !== undefined) artwork.description = optionalText(description);
+    if (category !== undefined) artwork.category = optionalText(category) || "Uncategorized";
+    if (price !== undefined) {
+      const normalizedPrice = normalizePrice(price);
+      if (invalidPrice(normalizedPrice)) {
+        return res.status(400).json({
+          success: false,
+          message: "Price must be a valid non-negative number",
+        });
+      }
+      artwork.price = normalizedPrice;
+    }
+    if (medium !== undefined) artwork.medium = optionalText(medium);
+    if (dimensions !== undefined) artwork.dimensions = optionalText(dimensions);
     if (isAvailable !== undefined) artwork.isAvailable = isAvailable === "false" ? false : Boolean(isAvailable);
     if (isFeatured !== undefined) artwork.isFeatured = isFeatured === "true" || isFeatured === true;
-    if (year !== undefined) artwork.year = year ? parseInt(year) : null;
+    if (year !== undefined) {
+      const normalizedYear = normalizeYear(year);
+      if (invalidYear(normalizedYear)) {
+        return res.status(400).json({
+          success: false,
+          message: "Year must be a valid non-negative whole number",
+        });
+      }
+      artwork.year = normalizedYear;
+    }
 
     await artwork.save();
     res.json({ success: true, message: "Artwork updated", artwork });
