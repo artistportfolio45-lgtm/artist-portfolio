@@ -106,7 +106,7 @@ const ContactPage = () => {
 
   return (
     <PublicLayout>
-      <div className="bg-charcoal pt-28 pb-16">
+      <div className="bg-charcoal pt-28 pb-16 lg:pt-16 lg:pb-12">
         <div className="container-site text-center">
           <p className="eyebrow text-gold mb-3">Get in Touch</p>
           <h1 className="font-display text-5xl md:text-6xl font-light text-white">

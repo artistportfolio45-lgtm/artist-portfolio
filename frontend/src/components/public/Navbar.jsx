@@ -1,9 +1,33 @@
-// components/public/Navbar.jsx
-// Responsive luxury navigation with scroll effect
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useSettings } from "../../hooks/useSettings";
+import PublicSocialLinks from "./PublicSocialLinks";
+
+const navLinks = [
+  { to: "/", label: "Home" },
+  { to: "/gallery", label: "Gallery" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
+];
+
+const Brand = ({ mobile = false, light = false, settings }) => (
+  <Link to="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+    {settings?.logoUrl && (
+      <img
+        src={settings.logoUrl}
+        alt=""
+        className={`${mobile ? "h-10 w-10" : "h-14 w-14"} rounded-full object-cover`}
+      />
+    )}
+    <span
+      className={`font-display font-medium tracking-wide ${
+        mobile ? "text-xl" : "text-2xl leading-tight"
+      } ${light ? "text-white" : "text-charcoal"}`}
+    >
+      {settings?.websiteTitle || "Artist Portfolio"}
+    </span>
+  </Link>
+);
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -13,58 +37,109 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => setMenuOpen(false), [location]);
 
-  const navLinks = [
-    { to: "/", label: "Home" },
-    { to: "/gallery", label: "Gallery" },
-    { to: "/about", label: "About" },
-    { to: "/contact", label: "Contact" },
-  ];
+  const lightMobilePage =
+    location.pathname === "/gallery" || location.pathname.startsWith("/artwork/");
+  const solidMobileHeader = scrolled || lightMobilePage || menuOpen;
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled ? "bg-white shadow-sm" : "bg-transparent"
-      }`}
-    >
-      <nav className="container-site">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo / Site Title */}
-          <Link to="/" className="flex items-center gap-3">
-            {settings?.logoUrl ? (
-              <img
-                src={settings.logoUrl}
-                alt="Logo"
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : null}
-            <span
-              className={`font-display text-xl font-medium tracking-wide transition-colors duration-300 ${
-                scrolled ? "text-charcoal" : "text-white"
-              }`}
-            >
-              {settings?.websiteTitle || "Artist Portfolio"}
-            </span>
-          </Link>
+    <>
+      <aside className="public-sidebar" aria-label="Primary navigation">
+        <div>
+          <Brand settings={settings} />
+          {settings?.websiteDescription && (
+            <p className="mt-4 line-clamp-3 text-sm font-light leading-relaxed text-slate/55">
+              {settings.websiteDescription}
+            </p>
+          )}
+        </div>
 
-          {/* Desktop Nav */}
-          <ul className="hidden md:flex items-center gap-8">
+        <nav className="mt-14">
+          <ul className="space-y-1">
             {navLinks.map((link) => (
               <li key={link.to}>
                 <NavLink
                   to={link.to}
                   end={link.to === "/"}
                   className={({ isActive }) =>
-                    `text-sm font-label font-medium tracking-widest uppercase transition-colors duration-200 pb-1 border-b-2 ${
+                    `group flex min-h-11 items-center justify-between border-b px-1 text-sm transition-colors ${
                       isActive
-                        ? "border-gold text-gold"
-                        : `border-transparent ${scrolled ? "text-charcoal hover:text-gold" : "text-white/90 hover:text-white"}`
+                        ? "active border-gold text-charcoal"
+                        : "border-transparent text-slate/55 hover:text-charcoal"
+                    }`
+                  }
+                >
+                  {link.label}
+                  <span className="text-gold opacity-0 transition-opacity group-[.active]:opacity-100" aria-hidden="true">
+                    —
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="mt-auto border-t border-charcoal/10 pt-6">
+          <PublicSocialLinks compact />
+          <p className="mt-5 text-[10px] leading-relaxed text-slate/35">
+            {settings?.footerText || "Original artwork and selected projects."}
+          </p>
+        </div>
+      </aside>
+
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 lg:hidden ${
+          solidMobileHeader ? "bg-white shadow-sm" : "bg-transparent"
+        }`}
+      >
+        <nav className="container-site" aria-label="Mobile navigation">
+          <div className="flex h-16 items-center justify-between md:h-20">
+            <Brand
+              mobile
+              light={!solidMobileHeader}
+              settings={settings}
+            />
+
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              className={`inline-flex h-11 w-11 items-center justify-center transition-colors ${
+                solidMobileHeader ? "text-charcoal" : "text-white"
+              }`}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              aria-controls="public-mobile-menu"
+            >
+              <span className="flex w-6 flex-col gap-1.5" aria-hidden="true">
+                <span className={`block h-0.5 bg-current transition-transform ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
+                <span className={`block h-0.5 bg-current transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
+                <span className={`block h-0.5 bg-current transition-transform ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+              </span>
+            </button>
+          </div>
+        </nav>
+
+        <div
+          id="public-mobile-menu"
+          className={`overflow-hidden bg-charcoal transition-all duration-300 ${
+            menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <ul className="container-site flex flex-col gap-1 py-4">
+            {navLinks.map((link) => (
+              <li key={link.to}>
+                <NavLink
+                  to={link.to}
+                  end={link.to === "/"}
+                  className={({ isActive }) =>
+                    `block px-2 py-3 text-sm font-label uppercase tracking-widest transition-colors ${
+                      isActive ? "text-gold" : "text-white/75 hover:text-white"
                     }`
                   }
                 >
@@ -73,47 +148,9 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className={`md:hidden p-2 transition-colors ${scrolled ? "text-charcoal" : "text-white"}`}
-            aria-label="Toggle menu"
-          >
-            <div className="w-6 flex flex-col gap-1.5">
-              <span className={`block h-0.5 bg-current transition-transform ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
-              <span className={`block h-0.5 bg-current transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
-              <span className={`block h-0.5 bg-current transition-transform ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
-            </div>
-          </button>
         </div>
-      </nav>
-
-      {/* Mobile Menu Drawer */}
-      <div
-        className={`md:hidden bg-charcoal transition-all duration-300 overflow-hidden ${
-          menuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <ul className="container-site flex flex-col py-4 gap-1">
-          {navLinks.map((link) => (
-            <li key={link.to}>
-              <NavLink
-                to={link.to}
-                end={link.to === "/"}
-                className={({ isActive }) =>
-                  `block py-3 px-2 text-sm font-label tracking-widest uppercase transition-colors ${
-                    isActive ? "text-gold" : "text-white/80 hover:text-white"
-                  }`
-                }
-              >
-                {link.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </header>
+      </header>
+    </>
   );
 };
 

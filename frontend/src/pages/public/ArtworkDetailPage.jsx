@@ -94,12 +94,18 @@ const ArtworkDetailPage = () => {
     }
   };
 
-  if (loading) return <PageLoader />;
+  if (loading) {
+    return (
+      <PublicLayout>
+        <PageLoader />
+      </PublicLayout>
+    );
+  }
 
   if (!artwork) {
     return (
       <PublicLayout>
-        <div className="pt-20 bg-white min-h-screen">
+        <div className="pt-20 lg:pt-0 bg-white min-h-screen">
           <div className="container-site py-12">
             <BackButton fallbackTo="/gallery" ariaLabel="Back to Gallery" className="mb-6">
               Back to Gallery

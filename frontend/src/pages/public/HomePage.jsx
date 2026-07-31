@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkCard from "../../components/public/ArtworkCard";
+import ArtworkMasonry from "../../components/public/ArtworkMasonry";
 import { publicDataAPI } from "../../services/publicData";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -12,6 +13,7 @@ const HomePage = () => {
   const { settings } = useSettings();
   const [featured, setFeatured] = useState([]);
   const [latestArtworks, setLatestArtworks] = useState([]);
+  const [latestLoading, setLatestLoading] = useState(true);
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
@@ -40,6 +42,7 @@ const HomePage = () => {
         }
       })
       .catch(console.error)
+      .finally(() => setLatestLoading(false));
   }, []);
 
   return (
@@ -115,35 +118,35 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="section bg-white" aria-label="Latest Artworks">
-        <div className="container-site">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-12">
+      <section id="latest-works" className="bg-white py-12 md:py-16" aria-label="Latest Artworks">
+        <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-6">
+          <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="eyebrow mb-3">Recent Additions</p>
-              <h2 className="font-display text-4xl md:text-5xl font-light text-charcoal">
+              <p className="eyebrow mb-2">Recent Additions</p>
+              <h2 className="font-display text-3xl font-light text-charcoal md:text-4xl">
                 Latest Works
               </h2>
             </div>
-            <Link to="/gallery" className="btn-secondary self-start">
-              Browse Gallery
+            <Link
+              to="/gallery"
+              className="self-start border-b border-gold pb-1 text-sm text-charcoal transition-colors hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              Browse Gallery →
             </Link>
           </div>
 
-          {latestArtworks.length === 0 ? (
-            <div className="text-center py-16 text-slate/50">
-              <p className="font-display text-2xl mb-2">No artworks uploaded yet</p>
-              <p className="text-sm">New works will appear here after the admin adds them.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {latestArtworks.map((artwork) => (
-                <ArtworkCard
-                  key={artwork._id}
-                  artwork={artwork}
-                />
-              ))}
-            </div>
-          )}
+          <ArtworkMasonry
+            artworks={latestArtworks}
+            loading={latestLoading}
+            skeletonCount={8}
+            priorityCount={3}
+            emptyState={
+              <div className="py-16 text-center text-slate/50">
+                <p className="mb-2 font-display text-2xl">No artworks uploaded yet</p>
+                <p className="text-sm">New works will appear here after the admin adds them.</p>
+              </div>
+            }
+          />
         </div>
       </section>
 
