@@ -39,7 +39,12 @@ const SecurityPage = () => {
     try {
       const res = await securityAPI.startTwoFactorSetup(setup.currentPassword);
       const data = res.data.data || res.data;
-      setSetup((prev) => ({ ...prev, qrCode: data.qrCode, manualKey: data.manualKey }));
+      setSetup((prev) => ({
+        ...prev,
+        currentPassword: "",
+        qrCode: data.qrCode,
+        manualKey: data.manualKey,
+      }));
       toast.success("Scan the QR code with your authenticator app");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to start setup");
@@ -55,7 +60,13 @@ const SecurityPage = () => {
     try {
       const res = await securityAPI.verifyTwoFactorSetup(setup.token);
       const data = res.data.data || res.data;
-      setSetup((prev) => ({ ...prev, recoveryCodes: data.recoveryCodes || [] }));
+      setSetup((prev) => ({
+        ...prev,
+        token: "",
+        qrCode: "",
+        manualKey: "",
+        recoveryCodes: data.recoveryCodes || [],
+      }));
       await loadStatus();
       toast.success("Two-factor authentication enabled");
     } catch (err) {
@@ -118,15 +129,24 @@ const SecurityPage = () => {
     <AdminLayout>
       <div className="p-6 md:p-8 max-w-4xl">
         <div className="mb-8">
-          <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-1">Admin</p>
+          <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-1">
+            Settings / Security
+          </p>
           <h1 className="font-display text-3xl font-light text-charcoal">Security Center</h1>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-5 shadow-sm">
-            <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-1">Two-Factor</p>
+            <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-1">Email</p>
+            <p className="text-sm text-charcoal break-all">{security?.email}</p>
+            <p className="mt-1 text-xs text-slate/50">
+              {security?.emailVerified ? "Verified" : "Verification required at next login"}
+            </p>
+          </div>
+          <div className="bg-white p-5 shadow-sm">
+            <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-1">Authenticator</p>
             <p className="font-display text-2xl font-light text-charcoal">
-              {security?.twoFactorEnabled ? "Enabled" : "Off"}
+              {security?.twoFactorEnabled ? "Enabled" : "Disabled"}
             </p>
           </div>
           <div className="bg-white p-5 shadow-sm">
@@ -143,9 +163,28 @@ const SecurityPage = () => {
           </div>
         </div>
 
+        {setup.recoveryCodes.length > 0 && (
+          <div className="bg-white p-6 shadow-sm mb-6" role="status">
+            <h2 className="font-display text-xl font-light mb-2">Save These Recovery Codes</h2>
+            <p className="text-sm text-slate/60 mb-4">
+              These codes are shown once. Store them somewhere private before leaving this page.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+              {setup.recoveryCodes.map((recoveryCode) => (
+                <code key={recoveryCode} className="bg-gray-50 border border-gray-100 px-3 py-2 text-sm">
+                  {recoveryCode}
+                </code>
+              ))}
+            </div>
+            <button type="button" onClick={() => copyCodes(setup.recoveryCodes)} className="btn-secondary text-xs">
+              Copy Codes
+            </button>
+          </div>
+        )}
+
         {!security?.twoFactorEnabled ? (
           <div className="bg-white p-6 shadow-sm">
-            <h2 className="font-display text-xl font-light mb-2">Enable Google Authenticator</h2>
+            <h2 className="font-display text-xl font-light mb-2">Enable Authenticator</h2>
             <p className="text-sm text-slate/60 mb-6">
               Confirm your password, scan the QR code, then enter the 6-digit code from your authenticator app.
             </p>
@@ -205,11 +244,14 @@ const SecurityPage = () => {
                     <input
                       type="text"
                       value={setup.token}
-                      onChange={(e) => setSetup({ ...setup, token: e.target.value })}
+                      onChange={(e) => setSetup({ ...setup, token: e.target.value.replace(/\D/g, "").slice(0, 6) })}
                       className="input-field"
                       placeholder="123456"
                       inputMode="numeric"
                       autoComplete="one-time-code"
+                      pattern="[0-9]{6}"
+                      minLength={6}
+                      maxLength={6}
                       required
                     />
                   </div>
@@ -225,28 +267,39 @@ const SecurityPage = () => {
             <form onSubmit={disableTwoFactor} className="bg-white p-6 shadow-sm space-y-4">
               <h2 className="font-display text-xl font-light">Disable Two-Factor Authentication</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input
-                  type="password"
-                  value={disableForm.currentPassword}
-                  onChange={(e) => setDisableForm({ ...disableForm, currentPassword: e.target.value })}
-                  className="input-field"
-                  placeholder="Current password"
-                  required
-                />
-                <input
-                  type="text"
-                  value={disableForm.token}
-                  onChange={(e) => setDisableForm({ ...disableForm, token: e.target.value })}
-                  className="input-field"
-                  placeholder="Authenticator code"
-                />
-                <input
-                  type="text"
-                  value={disableForm.recoveryCode}
-                  onChange={(e) => setDisableForm({ ...disableForm, recoveryCode: e.target.value })}
-                  className="input-field"
-                  placeholder="Or recovery code"
-                />
+                <label className="text-xs font-label tracking-widest uppercase text-slate/60">
+                  Current Password
+                  <input
+                    type="password"
+                    value={disableForm.currentPassword}
+                    onChange={(e) => setDisableForm({ ...disableForm, currentPassword: e.target.value })}
+                    className="input-field mt-1"
+                    autoComplete="current-password"
+                    required
+                  />
+                </label>
+                <label className="text-xs font-label tracking-widest uppercase text-slate/60">
+                  Authenticator Code
+                  <input
+                    type="text"
+                    value={disableForm.token}
+                    onChange={(e) => setDisableForm({ ...disableForm, token: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                    className="input-field mt-1"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="123456"
+                  />
+                </label>
+                <label className="text-xs font-label tracking-widest uppercase text-slate/60">
+                  Or Recovery Code
+                  <input
+                    type="text"
+                    value={disableForm.recoveryCode}
+                    onChange={(e) => setDisableForm({ ...disableForm, recoveryCode: e.target.value })}
+                    className="input-field mt-1"
+                    autoComplete="off"
+                  />
+                </label>
               </div>
               <button type="submit" disabled={working === "disable"} className="btn-danger">
                 {working === "disable" ? "Disabling..." : "Disable 2FA"}
@@ -259,22 +312,32 @@ const SecurityPage = () => {
                 This replaces all existing unused recovery codes.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="password"
-                  value={regenerateForm.currentPassword}
-                  onChange={(e) => setRegenerateForm({ ...regenerateForm, currentPassword: e.target.value })}
-                  className="input-field"
-                  placeholder="Current password"
-                  required
-                />
-                <input
-                  type="text"
-                  value={regenerateForm.token}
-                  onChange={(e) => setRegenerateForm({ ...regenerateForm, token: e.target.value })}
-                  className="input-field"
-                  placeholder="Authenticator code"
-                  required
-                />
+                <label className="text-xs font-label tracking-widest uppercase text-slate/60">
+                  Current Password
+                  <input
+                    type="password"
+                    value={regenerateForm.currentPassword}
+                    onChange={(e) => setRegenerateForm({ ...regenerateForm, currentPassword: e.target.value })}
+                    className="input-field mt-1"
+                    autoComplete="current-password"
+                    required
+                  />
+                </label>
+                <label className="text-xs font-label tracking-widest uppercase text-slate/60">
+                  Authenticator Code
+                  <input
+                    type="text"
+                    value={regenerateForm.token}
+                    onChange={(e) => setRegenerateForm({ ...regenerateForm, token: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                    className="input-field mt-1"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    minLength={6}
+                    maxLength={6}
+                    required
+                  />
+                </label>
               </div>
               <button type="submit" disabled={working === "regenerate"} className="btn-secondary">
                 {working === "regenerate" ? "Regenerating..." : "Regenerate Codes"}

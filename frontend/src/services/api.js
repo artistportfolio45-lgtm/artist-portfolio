@@ -13,6 +13,7 @@ export const clearStoredAuth = () => {
     "requiresTwoFactor",
     "session",
     "auth",
+    "adminLoginChallenge",
   ].forEach((key) => {
     localStorage.removeItem(key);
     sessionStorage.removeItem(key);
@@ -66,7 +67,13 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  login: (email, password, secondFactor = {}) => api.post("/auth/login", { email, password, ...secondFactor }),
+  login: (email, password) => api.post("/auth/login", { email, password }),
+  verifyEmailOtp: (challengeToken, code) =>
+    api.post("/auth/verify-email-otp", { challengeToken, code }),
+  resendEmailOtp: (challengeToken) =>
+    api.post("/auth/resend-email-otp", { challengeToken }),
+  verifyTotp: (challengeToken, code) =>
+    api.post("/auth/verify-totp", { challengeToken, code }),
   me: () => api.get("/auth/me"),
   changePassword: (data) => api.put("/auth/change-password", data),
 };
@@ -74,7 +81,7 @@ export const authAPI = {
 export const securityAPI = {
   status: () => api.get("/security/status"),
   startTwoFactorSetup: (currentPassword) => api.post("/security/2fa/setup", { currentPassword }),
-  verifyTwoFactorSetup: (token) => api.post("/security/2fa/verify", { token }),
+  verifyTwoFactorSetup: (token) => api.post("/security/2fa/enable", { token }),
   disableTwoFactor: (data) => api.post("/security/2fa/disable", data),
   regenerateRecoveryCodes: (data) => api.post("/security/recovery-codes/regenerate", data),
 };

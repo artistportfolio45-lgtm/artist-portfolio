@@ -33,10 +33,14 @@ const ensureAdminUser = async ({
   logger = console,
 }) => {
   const normalizedEmail = email.toLowerCase().trim();
-  let admin = await User.findOne({ email: normalizedEmail }).select("+twoFactorSecret +backupRecoveryCodes");
+  const securityFields =
+    "+twoFactorSecret +pendingTwoFactorSecret +pendingTwoFactorExpiresAt +twoFactorSecretVersion " +
+    "+backupRecoveryCodes +emailOtpHash +emailOtpPurpose +emailOtpExpiresAt +emailOtpAttempts +emailOtpLastSentAt " +
+    "+loginChallengeHash +loginChallengePurpose +loginChallengeAttempts";
+  let admin = await User.findOne({ email: normalizedEmail }).select(securityFields);
 
   if (!admin) {
-    admin = await User.findOne({ role: "admin" }).select("+twoFactorSecret +backupRecoveryCodes");
+    admin = await User.findOne({ role: "admin" }).select(securityFields);
   }
 
   const wasCreated = !admin;
@@ -56,7 +60,16 @@ const ensureAdminUser = async ({
     admin.twoFactorEnabled = false;
     admin.twoFactorSecret = null;
     admin.pendingTwoFactorSecret = null;
+    admin.pendingTwoFactorExpiresAt = null;
+    admin.twoFactorSecretVersion = 0;
     admin.backupRecoveryCodes = [];
+    admin.emailOtpHash = null;
+    admin.emailOtpPurpose = null;
+    admin.emailOtpExpiresAt = null;
+    admin.emailOtpAttempts = 0;
+    admin.loginChallengeHash = null;
+    admin.loginChallengePurpose = null;
+    admin.loginChallengeAttempts = 0;
   }
 
   await admin.save();
@@ -69,11 +82,37 @@ const ensureAdminUser = async ({
   return { admin, wasCreated, twoFactorReset: resetTwoFactor };
 };
 
+const invalidateLegacyTwoFactorSecrets = async ({ logger = console } = {}) => {
+  const result = await User.updateMany(
+    {
+      twoFactorSecret: { $ne: null },
+      twoFactorSecretVersion: { $ne: 2 },
+    },
+    {
+      $set: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        pendingTwoFactorSecret: null,
+        pendingTwoFactorExpiresAt: null,
+        twoFactorSecretVersion: 0,
+        backupRecoveryCodes: [],
+      },
+    }
+  );
+
+  if (result.modifiedCount > 0) {
+    logger.warn("Invalidated legacy Authenticator enrollment; re-enrollment is required");
+  }
+
+  return result.modifiedCount;
+};
+
 module.exports = {
   REQUIRED_DATABASE,
   assertAdminSeedConfig,
   ensureAdminUser,
   getDatabaseName,
   getMongoUri,
+  invalidateLegacyTwoFactorSecrets,
   seedAdminAccount: ensureAdminUser,
 };

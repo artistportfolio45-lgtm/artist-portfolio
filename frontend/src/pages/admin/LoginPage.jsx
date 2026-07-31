@@ -1,18 +1,70 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/shared/AuthContext";
 import BackButton from "../../components/shared/BackButton";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
 
+const CHALLENGE_STORAGE_KEY = "adminLoginChallenge";
+
+const readStoredChallenge = () => {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(CHALLENGE_STORAGE_KEY));
+    if (
+      value?.challengeToken &&
+      ["email_otp", "totp"].includes(value.nextStep) &&
+      value.expiresAt > Date.now()
+    ) {
+      return value;
+    }
+  } catch {
+    // Invalid or stale verification state is discarded below.
+  }
+  sessionStorage.removeItem(CHALLENGE_STORAGE_KEY);
+  return null;
+};
+
 const LoginPage = () => {
-  const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const {
+    login,
+    verifyEmailOtp,
+    resendEmailOtp,
+    verifyTotp,
+    isAuthenticated,
+    loading: authLoading,
+  } = useAuth();
   const navigate = useNavigate();
+  const codeInputRef = useRef(null);
   const [form, setForm] = useState({ email: "", password: "" });
-  const [secondFactor, setSecondFactor] = useState({ code: "", useRecoveryCode: false });
-  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
-  const [twoFactorSetup, setTwoFactorSetup] = useState(null);
+  const [challenge, setChallenge] = useState(readStoredChallenge);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  const saveChallenge = (data) => {
+    const next = {
+      challengeToken: data.challengeToken,
+      nextStep: data.nextStep,
+      maskedEmail: data.maskedEmail || "",
+      resendAt:
+        data.nextStep === "email_otp"
+          ? Date.now() + Number(data.resendAfterSeconds || 60) * 1000
+          : 0,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    };
+    sessionStorage.setItem(CHALLENGE_STORAGE_KEY, JSON.stringify(next));
+    setChallenge(next);
+    setCode("");
+    setError("");
+  };
+
+  const resetChallenge = () => {
+    sessionStorage.removeItem(CHALLENGE_STORAGE_KEY);
+    setChallenge(null);
+    setCode("");
+    setError("");
+  };
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -20,45 +72,96 @@ const LoginPage = () => {
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (!challenge) return undefined;
+    codeInputRef.current?.focus();
+
+    const updateCountdown = () => {
+      setCountdown(Math.max(0, Math.ceil((challenge.resendAt - Date.now()) / 1000)));
+    };
+    updateCountdown();
+    const interval = window.setInterval(updateCountdown, 1000);
+    return () => window.clearInterval(interval);
+  }, [challenge]);
+
+  const getErrorMessage = (err, fallback) =>
+    err.response?.data?.message ||
+    (err.request ? "Unable to reach the server. Please try again." : fallback);
+
+  const handleCredentials = async (event) => {
+    event.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
-      const payload = requiresTwoFactor
-        ? secondFactor.useRecoveryCode
-          ? { recoveryCode: secondFactor.code }
-          : { twoFactorCode: secondFactor.code }
-        : undefined;
-
-      const result = await login(form.email.trim().toLowerCase(), form.password, payload);
-
-      if (result?.requiresTwoFactor) {
-        setRequiresTwoFactor(true);
-        if (result.setupRequired) {
-          setTwoFactorSetup({
-            qrCode: result.qrCode,
-            manualKey: result.manualKey,
-          });
-          toast.success("Scan the QR code, then enter the authenticator code");
-        } else {
-          setTwoFactorSetup(null);
-          toast.success("Enter your authenticator code");
-        }
-        return;
-      }
-
-      toast.success("Welcome back!");
-      navigate("/admin/dashboard", { replace: true });
+      const result = await login(form.email.trim().toLowerCase(), form.password);
+      saveChallenge(result);
+      toast.success(
+        result.nextStep === "totp"
+          ? "Enter your Authenticator code"
+          : "Verification code sent"
+      );
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        (err.request ? "Unable to reach the server" : "Invalid credentials");
+      const message = getErrorMessage(err, "Unable to sign in.");
+      setError(message);
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleVerification = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      if (challenge.nextStep === "totp") {
+        const result = await verifyTotp(challenge.challengeToken, code);
+        saveChallenge(result);
+        toast.success("Email verification code sent");
+        return;
+      }
+
+      await verifyEmailOtp(challenge.challengeToken, code);
+      toast.success("Welcome back!");
+      navigate("/admin/dashboard", { replace: true });
+    } catch (err) {
+      const message = getErrorMessage(err, "Verification failed.");
+      setError(message);
+      toast.error(message);
+      if (/challenge|expired|too many attempts|sign in again/i.test(message)) {
+        sessionStorage.removeItem(CHALLENGE_STORAGE_KEY);
+        setChallenge(null);
+        setCode("");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (countdown > 0 || loading) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await resendEmailOtp(challenge.challengeToken);
+      saveChallenge(result);
+      toast.success("A new verification code was sent");
+    } catch (err) {
+      const message = getErrorMessage(err, "Unable to resend the code.");
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verificationHeading =
+    challenge?.nextStep === "totp"
+      ? "Authenticator Verification"
+      : "Email Verification";
 
   return (
     <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
@@ -82,128 +185,158 @@ const LoginPage = () => {
         </div>
 
         <div className="bg-white p-8">
-          <h2 className="font-display text-2xl font-light text-charcoal mb-6">Sign In</h2>
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-            <div>
-              <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                name="portfolio_admin_email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="input-field"
-                placeholder="Email address"
-                required
-                autoComplete="off"
-                disabled={requiresTwoFactor}
-              />
-            </div>
+          <h2 className="font-display text-2xl font-light text-charcoal mb-2">
+            {challenge ? verificationHeading : "Sign In"}
+          </h2>
 
-            <div>
-              <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                name="portfolio_admin_password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="input-field"
-                placeholder="Enter password"
-                required
-                autoComplete="new-password"
-                disabled={requiresTwoFactor}
-              />
-            </div>
+          {challenge && (
+            <p className="text-sm text-slate/60 mb-6">
+              {challenge.nextStep === "totp"
+                ? "Enter the current 6-digit code from your Authenticator app."
+                : `Enter the 6-digit code sent to ${challenge.maskedEmail}.`}
+            </p>
+          )}
 
-            {requiresTwoFactor && (
-              <div className="space-y-4">
-                {twoFactorSetup?.qrCode && (
-                  <div className="space-y-3">
-                    <img
-                      src={twoFactorSetup.qrCode}
-                      alt="Google Authenticator setup QR code"
-                      className="mx-auto h-48 w-48 border border-gray-100"
-                    />
-                    <div>
-                      <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                        Manual Key
-                      </label>
-                      <code className="block bg-gray-50 border border-gray-100 px-3 py-2 text-sm break-all">
-                        {twoFactorSetup.manualKey}
-                      </code>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                    {secondFactor.useRecoveryCode ? "Recovery Code" : "Authenticator Code"}
-                  </label>
-                  <input
-                    type="text"
-                    value={secondFactor.code}
-                    onChange={(e) => setSecondFactor({ ...secondFactor, code: e.target.value })}
-                    className="input-field"
-                    placeholder={secondFactor.useRecoveryCode ? "ABCD-EFGH-IJKL-MNOP" : "123456"}
-                    required
-                    autoComplete="one-time-code"
-                    inputMode={secondFactor.useRecoveryCode ? "text" : "numeric"}
-                  />
-                  {!twoFactorSetup && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSecondFactor((prev) => ({
-                          ...prev,
-                          code: "",
-                          useRecoveryCode: !prev.useRecoveryCode,
-                        }))
-                      }
-                      className="text-xs text-slate/50 hover:text-charcoal mt-2"
-                    >
-                      {secondFactor.useRecoveryCode ? "Use authenticator code instead" : "Use a recovery code instead"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 mt-2"
+          {error && (
+            <div
+              role="alert"
+              className="mb-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
-              {loading ? (
-                <>
-                  <LoadingSpinner size="sm" light />
-                  Signing in...
-                </>
-              ) : requiresTwoFactor ? (
-                "Verify & Sign In"
-              ) : (
-                "Sign In"
-              )}
-            </button>
-          </form>
+              {error}
+            </div>
+          )}
 
-          {requiresTwoFactor ? (
+          {!challenge ? (
+            <form onSubmit={handleCredentials} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="admin-email"
+                  className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1"
+                >
+                  Email
+                </label>
+                <input
+                  id="admin-email"
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={(event) => setForm({ ...form, email: event.target.value })}
+                  className="input-field"
+                  placeholder="Email address"
+                  required
+                  autoComplete="username"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="admin-password"
+                  className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1"
+                >
+                  Password
+                </label>
+                <input
+                  id="admin-password"
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={(event) => setForm({ ...form, password: event.target.value })}
+                  className="input-field"
+                  placeholder="Enter password"
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                aria-busy={loading}
+                className="btn-primary w-full flex items-center justify-center gap-2 mt-2 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? (
+                  <>
+                    <LoadingSpinner size="sm" light />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerification} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="verification-code"
+                  className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1"
+                >
+                  {challenge.nextStep === "totp"
+                    ? "Authenticator Code"
+                    : "Verification Code"}
+                </label>
+                <input
+                  ref={codeInputRef}
+                  id="verification-code"
+                  type="text"
+                  value={code}
+                  onChange={(event) =>
+                    setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  className="input-field text-center text-xl tracking-[0.4em]"
+                  placeholder="123456"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  minLength={6}
+                  maxLength={6}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || code.length !== 6}
+                aria-busy={loading}
+                className="btn-primary w-full flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? (
+                  <>
+                    <LoadingSpinner size="sm" light />
+                    Verifying...
+                  </>
+                ) : challenge.nextStep === "totp" ? (
+                  "Verify Authenticator"
+                ) : (
+                  "Verify & Sign In"
+                )}
+              </button>
+
+              {challenge.nextStep === "email_otp" && (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={loading || countdown > 0}
+                  className="w-full text-xs text-slate/50 hover:text-charcoal disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {countdown > 0 ? `Resend code in ${countdown}s` : "Resend code"}
+                </button>
+              )}
+            </form>
+          )}
+
+          {challenge ? (
             <button
               type="button"
-              onClick={() => {
-                setRequiresTwoFactor(false);
-                setTwoFactorSetup(null);
-                setSecondFactor({ code: "", useRecoveryCode: false });
-              }}
+              onClick={resetChallenge}
               className="mt-6 text-xs text-center text-slate/40 hover:text-charcoal w-full"
             >
-              Use a different email or password
+              Back to login
             </button>
           ) : (
             <p className="mt-6 text-xs text-center text-slate/40">
-              First-time admin access is configured from the backend environment.
+              Access is restricted to the registered administrator.
             </p>
           )}
         </div>

@@ -52,6 +52,7 @@ Backend:
 - bcryptjs
 - speakeasy
 - qrcode
+- nodemailer
 - Cloudinary
 - Multer
 - multer-storage-cloudinary
@@ -119,6 +120,14 @@ JWT_EXPIRES_IN=7d
 # TOTP secret encryption
 TOTP_ENCRYPTION_KEY=replace_with_another_long_random_secret
 
+# Admin email verification (backend-only SMTP credentials)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password
+EMAIL_FROM=Artist Portfolio <no-reply@example.com>
+
 # Account lockout
 MAX_FAILED_LOGIN_ATTEMPTS=5
 ACCOUNT_LOCK_MINUTES=15
@@ -126,6 +135,12 @@ ACCOUNT_LOCK_MINUTES=15
 # Rate limiting (window values are in milliseconds)
 LOGIN_RATE_LIMIT_WINDOW=900000
 LOGIN_RATE_LIMIT_MAX=5
+OTP_SEND_RATE_LIMIT_WINDOW=900000
+OTP_SEND_RATE_LIMIT_MAX=5
+OTP_VERIFY_RATE_LIMIT_WINDOW=900000
+OTP_VERIFY_RATE_LIMIT_MAX=10
+TOTP_VERIFY_RATE_LIMIT_WINDOW=900000
+TOTP_VERIFY_RATE_LIMIT_MAX=10
 GENERAL_RATE_LIMIT_WINDOW=900000
 GENERAL_RATE_LIMIT_MAX=100
 UPLOAD_RATE_LIMIT_WINDOW=3600000
@@ -316,13 +331,19 @@ ADMIN_EMAIL=...
 ADMIN_PASSWORD=...
 ```
 
-If two-factor authentication is enabled, login becomes:
+Every successful password login requires a code sent through the configured SMTP provider:
 
 ```text
-Email + password -> authenticator code or recovery code -> dashboard
+Email + password -> email code -> dashboard
 ```
 
-JWT tokens are issued only after the second factor is verified.
+If Authenticator is enabled, login becomes:
+
+```text
+Email + password -> Authenticator code -> email code -> dashboard
+```
+
+The backend issues only a short-lived, login-scoped challenge token between these steps. It issues the final JWT after all required verification succeeds.
 
 ## Security Center and Two-Factor Authentication
 
@@ -343,6 +364,8 @@ From there the admin can:
 Security notes:
 
 - TOTP secrets are encrypted before being stored in MongoDB.
+- Authenticator enrollment is available only here after an authenticated admin confirms their password.
+- QR codes and manual setup keys are returned only during an active Security Center enrollment.
 - Recovery codes are hashed before being stored.
 - Recovery codes are displayed only when generated.
 - Set a strong `TOTP_ENCRYPTION_KEY` in production. If omitted, the backend falls back to `JWT_SECRET`, but a separate key is recommended.
@@ -431,6 +454,9 @@ Auth:
 
 ```text
 POST /api/auth/login
+POST /api/auth/verify-totp
+POST /api/auth/verify-email-otp
+POST /api/auth/resend-email-otp
 POST /api/auth/seed
 GET  /api/auth/me
 PUT  /api/auth/change-password
@@ -441,7 +467,7 @@ Security:
 ```text
 GET  /api/security/status
 POST /api/security/2fa/setup
-POST /api/security/2fa/verify
+POST /api/security/2fa/enable
 POST /api/security/2fa/disable
 POST /api/security/recovery-codes/regenerate
 ```
@@ -572,10 +598,22 @@ MONGO_URI=your_production_mongodb_uri
 JWT_SECRET=your_long_random_secret
 JWT_EXPIRES_IN=7d
 TOTP_ENCRYPTION_KEY=your_separate_long_random_totp_encryption_secret
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password
+EMAIL_FROM=Artist Portfolio <no-reply@example.com>
 MAX_FAILED_LOGIN_ATTEMPTS=5
 ACCOUNT_LOCK_MINUTES=15
 LOGIN_RATE_LIMIT_WINDOW=900000
 LOGIN_RATE_LIMIT_MAX=5
+OTP_SEND_RATE_LIMIT_WINDOW=900000
+OTP_SEND_RATE_LIMIT_MAX=5
+OTP_VERIFY_RATE_LIMIT_WINDOW=900000
+OTP_VERIFY_RATE_LIMIT_MAX=10
+TOTP_VERIFY_RATE_LIMIT_WINDOW=900000
+TOTP_VERIFY_RATE_LIMIT_MAX=10
 GENERAL_RATE_LIMIT_WINDOW=900000
 GENERAL_RATE_LIMIT_MAX=100
 UPLOAD_RATE_LIMIT_WINDOW=3600000

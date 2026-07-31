@@ -37,19 +37,35 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password, secondFactor) => {
-    const res = await authAPI.login(email, password, secondFactor);
-    const authData = res.data.data || res.data;
-    if (authData.requiresTwoFactor) {
-      return authData;
-    }
-
+  const storeAuthenticatedSession = (authData) => {
     const { token, user: userData } = authData;
     sessionStorage.setItem("token", token);
     sessionStorage.setItem("user", JSON.stringify(userData));
+    sessionStorage.removeItem("adminLoginChallenge");
     clearLegacyPersistentAuth();
     setUser(userData);
     return userData;
+  };
+
+  const login = async (email, password) => {
+    const res = await authAPI.login(email, password);
+    const authData = res.data.data || res.data;
+    return authData;
+  };
+
+  const verifyEmailOtp = async (challengeToken, code) => {
+    const res = await authAPI.verifyEmailOtp(challengeToken, code);
+    return storeAuthenticatedSession(res.data.data || res.data);
+  };
+
+  const resendEmailOtp = async (challengeToken) => {
+    const res = await authAPI.resendEmailOtp(challengeToken);
+    return res.data.data || res.data;
+  };
+
+  const verifyTotp = async (challengeToken, code) => {
+    const res = await authAPI.verifyTotp(challengeToken, code);
+    return res.data.data || res.data;
   };
 
   const logout = () => {
@@ -59,7 +75,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        verifyEmailOtp,
+        resendEmailOtp,
+        verifyTotp,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -57,8 +57,32 @@ const uploadRateLimiter = createJsonLimiter({
   reason: "upload rate limit exceeded",
 });
 
+const otpSendRateLimiter = createJsonLimiter({
+  windowMs: readNumber("OTP_SEND_RATE_LIMIT_WINDOW", FIFTEEN_MINUTES),
+  max: readNumber("OTP_SEND_RATE_LIMIT_MAX", 5),
+  message: "Too many verification code requests. Please try again later.",
+  reason: "OTP send rate limit exceeded",
+});
+
+const otpVerifyRateLimiter = createJsonLimiter({
+  windowMs: readNumber("OTP_VERIFY_RATE_LIMIT_WINDOW", FIFTEEN_MINUTES),
+  max: readNumber("OTP_VERIFY_RATE_LIMIT_MAX", 10),
+  message: "Too many verification attempts. Please try again later.",
+  reason: "OTP verification rate limit exceeded",
+});
+
+const totpVerifyRateLimiter = createJsonLimiter({
+  windowMs: readNumber("TOTP_VERIFY_RATE_LIMIT_WINDOW", FIFTEEN_MINUTES),
+  max: readNumber("TOTP_VERIFY_RATE_LIMIT_MAX", 10),
+  message: "Too many Authenticator attempts. Please try again later.",
+  reason: "TOTP verification rate limit exceeded",
+});
+
 module.exports = {
   loginRateLimiter,
   generalRateLimiter,
   uploadRateLimiter,
+  otpSendRateLimiter,
+  otpVerifyRateLimiter,
+  totpVerifyRateLimiter,
 };

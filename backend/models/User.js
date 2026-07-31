@@ -70,6 +70,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
     twoFactorEnabled: {
       type: Boolean,
       default: false,
@@ -77,6 +81,21 @@ const userSchema = new mongoose.Schema(
     twoFactorSecret: {
       type: String,
       default: null,
+      select: false,
+    },
+    pendingTwoFactorSecret: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    pendingTwoFactorExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    twoFactorSecretVersion: {
+      type: Number,
+      default: 0,
       select: false,
     },
     backupRecoveryCodes: {
@@ -88,6 +107,48 @@ const userSchema = new mongoose.Schema(
         },
       ],
       default: [],
+      select: false,
+    },
+    emailOtpHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    emailOtpPurpose: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    emailOtpExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    emailOtpAttempts: {
+      type: Number,
+      default: 0,
+      min: 0,
+      select: false,
+    },
+    emailOtpLastSentAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    loginChallengeHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    loginChallengePurpose: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    loginChallengeAttempts: {
+      type: Number,
+      default: 0,
+      min: 0,
       select: false,
     },
     failedLoginAttempts: {
@@ -135,6 +196,15 @@ userSchema.methods.setTwoFactorSecret = function (secret) {
 userSchema.methods.getTwoFactorSecret = function () {
   if (!this.twoFactorSecret) return null;
   return decryptSecret(this.twoFactorSecret);
+};
+
+userSchema.methods.setPendingTwoFactorSecret = function (secret) {
+  this.pendingTwoFactorSecret = encryptSecret(secret);
+};
+
+userSchema.methods.getPendingTwoFactorSecret = function () {
+  if (!this.pendingTwoFactorSecret) return null;
+  return decryptSecret(this.pendingTwoFactorSecret);
 };
 
 userSchema.methods.generateBackupRecoveryCodes = async function (count = 10) {

@@ -6,6 +6,8 @@ const { protect } = require("../middleware/auth");
 const { logActivity } = require("../middleware/activityLogger");
 
 const router = express.Router();
+const TOTP_SETUP_EXPIRY_MS = 15 * 60 * 1000;
+const CURRENT_TOTP_SECRET_VERSION = 2;
 
 const successResponse = (res, statusCode, message, data = {}) => {
   return res.status(statusCode).json({
@@ -21,7 +23,9 @@ const errorResponse = (res, statusCode, message, errors = []) => {
 };
 
 const getUserWithSecurityFields = (id) => {
-  return User.findById(id).select("+twoFactorSecret +backupRecoveryCodes");
+  return User.findById(id).select(
+    "+twoFactorSecret +pendingTwoFactorSecret +pendingTwoFactorExpiresAt +twoFactorSecretVersion +backupRecoveryCodes"
+  );
 };
 
 const verifyTotpCode = (user, token) => {
@@ -29,6 +33,23 @@ const verifyTotpCode = (user, token) => {
   try {
     secret = user.getTwoFactorSecret();
   } catch (error) {
+    return false;
+  }
+  if (!secret || !token) return false;
+
+  return speakeasy.totp.verify({
+    secret,
+    encoding: "base32",
+    token: String(token).trim(),
+    window: 1,
+  });
+};
+
+const verifyPendingTotpCode = (user, token) => {
+  let secret;
+  try {
+    secret = user.getPendingTwoFactorSecret();
+  } catch {
     return false;
   }
   if (!secret || !token) return false;
@@ -52,6 +73,7 @@ router.get("/status", protect, async (req, res) => {
     return successResponse(res, 200, "Security status loaded", {
       security: {
         email: user.email,
+        emailVerified: user.emailVerified,
         twoFactorEnabled: user.twoFactorEnabled,
         remainingRecoveryCodes,
         lastLogin: user.lastLogin,
@@ -93,7 +115,8 @@ router.post("/2fa/setup", protect, async (req, res) => {
       length: 20,
     });
 
-    user.setTwoFactorSecret(secret.base32);
+    user.setPendingTwoFactorSecret(secret.base32);
+    user.pendingTwoFactorExpiresAt = new Date(Date.now() + TOTP_SETUP_EXPIRY_MS);
     await user.save();
     await logActivity(req, {
       action: "Two-factor setup started",
@@ -113,15 +136,15 @@ router.post("/2fa/setup", protect, async (req, res) => {
   }
 });
 
-// @route   POST /api/security/2fa/verify
+// @route   POST /api/security/2fa/enable
 // @desc    Confirm setup code, enable 2FA, and issue recovery codes
 // @access  Private
-router.post("/2fa/verify", protect, async (req, res) => {
+const enableTwoFactor = async (req, res) => {
   try {
     const { token } = req.body;
 
-    if (!token) {
-      return errorResponse(res, 400, "Authenticator code is required");
+    if (!/^\d{6}$/.test(String(token || "").trim())) {
+      return errorResponse(res, 400, "A valid 6-digit Authenticator code is required");
     }
 
     const user = await getUserWithSecurityFields(req.user._id);
@@ -130,15 +153,27 @@ router.post("/2fa/verify", protect, async (req, res) => {
       return errorResponse(res, 400, "Two-factor authentication is already enabled");
     }
 
-    if (!user.twoFactorSecret) {
+    if (!user.pendingTwoFactorSecret || !user.pendingTwoFactorExpiresAt) {
       return errorResponse(res, 400, "Start two-factor setup before verifying a code");
     }
 
-    if (!verifyTotpCode(user, token)) {
+    if (user.pendingTwoFactorExpiresAt <= new Date()) {
+      user.pendingTwoFactorSecret = null;
+      user.pendingTwoFactorExpiresAt = null;
+      await user.save();
+      return errorResponse(res, 400, "Authenticator setup expired. Start setup again.");
+    }
+
+    if (!verifyPendingTotpCode(user, token)) {
       return errorResponse(res, 400, "Invalid authenticator code");
     }
 
+    const pendingSecret = user.getPendingTwoFactorSecret();
     const recoveryCodes = await user.generateBackupRecoveryCodes();
+    user.setTwoFactorSecret(pendingSecret);
+    user.pendingTwoFactorSecret = null;
+    user.pendingTwoFactorExpiresAt = null;
+    user.twoFactorSecretVersion = CURRENT_TOTP_SECRET_VERSION;
     user.twoFactorEnabled = true;
     await user.save();
     await logActivity(req, {
@@ -154,7 +189,10 @@ router.post("/2fa/verify", protect, async (req, res) => {
     console.error("Two-factor verify error:", error);
     return errorResponse(res, 500, "Server error");
   }
-});
+};
+
+router.post("/2fa/enable", protect, enableTwoFactor);
+router.post("/2fa/verify", protect, enableTwoFactor);
 
 // @route   POST /api/security/2fa/disable
 // @desc    Disable 2FA after password and authenticator/recovery verification
@@ -187,6 +225,9 @@ router.post("/2fa/disable", protect, async (req, res) => {
 
     user.twoFactorEnabled = false;
     user.twoFactorSecret = null;
+    user.pendingTwoFactorSecret = null;
+    user.pendingTwoFactorExpiresAt = null;
+    user.twoFactorSecretVersion = 0;
     user.backupRecoveryCodes = [];
     await user.save();
     await logActivity(req, {

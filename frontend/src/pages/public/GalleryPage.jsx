@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -24,11 +24,11 @@ const GalleryTile = ({ artwork, priority = false }) => {
           <img
             src={responsiveImage(image.url, 1000)}
             srcSet={`${responsiveImage(image.url, 600)} 600w, ${responsiveImage(image.url, 1000)} 1000w, ${responsiveImage(image.url, 1400)} 1400w`}
-            sizes="(min-width: 1500px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1900px) 16.7vw, (min-width: 1440px) 20vw, (min-width: 1100px) 25vw, (min-width: 768px) 33.3vw, (min-width: 480px) 50vw, 100vw"
             width={image.width || undefined}
             height={image.height || undefined}
             alt={title}
-            className="block h-auto w-full transition duration-500 ease-out group-hover:scale-[1.015] group-hover:brightness-[0.88]"
+            className="block h-auto w-full transition duration-500 ease-out group-hover:scale-[1.012] group-hover:brightness-[0.82]"
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             decoding="async"
@@ -38,8 +38,15 @@ const GalleryTile = ({ artwork, priority = false }) => {
             Image unavailable
           </div>
         )}
-        <span className="pointer-events-none absolute bottom-3 left-3 translate-y-1 bg-black/55 px-2.5 py-1.5 text-[10px] font-label uppercase tracking-[0.16em] text-white opacity-0 backdrop-blur-sm transition group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:opacity-100">
-          View artwork
+        <span className="pointer-events-none absolute inset-0 flex items-end bg-black/0 p-4 text-left opacity-0 transition duration-300 group-hover:bg-black/35 group-hover:opacity-100 group-focus-visible:bg-black/35 group-focus-visible:opacity-100">
+          <span>
+            <span className="block font-display text-lg font-light leading-tight text-white">{title}</span>
+            {artwork.category && artwork.category !== "Uncategorized" && (
+              <span className="mt-1 block text-[9px] font-label uppercase tracking-[0.18em] text-white/70">
+                {artwork.category}
+              </span>
+            )}
+          </span>
         </span>
       </Link>
     </article>
@@ -76,7 +83,7 @@ const GalleryPage = () => {
     const [sort, order] = sortValue.split("-");
 
     try {
-      const params = { page, limit: 20, sort, order };
+      const params = { page, limit: 36, sort, order };
       if (category !== "all") params.category = category;
       if (availability !== "all") params.available = availability;
       if (search) params.search = search;
@@ -103,6 +110,29 @@ const GalleryPage = () => {
     fetchArtworks();
   }, [fetchArtworks]);
 
+  const galleryCategories = useMemo(() => {
+    const seen = new Set();
+    const preferredOrder = new Map([
+      ["original art", 0],
+      ["client work", 1],
+    ]);
+
+    const dynamicCategories = categories.filter((item) => {
+      const key = String(item || "").trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    dynamicCategories.sort((first, second) => {
+      const firstRank = preferredOrder.get(String(first).toLowerCase()) ?? 2;
+      const secondRank = preferredOrder.get(String(second).toLowerCase()) ?? 2;
+      return firstRank - secondRank || String(first).localeCompare(String(second));
+    });
+
+    return ["all", ...dynamicCategories];
+  }, [categories]);
+
   const resetCollection = (callback) => {
     setPage(1);
     setArtworks([]);
@@ -111,16 +141,41 @@ const GalleryPage = () => {
 
   return (
     <PublicLayout>
-      <main className="min-h-screen bg-white pt-20">
-        <header className="border-b border-charcoal/10 px-4 py-7 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <p className="eyebrow mb-2">Complete Collection</p>
-              <h1 className="font-display text-4xl font-light text-charcoal md:text-5xl">Gallery</h1>
-            </div>
+      <main className="min-h-screen bg-white pt-16 md:pt-20">
+        <header className="container-site pb-7 pt-8 md:pb-9 md:pt-14">
+          <div>
+            <p className="eyebrow mb-2">Portfolio</p>
+            <h1 className="font-display text-4xl font-light leading-none text-charcoal md:text-5xl">
+              Gallery
+            </h1>
+            <p className="mt-3 max-w-xl text-sm font-light leading-relaxed text-slate/60">
+              Explore the complete collection of original works and selected projects.
+            </p>
+          </div>
 
+          <nav className="gallery-category-nav mt-7 overflow-x-auto" aria-label="Artwork categories">
+            <div className="flex min-w-max gap-7 border-b border-charcoal/10">
+                {galleryCategories.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => resetCollection(() => setCategory(item))}
+                    aria-pressed={category === item}
+                    className={`-mb-px border-b py-3 text-[11px] font-label uppercase tracking-[0.16em] transition-colors duration-300 ${
+                      category === item
+                        ? "border-charcoal text-charcoal"
+                        : "border-transparent text-slate/45 hover:text-charcoal"
+                    }`}
+                  >
+                    {item === "all" ? "All" : item}
+                  </button>
+                ))}
+            </div>
+          </nav>
+
+          <div className="mt-5 flex flex-col gap-3 border-b border-charcoal/10 pb-5 lg:flex-row lg:items-end lg:justify-between">
             <form
-              className="flex w-full max-w-xl"
+              className="flex w-full lg:max-w-md"
               role="search"
               onSubmit={(event) => {
                 event.preventDefault();
@@ -133,50 +188,36 @@ const GalleryPage = () => {
                 type="search"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                className="input-field min-w-0"
-                placeholder="Search title, category, medium..."
+                className="h-10 min-w-0 flex-1 border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal placeholder:text-slate/35 focus:border-gold focus:outline-none"
+                placeholder="Search artworks"
               />
-              <button type="submit" className="btn-primary flex-shrink-0">Search</button>
+              <button
+                type="submit"
+                className="h-10 flex-shrink-0 border border-l-0 border-charcoal/15 px-4 text-[10px] font-label uppercase tracking-[0.16em] text-charcoal transition-colors hover:border-charcoal hover:bg-charcoal hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                Search
+              </button>
             </form>
-          </div>
 
-          <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="overflow-x-auto" aria-label="Artwork categories">
-              <div className="flex min-w-max gap-1">
-                {["all", ...categories].map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => resetCollection(() => setCategory(item))}
-                    className={`px-3 py-2 text-xs font-label uppercase tracking-[0.14em] transition ${
-                      category === item ? "bg-charcoal text-white" : "text-slate/60 hover:bg-charcoal/5 hover:text-charcoal"
-                    }`}
-                  >
-                    {item === "all" ? "All" : item}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-slate/55">
+            <div className="flex gap-3 overflow-x-auto pb-px">
+              <label className="flex min-w-max items-center gap-2 text-[10px] font-label uppercase tracking-[0.14em] text-slate/45">
                 Availability
                 <select
                   value={availability}
                   onChange={(event) => resetCollection(() => setAvailability(event.target.value))}
-                  className="input-field py-2"
+                  className="h-10 border border-charcoal/15 bg-transparent px-3 text-xs normal-case tracking-normal text-charcoal focus:border-gold focus:outline-none"
                 >
                   <option value="all">All</option>
                   <option value="true">Available</option>
                   <option value="false">Not available</option>
                 </select>
               </label>
-              <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-slate/55">
+              <label className="flex min-w-max items-center gap-2 text-[10px] font-label uppercase tracking-[0.14em] text-slate/45">
                 Sort
                 <select
                   value={sortValue}
                   onChange={(event) => resetCollection(() => setSortValue(event.target.value))}
-                  className="input-field py-2"
+                  className="h-10 border border-charcoal/15 bg-transparent px-3 text-xs normal-case tracking-normal text-charcoal focus:border-gold focus:outline-none"
                 >
                   <option value="createdAt-desc">Newest</option>
                   <option value="createdAt-asc">Oldest</option>
@@ -189,7 +230,7 @@ const GalleryPage = () => {
           </div>
         </header>
 
-        <section className="px-2 py-3 sm:px-3" aria-live="polite">
+        <section className="px-2 pb-4 sm:px-3 lg:px-4" aria-live="polite">
           {loading ? (
             <div className="flex min-h-[48vh] items-center justify-center"><LoadingSpinner size="lg" /></div>
           ) : error ? (
@@ -206,7 +247,7 @@ const GalleryPage = () => {
           ) : (
             <div className="gallery-masonry">
               {artworks.map((artwork, index) => (
-                <GalleryTile key={artwork._id} artwork={artwork} priority={index < 4} />
+                <GalleryTile key={artwork._id} artwork={artwork} priority={index < 6} />
               ))}
             </div>
           )}

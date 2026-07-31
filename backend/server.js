@@ -5,10 +5,18 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
-const { assertAdminSeedConfig, ensureAdminUser, getMongoUri } = require("./utils/adminSeed");
+const {
+  assertAdminSeedConfig,
+  ensureAdminUser,
+  getMongoUri,
+  invalidateLegacyTwoFactorSecrets,
+} = require("./utils/adminSeed");
 const {
   generalRateLimiter,
   loginRateLimiter,
+  otpSendRateLimiter,
+  otpVerifyRateLimiter,
+  totpVerifyRateLimiter,
 } = require("./middleware/rateLimiter");
 
 const app = express();
@@ -112,6 +120,12 @@ app.use(
 // Security: rate limit API traffic and login attempts with JSON-only responses.
 app.use("/api", generalRateLimiter);
 app.post("/api/auth/login", loginRateLimiter);
+app.post("/api/auth/resend-email-otp", otpSendRateLimiter);
+app.post("/api/auth/verify-email-otp", otpVerifyRateLimiter);
+app.post("/api/auth/verify-totp", totpVerifyRateLimiter);
+app.post("/api/security/2fa/enable", totpVerifyRateLimiter);
+app.post("/api/security/2fa/verify", totpVerifyRateLimiter);
+app.post("/api/security/2fa/disable", totpVerifyRateLimiter);
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
@@ -152,6 +166,7 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB();
+  await invalidateLegacyTwoFactorSecrets();
 
   if (process.env.SEED_ADMIN_ON_START === "true" || process.env.RESET_ADMIN_2FA_ON_START === "true") {
     assertAdminSeedConfig({
