@@ -267,14 +267,47 @@
 
 .gallery-masonry {
   column-count: 1;
-  column-gap: 6px;
+  column-gap: 12px;
 }
 
 .gallery-masonry-item {
   width: 100%;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
   break-inside: avoid;
   page-break-inside: avoid;
+}
+
+.gallery-results {
+  min-height: 62vh;
+}
+
+.gallery-artwork-link,
+.gallery-skeleton {
+  border-radius: var(--theme-card-radius);
+}
+
+.gallery-artwork-link {
+  overflow: hidden;
+}
+
+.gallery-artwork-image {
+  transition: filter 220ms ease, transform 220ms ease;
+}
+
+.gallery-artwork-overlay {
+  transition: background-color 220ms ease, opacity 220ms ease;
+}
+
+.gallery-mobile-caption {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font-size: 0.875rem;
 }
 
 .gallery-category-nav {
@@ -282,42 +315,72 @@
   scrollbar-width: thin;
 }
 
-@media (min-width: 480px) {
+.gallery-skeleton {
+  background: rgb(var(--theme-border-rgb) / 0.65);
+  animation: gallery-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes gallery-skeleton-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (min-width: 640px) {
   .gallery-masonry {
     column-count: 2;
-    column-gap: 8px;
-  }
-
-  .gallery-masonry-item {
-    margin-bottom: 8px;
   }
 }
 
 @media (min-width: 768px) {
+  .gallery-mobile-caption {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
   .gallery-masonry {
     column-count: 3;
-  }
-}
-
-@media (min-width: 1100px) {
-  .gallery-masonry {
-    column-count: 4;
-  }
-}
-
-@media (min-width: 1440px) {
-  .gallery-masonry {
-    column-count: 5;
-    column-gap: 10px;
+    column-gap: 14px;
   }
 
   .gallery-masonry-item {
-    margin-bottom: 10px;
+    margin-bottom: 14px;
   }
 }
 
-@media (min-width: 1900px) {
+@media (min-width: 1680px) {
   .gallery-masonry {
-    column-count: 6;
+    column-count: 4;
+    column-gap: 16px;
+  }
+
+  .gallery-masonry-item {
+    margin-bottom: 16px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gallery-artwork-link:hover .gallery-artwork-image,
+  .gallery-artwork-link:focus-visible .gallery-artwork-image {
+    filter: brightness(0.82);
+    transform: scale(1.012);
+  }
+}
+
+@media (max-width: 767px) {
+  .gallery-artwork-overlay {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-artwork-image,
+  .gallery-artwork-overlay {
+    transition: none;
+  }
+
+  .gallery-skeleton {
+    animation: none;
   }
 }
