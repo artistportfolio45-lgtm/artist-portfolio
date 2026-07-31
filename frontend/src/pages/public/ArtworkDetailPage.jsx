@@ -33,6 +33,7 @@ const ArtworkDetailPage = () => {
   const [form, setForm] = useState(emptyInquiryForm);
   const [previewOpen, setPreviewOpen] = useState(false);
   const artworkImageRef = useRef(null);
+  const artworkInfoRef = useRef(null);
 
   useEffect(() => {
     publicDataAPI.getArtworkById(id, { onLiveData: setArtwork })
@@ -43,6 +44,10 @@ const ArtworkDetailPage = () => {
       .catch(() => toast.error("Artwork not found"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    artworkInfoRef.current?.scrollTo({ top: 0 });
+  }, [artwork?._id]);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -125,8 +130,8 @@ const ArtworkDetailPage = () => {
 
   return (
     <PublicLayout>
-      <div className="pt-20 bg-white min-h-screen">
-        <div className="container-site py-12">
+      <div className="artwork-detail-page bg-white">
+        <div className="container-site artwork-detail-shell">
           <BackButton fallbackTo="/gallery" ariaLabel="Back to Gallery" className="mb-6">
             Back to Gallery
           </BackButton>
@@ -137,13 +142,13 @@ const ArtworkDetailPage = () => {
             <span className="text-charcoal">{artwork.title}</span>
           </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-            <div>
+          <div className="artwork-detail-layout">
+            <div className="artwork-image-panel">
               <button
                 ref={artworkImageRef}
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="group mb-4 flex min-h-[48vh] w-full cursor-zoom-in items-center justify-center overflow-hidden bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 lg:min-h-[68vh]"
+                className="artwork-image-stage group flex w-full cursor-zoom-in items-center justify-center overflow-hidden bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
                 aria-label={`Open full-screen preview of ${artwork.title}`}
               >
                 {artwork.images?.[activeImage]?.url ? (
@@ -152,7 +157,7 @@ const ArtworkDetailPage = () => {
                     alt={`${artwork.title} image ${activeImage + 1}`}
                     width={artwork.images[activeImage].width || undefined}
                     height={artwork.images[activeImage].height || undefined}
-                    className="max-h-[78vh] h-auto w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+                    className="artwork-detail-image transition-transform duration-500 group-hover:scale-[1.01]"
                     decoding="async"
                   />
                 ) : (
@@ -181,7 +186,13 @@ const ArtworkDetailPage = () => {
               )}
             </div>
 
-            <div className="flex flex-col">
+            <div
+              ref={artworkInfoRef}
+              className="artwork-info-panel flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"
+              tabIndex={0}
+              role="region"
+              aria-label={`${artwork.title} details`}
+            >
               {artwork.category && artwork.category !== "Uncategorized" && (
                 <p className="eyebrow mb-3">{artwork.category}</p>
               )}
