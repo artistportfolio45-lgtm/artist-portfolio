@@ -322,7 +322,16 @@
 }
 
 .artwork-masonry-image {
-  transition: filter 220ms ease, transform 220ms ease;
+  transition: filter 220ms ease, opacity 180ms ease, transform 220ms ease;
+}
+
+.artwork-masonry-image-frame {
+  background: rgb(var(--theme-border-rgb) / 0.45);
+}
+
+.artwork-masonry-image-skeleton {
+  background: rgb(var(--theme-border-rgb) / 0.65);
+  animation: artwork-masonry-skeleton-pulse 1.4s ease-in-out infinite;
 }
 
 .artwork-masonry-overlay {
@@ -398,7 +407,8 @@
     transition: none;
   }
 
-  .artwork-masonry-skeleton {
+  .artwork-masonry-skeleton,
+  .artwork-masonry-image-skeleton {
     animation: none;
   }
 }

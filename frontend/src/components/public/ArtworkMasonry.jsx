@@ -1,10 +1,121 @@
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  GALLERY_THUMBNAIL_WIDTHS,
+  cloudinaryThumbnailUrl,
+  galleryThumbnailWidths,
+  imageAspectRatio,
+} from "../../utils/imageDelivery";
 
 const SKELETON_RATIOS = ["4 / 5", "1 / 1", "3 / 4", "5 / 4", "2 / 3", "4 / 3"];
 
-const responsiveImage = (url, width) => {
-  if (!url?.includes("/upload/")) return url;
-  return url.replace("/upload/", `/upload/f_auto,q_auto,c_limit,w_${width}/`);
+const GALLERY_IMAGE_SIZES =
+  "(min-width: 2240px) 615px, (min-width: 1883px) calc(33.333vw - 132px), (min-width: 1471px) calc(27.667vw - 25.333px), (min-width: 1024px) calc(33.333vw - 108.667px), (min-width: 640px) calc(50vw - 30px), calc(100vw - 32px)";
+
+const ArtworkMasonryImage = ({ image, title, priority }) => {
+  const originalUrl = image.url;
+  const thumbnailWidths = galleryThumbnailWidths(image.width);
+  const defaultWidth =
+    thumbnailWidths.find((width) => width >= GALLERY_THUMBNAIL_WIDTHS[1]) ||
+    thumbnailWidths[thumbnailWidths.length - 1];
+  const optimizedUrl = cloudinaryThumbnailUrl(originalUrl, defaultWidth);
+  const optimizedSrcSet = thumbnailWidths
+    .map((width) => `${cloudinaryThumbnailUrl(originalUrl, width)} ${width}w`)
+    .join(", ");
+  const hasOptimizedSource = optimizedUrl !== originalUrl;
+  const hasIntrinsicDimensions = Number(image.width) > 0 && Number(image.height) > 0;
+  const [status, setStatus] = useState("loading");
+  const [useOriginal, setUseOriginal] = useState(false);
+  const [loadMode, setLoadMode] = useState(priority ? "eager" : null);
+  const loadImmediately = loadMode === "eager";
+  const frameRef = useRef(null);
+  const imageRef = useRef(null);
+  const sourceUrl = useOriginal ? originalUrl : optimizedUrl;
+
+  const handleFailure = useCallback(() => {
+    if (!useOriginal && hasOptimizedSource) {
+      setStatus("loading");
+      setUseOriginal(true);
+      return;
+    }
+
+    setStatus("error");
+  }, [hasOptimizedSource, useOriginal]);
+
+  const syncCompletedImage = useCallback(() => {
+    const node = imageRef.current;
+    if (!node?.complete) return;
+
+    if (node.naturalWidth > 0) {
+      setStatus("loaded");
+    } else {
+      handleFailure();
+    }
+  }, [handleFailure]);
+
+  const setImageRef = useCallback((node) => {
+    imageRef.current = node;
+  }, []);
+
+  useLayoutEffect(() => {
+    if (loadMode === null) {
+      const bounds = frameRef.current?.getBoundingClientRect();
+      const visible = bounds && bounds.top < window.innerHeight && bounds.bottom > 0;
+      setLoadMode(priority || visible ? "eager" : "lazy");
+      return;
+    }
+
+    const node = imageRef.current;
+    if (!node) return;
+
+    syncCompletedImage();
+  }, [loadMode, priority, sourceUrl, syncCompletedImage]);
+
+  return (
+    <span
+      className="artwork-masonry-image-frame relative block overflow-hidden"
+      ref={frameRef}
+      style={{ aspectRatio: imageAspectRatio(image) }}
+      aria-busy={status === "loading"}
+      data-image-status={status}
+    >
+      {status === "loading" && (
+        <span className="artwork-masonry-image-skeleton absolute inset-0" aria-hidden="true" />
+      )}
+
+      {status === "error" && (
+        <span className="absolute inset-0 flex items-center justify-center text-sm text-slate/45">
+          Image unavailable
+        </span>
+      )}
+
+      {loadMode !== null && <img
+        ref={setImageRef}
+        src={sourceUrl}
+        srcSet={!useOriginal && hasOptimizedSource ? optimizedSrcSet : undefined}
+        sizes={!useOriginal && hasOptimizedSource ? GALLERY_IMAGE_SIZES : undefined}
+        width={hasIntrinsicDimensions ? Number(image.width) : 4}
+        height={hasIntrinsicDimensions ? Number(image.height) : 5}
+        alt={title}
+        className={`artwork-masonry-image block h-full w-full ${
+          hasIntrinsicDimensions ? "object-cover" : "object-contain"
+        } ${
+          status === "loaded" ? "opacity-100" : "opacity-0"
+        }`}
+        loading={loadImmediately ? "eager" : "lazy"}
+        fetchPriority={loadImmediately ? "high" : "auto"}
+        decoding="async"
+        onLoad={(event) => {
+          if (event.currentTarget.naturalWidth > 0) {
+            setStatus("loaded");
+          } else {
+            handleFailure();
+          }
+        }}
+        onError={handleFailure}
+      />}
+    </span>
+  );
 };
 
 const ArtworkMasonryItem = ({ artwork, priority = false }) => {
@@ -26,17 +137,11 @@ const ArtworkMasonryItem = ({ artwork, priority = false }) => {
       >
         <span className="relative block overflow-hidden">
           {image?.url ? (
-            <img
-              src={responsiveImage(image.url, 1000)}
-              srcSet={`${responsiveImage(image.url, 600)} 600w, ${responsiveImage(image.url, 1000)} 1000w, ${responsiveImage(image.url, 1400)} 1400w`}
-              sizes="(min-width: 1024px) 29vw, (min-width: 640px) 50vw, 100vw"
-              width={image.width || undefined}
-              height={image.height || undefined}
-              alt={title}
-              className="artwork-masonry-image block h-auto w-full"
-              loading={priority ? "eager" : "lazy"}
-              fetchPriority={priority ? "high" : "auto"}
-              decoding="async"
+            <ArtworkMasonryImage
+              key={`${image.url}:${image.width || ""}:${image.height || ""}`}
+              image={image}
+              title={title}
+              priority={priority}
             />
           ) : (
             <span className="flex aspect-[4/5] items-center justify-center text-sm text-slate/45">

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkCard from "../../components/public/ArtworkCard";
 import ArtworkMasonry from "../../components/public/ArtworkMasonry";
+import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
 import { publicDataAPI } from "../../services/publicData";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -15,6 +16,7 @@ const HomePage = () => {
   const [latestArtworks, setLatestArtworks] = useState([]);
   const [latestLoading, setLatestLoading] = useState(true);
   const [profile, setProfile] = useState(null);
+  const [featuredPreview, setFeaturedPreview] = useState(null);
 
   useEffect(() => {
     Promise.allSettled([
@@ -85,7 +87,7 @@ const HomePage = () => {
       </section>
 
       {/* ── Featured Artworks ─────────────────────────────────── */}
-      <section className="section bg-ivory" aria-label="Featured Artworks">
+      <section className="featured-artworks section bg-ivory" aria-label="Featured Artworks">
         <div className="container-site">
           <div className="text-center mb-12">
             <p className="eyebrow mb-3">Curated Selection</p>
@@ -105,6 +107,8 @@ const HomePage = () => {
                 <ArtworkCard
                   key={artwork._id}
                   artwork={artwork}
+                  variant="featured"
+                  onPreview={setFeaturedPreview}
                 />
               ))}
             </div>
@@ -208,6 +212,12 @@ const HomePage = () => {
           </Link>
         </div>
       </section>
+      {featuredPreview && (
+        <ArtworkPreviewModal
+          artwork={featuredPreview}
+          onClose={() => setFeaturedPreview(null)}
+        />
+      )}
     </PublicLayout>
   );
 };
