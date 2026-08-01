@@ -2,14 +2,20 @@ import { Link } from "react-router-dom";
 
 const ArtworkCard = ({ artwork, variant, onPreview }) => {
   const image = artwork.images?.[0];
-  const title = artwork.title || "Untitled";
+  const rawTitle = String(artwork.title || "").trim();
+  const title = rawTitle || "Artwork";
 
   if (variant === "featured") {
-    const formattedPrice = new Intl.NumberFormat("en-IN", {
+    const numericPrice = Number(artwork.price);
+    const formattedPrice = Number.isFinite(numericPrice) && numericPrice >= 0
+      ? new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
-    }).format(artwork.price || 0);
+      }).format(numericPrice)
+      : null;
+    const category = String(artwork.category || "").trim();
+    const medium = String(artwork.medium || "").trim();
 
     const handlePreview = (event) => {
       event.preventDefault();
@@ -18,7 +24,7 @@ const ArtworkCard = ({ artwork, variant, onPreview }) => {
     };
 
     return (
-      <article className="featured-artwork-card group animate-fade-in">
+      <article className="featured-artwork-card group min-w-0 animate-fade-in">
         <div
           className="relative aspect-artwork overflow-hidden bg-white shadow-sm ring-1 ring-black/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-xl group-focus-within:-translate-y-1 group-focus-within:shadow-xl"
           style={{ borderRadius: "var(--theme-card-radius)" }}
@@ -79,21 +85,29 @@ const ArtworkCard = ({ artwork, variant, onPreview }) => {
           </div>
         </div>
 
-        <div className="pb-2 pt-4">
-          <p className="mb-1 text-[10px] font-label uppercase tracking-widest text-slate/60">
-            {artwork.category}
-          </p>
-          <Link to={`/artwork/${artwork._id}`}>
-            <h3 className="mb-2 font-display text-xl font-light leading-tight text-charcoal transition-colors group-hover:text-gold group-focus-within:text-gold">
-              {title}
-            </h3>
-          </Link>
-          <div className="flex items-start justify-between gap-3">
-            <p className="font-label text-sm font-medium text-charcoal">{formattedPrice}</p>
-            {artwork.medium && (
-              <p className="text-right text-xs leading-relaxed text-slate/50">{artwork.medium}</p>
-            )}
-          </div>
+        <div className="min-w-0 pb-2 pt-4">
+          {category && category !== "Uncategorized" && (
+            <p className="mb-1 break-words text-[10px] font-label uppercase tracking-widest text-slate/60">
+              {category}
+            </p>
+          )}
+          {rawTitle && (
+            <Link to={`/artwork/${artwork._id}`} className="block min-w-0">
+              <h3 className="mb-2 break-words font-display text-xl font-light leading-tight text-charcoal transition-colors group-hover:text-gold group-focus-within:text-gold">
+                {rawTitle}
+              </h3>
+            </Link>
+          )}
+          {(formattedPrice || medium) && (
+            <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1">
+              {formattedPrice && <p className="font-label text-sm font-medium text-charcoal">{formattedPrice}</p>}
+              {medium && (
+                <p className="min-w-0 max-w-full break-words text-right text-xs leading-relaxed text-slate/50">
+                  {medium}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </article>
     );
