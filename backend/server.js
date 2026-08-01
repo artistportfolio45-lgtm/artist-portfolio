@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
+const { validateGmailConfig } = require("./services/emailService");
 const {
   assertAdminSeedConfig,
   ensureAdminUser,
@@ -165,6 +166,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
+  validateGmailConfig();
   await connectDB();
   await invalidateLegacyTwoFactorSecrets();
 

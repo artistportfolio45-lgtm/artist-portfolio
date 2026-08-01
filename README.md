@@ -52,7 +52,7 @@ Backend:
 - bcryptjs
 - speakeasy
 - qrcode
-- nodemailer
+- Gmail API (OAuth 2.0 over HTTPS)
 - Cloudinary
 - Multer
 - multer-storage-cloudinary
@@ -120,13 +120,11 @@ JWT_EXPIRES_IN=7d
 # TOTP secret encryption
 TOTP_ENCRYPTION_KEY=replace_with_another_long_random_secret
 
-# Admin email verification (backend-only SMTP credentials)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your_smtp_username
-SMTP_PASS=your_smtp_password
-EMAIL_FROM=Artist Portfolio <no-reply@example.com>
+# Gmail API email verification (backend-only; never put these in frontend variables)
+GMAIL_CLIENT_ID=your_google_oauth_client_id
+GMAIL_CLIENT_SECRET=your_google_oauth_client_secret
+GMAIL_REFRESH_TOKEN=your_google_oauth_refresh_token
+GMAIL_SENDER=artistportfolio45@gmail.com
 
 # Account lockout
 MAX_FAILED_LOGIN_ATTEMPTS=5
@@ -331,7 +329,7 @@ ADMIN_EMAIL=...
 ADMIN_PASSWORD=...
 ```
 
-Every successful password login requires a code sent through the configured SMTP provider:
+Every successful password login requires a code sent through the Gmail API over HTTPS:
 
 ```text
 Email + password -> email code -> dashboard
@@ -344,6 +342,27 @@ Email + password -> Authenticator code -> email code -> dashboard
 ```
 
 The backend issues only a short-lived, login-scoped challenge token between these steps. It issues the final JWT after all required verification succeeds.
+
+### Gmail API setup for admin verification emails
+
+Render Free blocks SMTP ports, so this project sends verification emails through the Gmail API using OAuth 2.0 over HTTPS. The refresh token and client secret stay on the backend only. Configure the Gmail account `artistportfolio45@gmail.com` as follows:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create or select a project and enable **Gmail API** under **APIs & Services → Library**.
+2. Under **APIs & Services → OAuth consent screen**, configure the consent screen. Add `artistportfolio45@gmail.com` as a test user while the app is in testing, or publish the app when appropriate.
+3. Under **Credentials**, create an **OAuth client ID** of type **Web application**. Add this authorized redirect URI exactly: `https://developers.google.com/oauthplayground`.
+4. Open [OAuth 2.0 Playground](https://developers.google.com/oauthplayground), click the settings icon, enable **Use your own OAuth credentials**, and enter the client ID and client secret from step 3.
+5. In step 1 of the playground, authorize the scope `https://www.googleapis.com/auth/gmail.send` while signed in as `artistportfolio45@gmail.com`.
+6. Exchange the authorization code for tokens, then copy the **refresh token**. Store it only in the backend host's environment settings.
+7. Set the four `GMAIL_*` values below on Render and restart the backend. Do not use `VITE_` prefixes and do not add these values to the frontend.
+
+```env
+GMAIL_CLIENT_ID=your_google_oauth_client_id
+GMAIL_CLIENT_SECRET=your_google_oauth_client_secret
+GMAIL_REFRESH_TOKEN=your_google_oauth_refresh_token
+GMAIL_SENDER=artistportfolio45@gmail.com
+```
+
+The backend validates these variables at startup. A Gmail API error or timeout is aborted promptly and returns `503` from the login or resend endpoint; the pending OTP and challenge are invalidated as before.
 
 ## Security Center and Two-Factor Authentication
 
@@ -598,12 +617,10 @@ MONGO_URI=your_production_mongodb_uri
 JWT_SECRET=your_long_random_secret
 JWT_EXPIRES_IN=7d
 TOTP_ENCRYPTION_KEY=your_separate_long_random_totp_encryption_secret
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your_smtp_username
-SMTP_PASS=your_smtp_password
-EMAIL_FROM=Artist Portfolio <no-reply@example.com>
+GMAIL_CLIENT_ID=your_google_oauth_client_id
+GMAIL_CLIENT_SECRET=your_google_oauth_client_secret
+GMAIL_REFRESH_TOKEN=your_google_oauth_refresh_token
+GMAIL_SENDER=artistportfolio45@gmail.com
 MAX_FAILED_LOGIN_ATTEMPTS=5
 ACCOUNT_LOCK_MINUTES=15
 LOGIN_RATE_LIMIT_WINDOW=900000
