@@ -1,26 +1,81 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadEnv } from "vite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const frontendRoot = resolve(__dirname, "..");
 const outputPath = resolve(__dirname, "../public/data/portfolio.json");
-const apiUrl = process.env.PUBLIC_DATA_API_URL || process.env.VITE_API_URL;
-const exportKey = process.env.PUBLIC_DATA_EXPORT_KEY;
+const localEnv = loadEnv(process.env.NODE_ENV || "production", frontendRoot, "");
+const apiUrl =
+  process.env.PUBLIC_DATA_API_URL ||
+  process.env.VITE_API_URL ||
+  localEnv.PUBLIC_DATA_API_URL ||
+  localEnv.VITE_API_URL;
+const exportKey = process.env.PUBLIC_DATA_EXPORT_KEY || localEnv.PUBLIC_DATA_EXPORT_KEY;
+
+const fetchJson = async (url, options) => {
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    const error = new Error(`Request to ${url} failed: ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json();
+};
+
+const fetchPublicSnapshot = async (baseUrl) => {
+  const [settingsPayload, profilePayload, categoriesPayload, firstArtworkPayload] =
+    await Promise.all([
+      fetchJson(`${baseUrl}/settings`),
+      fetchJson(`${baseUrl}/profile`),
+      fetchJson(`${baseUrl}/artworks/categories`),
+      fetchJson(`${baseUrl}/artworks?limit=100&page=1&sort=createdAt&order=desc`),
+    ]);
+  const pagination = firstArtworkPayload.pagination || {};
+  const pageCount = Math.max(1, Number(pagination.pages) || 1);
+  const remainingPages = await Promise.all(
+    Array.from({ length: pageCount - 1 }, (_, index) =>
+      fetchJson(
+        `${baseUrl}/artworks?limit=100&page=${index + 2}&sort=createdAt&order=desc`
+      )
+    )
+  );
+  const artworks = [firstArtworkPayload, ...remainingPages].flatMap(
+    (payload) => payload.artworks || []
+  );
+
+  return {
+    generatedAt: new Date().toISOString(),
+    settings: settingsPayload.settings || null,
+    profile: profilePayload.profile || null,
+    artworks,
+    categories: categoriesPayload.categories || [],
+  };
+};
 
 const fetchSnapshot = async () => {
   if (!apiUrl) {
     return null;
   }
 
-  const url = `${apiUrl.replace(/\/$/, "")}/public-data`;
+  const configuredUrl = apiUrl.replace(/\/+$/, "");
+  const baseUrl = configuredUrl.replace(/\/public-data$/, "");
+  const url = configuredUrl.endsWith("/public-data")
+    ? configuredUrl
+    : `${configuredUrl}/public-data`;
   const headers = exportKey ? { "x-static-export-key": exportKey } : {};
-  const response = await fetch(url, { headers });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch public data from ${url}: ${response.status}`);
+  try {
+    return await fetchJson(url, { headers });
+  } catch (error) {
+    console.warn(
+      `Aggregate public data was unavailable (${error.message}); fetching public resources directly.`
+    );
+    return fetchPublicSnapshot(baseUrl);
   }
-
-  return response.json();
 };
 
 const validateSnapshot = (snapshot, label, { allowEmpty = true } = {}) => {
