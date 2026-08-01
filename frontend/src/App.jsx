@@ -21,6 +21,7 @@ import DashboardPage      from "./pages/admin/DashboardPage";
 import ProfilePage        from "./pages/admin/ProfilePage";
 import ArtworksPage       from "./pages/admin/ArtworksPage";
 import ArtworkFormPage    from "./pages/admin/ArtworkFormPage";
+import BulkArtworkUploadPage from "./pages/admin/BulkArtworkUploadPage";
 import InquiriesPage      from "./pages/admin/InquiriesPage";
 import ActivityPage       from "./pages/admin/ActivityPage";
 import SecurityPage       from "./pages/admin/SecurityPage";
@@ -78,6 +79,10 @@ const App = () => (
       <Route
         path="/admin/artworks/new"
         element={<ProtectedRoute><ArtworkFormPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/admin/artworks/bulk"
+        element={<ProtectedRoute><BulkArtworkUploadPage /></ProtectedRoute>}
       />
       <Route
         path="/admin/artworks/:id/edit"

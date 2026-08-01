@@ -151,22 +151,6 @@ const ArtworkFormPage = () => {
       return;
     }
 
-    const missingFields = RECOMMENDED_FIELDS.filter((field) => !String(form[field] ?? "").trim());
-    if (!isEdit && missingFields.length > 0 && !incompleteWarningShown) {
-      setIncompleteWarningShown(true);
-      setIncompleteFields(missingFields);
-      toast("Some artwork details are incomplete. Review the highlighted fields, or click Add Artwork again to continue without them.", {
-        icon: "!",
-        duration: 6000,
-      });
-      requestAnimationFrame(() => {
-        const firstField = fieldRefs.current[missingFields[0]];
-        firstField?.scrollIntoView({ behavior: "smooth", block: "center" });
-        firstField?.focus({ preventScroll: true });
-      });
-      return;
-    }
-
     setSaving(true);
     try {
       if (isEdit) {
@@ -199,8 +183,6 @@ const ArtworkFormPage = () => {
         formData.append("images", newFiles[0]);
 
         await artworkAPI.create(formData);
-        setIncompleteWarningShown(false);
-        setIncompleteFields([]);
         toast.success("Artwork created!");
         navigate("/admin/artworks");
       }

@@ -76,7 +76,7 @@ const ArtworkDetailPage = () => {
         inquiryType: "artwork",
         sourcePage: window.location.href,
         artworkId: artwork._id,
-        artworkTitle: artwork.title,
+        artworkTitle: artwork.title?.trim() || "Artwork",
         artworkUrl: window.location.href,
         artworkImage: artwork.images?.[0]?.url,
       });
@@ -122,14 +122,16 @@ const ArtworkDetailPage = () => {
     );
   }
 
-  const formattedPrice = artwork.price === null || artwork.price === undefined
+  const displayTitle = artwork.title?.trim() || "Artwork";
+  const numericPrice = Number(artwork.price);
+  const formattedPrice = artwork.price === null || artwork.price === undefined || !Number.isFinite(numericPrice)
     ? null
     : new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
         maximumFractionDigits: 0,
-      }).format(artwork.price);
-  const hasFacts = Boolean(artwork.medium || artwork.dimensions || artwork.year);
+      }).format(numericPrice);
+  const hasFacts = Boolean(artwork.medium?.trim() || artwork.dimensions?.trim() || artwork.year);
 
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const primaryImage = artwork.images?.[0]?.url || "";
@@ -145,7 +147,7 @@ const ArtworkDetailPage = () => {
           <nav className="mb-8 text-sm text-slate/60 font-label">
             <Link to="/gallery" className="hover:text-gold transition-colors">Gallery</Link>
             <span className="mx-2">/</span>
-            <span className="text-charcoal">{artwork.title}</span>
+            <span className="text-charcoal">{displayTitle}</span>
           </nav>
 
           <div className="artwork-detail-layout">
@@ -155,12 +157,12 @@ const ArtworkDetailPage = () => {
                 type="button"
                 onClick={() => setPreviewOpen(true)}
                 className="artwork-image-stage group flex w-full cursor-zoom-in items-center justify-center overflow-hidden bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
-                aria-label={`Open full-screen preview of ${artwork.title}`}
+                aria-label={`Open full-screen preview of ${displayTitle}`}
               >
                 {artwork.images?.[activeImage]?.url ? (
                   <img
                     src={artwork.images[activeImage].url}
-                    alt={`${artwork.title} image ${activeImage + 1}`}
+                    alt={`${displayTitle} image ${activeImage + 1}`}
                     width={artwork.images[activeImage].width || undefined}
                     height={artwork.images[activeImage].height || undefined}
                     className="artwork-detail-image transition-transform duration-500 group-hover:scale-[1.01]"
@@ -197,13 +199,14 @@ const ArtworkDetailPage = () => {
               className="artwork-info-panel flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"
               tabIndex={0}
               role="region"
-              aria-label={`${artwork.title} details`}
+              aria-label={`${displayTitle} details`}
             >
+              <div className="artwork-info-content">
               {artwork.category && artwork.category !== "Uncategorized" && (
                 <p className="eyebrow mb-3">{artwork.category}</p>
               )}
               <h1 className="font-display text-4xl md:text-5xl font-light text-charcoal mb-4 leading-tight">
-                {artwork.title}
+                {displayTitle}
               </h1>
 
               <span className={`self-start text-xs font-label tracking-widest uppercase px-3 py-1 mb-6 ${
@@ -241,19 +244,6 @@ const ArtworkDetailPage = () => {
                 <p className="text-slate leading-relaxed mb-8 font-light">{artwork.description}</p>
               )}
 
-              {artwork.isAvailable && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowInquiry(!showInquiry);
-                    setErrors({});
-                  }}
-                  className="btn-gold self-start"
-                >
-                  {showInquiry ? "Close Inquiry Form" : "Send an Enquiry"}
-                </button>
-              )}
-
               {showInquiry && (
                 <form
                   name="artwork-inquiry"
@@ -268,7 +258,7 @@ const ArtworkDetailPage = () => {
                   <input type="hidden" name="inquiryType" value="artwork" />
                   <input type="hidden" name="sourcePage" value={currentUrl} />
                   <input type="hidden" name="artworkId" value={artwork._id} />
-                  <input type="hidden" name="artworkTitle" value={artwork.title} />
+                  <input type="hidden" name="artworkTitle" value={displayTitle} />
                   <input type="hidden" name="artworkUrl" value={currentUrl} />
                   <input type="hidden" name="artworkImage" value={primaryImage} />
                   <div className="hidden" aria-hidden="true">
@@ -285,7 +275,7 @@ const ArtworkDetailPage = () => {
                   </div>
 
                   <h3 className="font-display text-xl mb-2">Send an Enquiry</h3>
-                  <p className="text-sm text-slate/70 mb-4">Inquiry about: {artwork.title}</p>
+                  <p className="text-sm text-slate/70 mb-4">Inquiry about: {displayTitle}</p>
                   {sent && (
                     <p className="mb-4 border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                       Thank you. Your inquiry has been sent successfully.
@@ -384,6 +374,23 @@ const ArtworkDetailPage = () => {
                     </button>
                   </div>
                 </form>
+              )}
+              </div>
+
+              {artwork.isAvailable && (
+                <div className="artwork-info-footer">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowInquiry(!showInquiry);
+                      setErrors({});
+                    }}
+                    className="btn-gold"
+                    aria-expanded={showInquiry}
+                  >
+                    {showInquiry ? "Close Inquiry Form" : "Send an Enquiry"}
+                  </button>
+                </div>
               )}
             </div>
           </div>

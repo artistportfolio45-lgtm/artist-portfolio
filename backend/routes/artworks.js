@@ -6,7 +6,13 @@ const router = express.Router();
 const Artwork = require("../models/Artwork");
 const { protect } = require("../middleware/auth");
 const { uploadRateLimiter } = require("../middleware/rateLimiter");
-const { uploadArtwork, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
+const {
+  uploadArtwork,
+  uploadBulkArtwork,
+  cloudinary,
+  getCloudinaryFileInfo,
+  MAX_BULK_ARTWORKS,
+} = require("../config/cloudinary");
 
 const optionalText = (value) => (typeof value === "string" ? value.trim() : "");
 const normalizePrice = (value) => {
@@ -21,6 +27,45 @@ const invalidPrice = (value) => value !== null && (!Number.isFinite(value) || va
 const invalidYear = (value) => value !== null && (!Number.isInteger(value) || value < 0);
 const discardUploadedImages = (images) =>
   Promise.allSettled(images.map((image) => cloudinary.uploader.destroy(image.publicId)));
+const BULK_UPLOAD_CONCURRENCY = 4;
+
+const titleFromFilename = (filename = "") => {
+  const withoutExtension = filename.replace(/\.[^.]+$/, "");
+  const readable = withoutExtension
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!readable) return "Untitled";
+  return readable.replace(/\b\w/g, (letter) => letter.toUpperCase());
+};
+
+const uploadBulkImage = (file) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "artist-portfolio/artworks",
+        resource_type: "image",
+        quality: "auto",
+        fetch_format: "auto",
+      },
+      (error, result) => (error ? reject(error) : resolve(result))
+    );
+    stream.end(file.buffer);
+  });
+
+const runWithConcurrency = async (items, limit, worker) => {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const runWorker = async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await worker(items[index], index);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runWorker));
+  return results;
+};
 
 // ─── PUBLIC ROUTES ──────────────────────────────────────────────────────────
 
@@ -131,6 +176,78 @@ router.get("/categories", async (req, res) => {
   }
 });
 
+// @route   POST /api/artworks/bulk
+// @desc    Create one artwork per uploaded image, with bounded Cloudinary concurrency
+// @access  Private
+router.post(
+  "/bulk",
+  uploadRateLimiter,
+  protect,
+  uploadBulkArtwork.array("images", MAX_BULK_ARTWORKS),
+  async (req, res) => {
+    const files = req.files || [];
+    const clientIds = Array.isArray(req.body?.clientIds)
+      ? req.body.clientIds
+      : req.body?.clientIds ? [req.body.clientIds] : [];
+    if (!files.length) {
+      return res.status(400).json({ success: false, message: "Select at least one artwork image" });
+    }
+
+    const results = await runWithConcurrency(files, BULK_UPLOAD_CONCURRENCY, async (file, index) => {
+      const baseResult = {
+        index,
+        filename: file.originalname,
+        clientId: clientIds[index] || null,
+      };
+
+      let uploadedImage;
+      try {
+        const uploaded = await uploadBulkImage(file);
+        uploadedImage = {
+          url: uploaded.secure_url,
+          publicId: uploaded.public_id,
+          ...(Number(uploaded.width) > 0 ? { width: Number(uploaded.width) } : {}),
+          ...(Number(uploaded.height) > 0 ? { height: Number(uploaded.height) } : {}),
+        };
+        const artwork = await Artwork.create({
+          title: titleFromFilename(file.originalname),
+          description: "",
+          category: "Uncategorized",
+          price: null,
+          medium: "",
+          dimensions: "",
+          isAvailable: true,
+          isFeatured: false,
+          year: null,
+          images: [uploadedImage],
+        });
+        return { ...baseResult, status: "successful", artwork };
+      } catch (error) {
+        if (uploadedImage?.publicId) {
+          await cloudinary.uploader.destroy(uploadedImage.publicId).catch(() => {});
+        }
+        console.error("Bulk artwork upload item failed:", error);
+        return {
+          ...baseResult,
+          status: "failed",
+          error: "This image could not be uploaded. Please retry it.",
+        };
+      }
+    });
+
+    const successful = results.filter((item) => item.status === "successful").length;
+    const failed = results.length - successful;
+    res.status(failed ? 207 : 201).json({
+      success: failed === 0,
+      message: failed ? "Some artworks could not be uploaded" : "Artworks uploaded",
+      total: results.length,
+      successful,
+      failed,
+      results,
+    });
+  }
+);
+
 // @route   GET /api/artworks/:id
 // @desc    Get single artwork by ID
 // @access  Public
@@ -182,7 +299,7 @@ router.post("/", uploadRateLimiter, protect, uploadArtwork.array("images", 10), 
     }
 
     const artwork = await Artwork.create({
-      title: optionalText(title) || "Untitled",
+      title: optionalText(title) || titleFromFilename(req.files[0]?.originalname),
       description: optionalText(description),
       category: optionalText(category) || "Uncategorized",
       price: normalizedPrice,
@@ -326,5 +443,18 @@ router.delete("/:id", protect, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+// Keep upload validation failures actionable instead of returning the generic server error.
+router.use((error, req, res, next) => {
+  if (error?.name === "MulterError") {
+    const message = error.code === "LIMIT_FILE_SIZE"
+      ? "Each artwork image must be 10 MB or smaller"
+      : error.message || "Invalid artwork image upload";
+    return res.status(400).json({ success: false, message });
+  }
+  return next(error);
+});
+
+router.__testables = { titleFromFilename, runWithConcurrency, BULK_UPLOAD_CONCURRENCY };
 
 module.exports = router;

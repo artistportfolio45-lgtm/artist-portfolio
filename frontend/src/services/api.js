@@ -97,6 +97,7 @@ export const artworkAPI = {
   getCategories: () => api.get("/artworks/categories"),
   getById: (id) => api.get(`/artworks/${id}`),
   create: (formData) => api.post("/artworks", formData),
+  bulkUpload: (formData, config = {}) => api.post("/artworks/bulk", formData, config),
   update: (id, data) => api.put(`/artworks/${id}`, data),
   addImages: (id, formData) => api.post(`/artworks/${id}/images`, formData),
   deleteImage: (id, publicId) =>

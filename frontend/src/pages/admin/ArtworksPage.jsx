@@ -122,9 +122,10 @@ const ArtworksPage = () => {
               Search, sort, and manage the public collection.
             </p>
           </div>
-          <Link to="/admin/artworks/new" className="btn-primary self-start">
-            + Add Artwork
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/admin/artworks/bulk" className="btn-secondary self-start">Bulk upload</Link>
+            <Link to="/admin/artworks/new" className="btn-primary self-start">+ Add Artwork</Link>
+          </div>
         </div>
 
         <div className="bg-white p-4 shadow-sm ring-1 ring-black/5 mb-6">

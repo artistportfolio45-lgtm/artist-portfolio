@@ -6,6 +6,16 @@ const cloudinary = cloudinaryModule.v2;
 const multerStorageCloudinary = require("multer-storage-cloudinary");
 const multer = require("multer");
 
+const ARTWORK_IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+]);
+const ARTWORK_IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+const MAX_ARTWORK_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_BULK_ARTWORKS = 50;
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -68,6 +78,20 @@ const logoStorage = createStorage({
 });
 
 const uploadArtwork = multer({ storage: artworkStorage });
+const uploadBulkArtwork = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_ARTWORK_FILE_SIZE, files: MAX_BULK_ARTWORKS },
+  fileFilter: (req, file, callback) => {
+    const extension = file.originalname.slice(file.originalname.lastIndexOf(".")).toLowerCase();
+    if (ARTWORK_IMAGE_MIME_TYPES.has(file.mimetype) && ARTWORK_IMAGE_EXTENSIONS.has(extension)) {
+      callback(null, true);
+      return;
+    }
+    const error = new multer.MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname);
+    error.message = "Only JPG, PNG, WebP, and AVIF artwork images are supported";
+    callback(error);
+  },
+});
 const uploadProfile = multer({ storage: profileStorage });
 const uploadLogo = multer({ storage: logoStorage });
 
@@ -82,6 +106,11 @@ module.exports = {
   cloudinary,
   getCloudinaryFileInfo,
   uploadArtwork,
+  uploadBulkArtwork,
   uploadProfile,
   uploadLogo,
+  ARTWORK_IMAGE_MIME_TYPES,
+  ARTWORK_IMAGE_EXTENSIONS,
+  MAX_ARTWORK_FILE_SIZE,
+  MAX_BULK_ARTWORKS,
 };
