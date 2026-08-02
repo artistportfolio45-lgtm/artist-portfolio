@@ -138,16 +138,6 @@ const ProfilePage = () => {
                 className="input-field"
               />
             </div>
-            <div className="sm:col-span-2">
-              <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">About / Biography</label>
-              <textarea
-                value={profile?.about || ""}
-                onChange={(e) => setProfile({ ...profile, about: e.target.value })}
-                className="textarea-field"
-                rows={6}
-                placeholder="Write about the artist — use double line breaks for paragraphs"
-              />
-            </div>
           </div>
           <div className="mt-6">
             <button type="submit" disabled={saving} className="btn-primary flex items-center gap-2">

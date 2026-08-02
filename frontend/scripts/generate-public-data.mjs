@@ -27,10 +27,11 @@ const fetchJson = async (url, options) => {
 };
 
 const fetchPublicSnapshot = async (baseUrl) => {
-  const [settingsPayload, profilePayload, categoriesPayload, firstArtworkPayload] =
+  const [settingsPayload, profilePayload, aboutPayload, categoriesPayload, firstArtworkPayload] =
     await Promise.all([
       fetchJson(`${baseUrl}/settings`),
       fetchJson(`${baseUrl}/profile`),
+      fetchJson(`${baseUrl}/about`),
       fetchJson(`${baseUrl}/artworks/categories`),
       fetchJson(`${baseUrl}/artworks?limit=100&page=1&sort=createdAt&order=desc`),
     ]);
@@ -51,6 +52,7 @@ const fetchPublicSnapshot = async (baseUrl) => {
     generatedAt: new Date().toISOString(),
     settings: settingsPayload.settings || null,
     profile: profilePayload.profile || null,
+    about: aboutPayload.about || null,
     artworks,
     categories: categoriesPayload.categories || [],
   };

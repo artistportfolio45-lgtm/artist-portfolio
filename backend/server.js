@@ -134,6 +134,8 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/security", require("./routes/security"));
 app.use("/api/activity", require("./routes/activity"));
 app.use("/api/profile", require("./routes/profile"));
+app.use("/api/about", require("./routes/about"));
+app.use("/api/admin/about", require("./routes/adminAbout"));
 app.use("/api/artworks", require("./routes/artworks"));
 app.use("/api/inquiries", require("./routes/inquiries"));
 app.use("/api/settings", require("./routes/settings"));

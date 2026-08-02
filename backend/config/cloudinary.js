@@ -76,6 +76,13 @@ const logoStorage = createStorage({
   },
 });
 
+const aboutMediaStorage = createStorage({
+  params: {
+    folder: "artist-portfolio/about",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "avif", "tif", "tiff"],
+  },
+});
+
 const uploadArtwork = multer({ storage: artworkStorage });
 const uploadBulkArtwork = multer({
   storage: multer.memoryStorage(),
@@ -95,6 +102,10 @@ const uploadBulkArtwork = multer({
 });
 const uploadProfile = multer({ storage: profileStorage });
 const uploadLogo = multer({ storage: logoStorage });
+const uploadAboutMedia = multer({
+  storage: aboutMediaStorage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
 
 const getCloudinaryFileInfo = (file) => ({
   url: file?.path || file?.secure_url || file?.url,
@@ -110,6 +121,7 @@ module.exports = {
   uploadBulkArtwork,
   uploadProfile,
   uploadLogo,
+  uploadAboutMedia,
   ARTWORK_IMAGE_MIME_TYPES,
   ARTWORK_IMAGE_EXTENSIONS,
   MAX_ARTWORK_FILE_SIZE,

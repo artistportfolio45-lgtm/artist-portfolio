@@ -152,6 +152,17 @@
   aspect-ratio: 4 / 5;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .about-retrospective *,
+  .about-retrospective *::before,
+  .about-retrospective *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Public artwork detail: natural document flow on smaller screens. */
 .artwork-detail-page {
   min-height: 100vh;

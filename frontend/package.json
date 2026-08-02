@@ -8,7 +8,7 @@
     "prebuild": "node scripts/generate-public-data.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/imageDelivery.test.mjs"
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "axios": "^1.6.2",

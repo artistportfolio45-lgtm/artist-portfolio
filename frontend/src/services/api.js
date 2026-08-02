@@ -92,6 +92,17 @@ export const profileAPI = {
   uploadPhoto: (formData) => api.put("/profile/photo", formData),
 };
 
+export const aboutAdminAPI = {
+  get: () => api.get("/admin/about"),
+  save: (content) => api.put("/admin/about", { content }),
+  addItem: (section, item) => api.post(`/admin/about/${section}`, item),
+  updateItem: (section, itemId, item) => api.put(`/admin/about/${section}/${itemId}`, item),
+  deleteItem: (section, itemId) => api.delete(`/admin/about/${section}/${itemId}`),
+  reorder: (section, itemIds) => api.patch(`/admin/about/${section}/reorder`, { itemIds }),
+  publish: (isPublished = true) => api.patch("/admin/about/publish", { isPublished }),
+  uploadMedia: (formData) => api.post("/admin/about/media", formData, { timeout: 0 }),
+};
+
 export const artworkAPI = {
   getAll: (params) => api.get("/artworks", { params }),
   getCategories: () => api.get("/artworks/categories"),

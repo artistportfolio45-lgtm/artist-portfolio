@@ -6,6 +6,7 @@ const emptyPortfolio = {
   generatedAt: null,
   settings: null,
   profile: null,
+  about: null,
   artworks: [],
   categories: [],
 };
@@ -123,6 +124,7 @@ const normalizePortfolio = (data) => {
     ...payload,
     settings: payload?.settings || null,
     profile: payload?.profile || null,
+    about: payload?.about || null,
     artworks,
     categories,
   };
@@ -327,6 +329,28 @@ export const publicDataAPI = {
       console.warn("Live public profile failed; using static fallback.", error);
       const portfolio = await loadFallbackPortfolio();
       return portfolio.profile || null;
+    }
+  },
+
+  getAbout: async ({ onLiveData } = {}) => {
+    try {
+      return await preferStaticData({
+        loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.about),
+        loadLive: () => api
+          .get("/about", { params: withNoStoreParam() })
+          .then((res) => unwrap(res.data)?.about)
+          .then((about) => {
+            if (!about) throw new Error("Live About page response was not published");
+            return about;
+          }),
+        hasStaticData: Boolean,
+        onLiveData,
+        label: "About page",
+      });
+    } catch (error) {
+      console.warn("Live public About page failed; using static fallback.", error);
+      const portfolio = await loadFallbackPortfolio();
+      return portfolio.about || null;
     }
   },
 

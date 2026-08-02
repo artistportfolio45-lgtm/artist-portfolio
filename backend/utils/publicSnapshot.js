@@ -1,6 +1,7 @@
 const Artwork = require("../models/Artwork");
 const Settings = require("../models/Settings");
 const ArtistProfile = require("../models/ArtistProfile");
+const { getOrCreateAboutPage, publicAboutContent } = require("./aboutPage");
 
 const getOrCreateSettings = async () => {
   let settings = await Settings.findOne();
@@ -38,9 +39,10 @@ const normalizeArtwork = (artwork) => ({
 });
 
 const buildPublicSnapshot = async () => {
-  const [settings, profile, artworks, categories] = await Promise.all([
+  const [settings, profile, aboutPage, artworks, categories] = await Promise.all([
     getOrCreateSettings(),
     getOrCreateProfile(),
+    getOrCreateAboutPage(),
     Artwork.find({}).sort({ createdAt: -1 }).lean({ versionKey: false }),
     Artwork.distinct("category"),
   ]);
@@ -49,6 +51,7 @@ const buildPublicSnapshot = async () => {
     generatedAt: new Date().toISOString(),
     settings: toPlainObject(settings),
     profile: toPlainObject(profile),
+    about: publicAboutContent(aboutPage),
     artworks: artworks.map(normalizeArtwork),
     categories: [...new Set([
       ...categories.filter(Boolean),

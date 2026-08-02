@@ -19,6 +19,7 @@ import ContactPage        from "./pages/public/ContactPage";
 import LoginPage          from "./pages/admin/LoginPage";
 import DashboardPage      from "./pages/admin/DashboardPage";
 import ProfilePage        from "./pages/admin/ProfilePage";
+import AboutPageEditor    from "./pages/admin/AboutPageEditor";
 import ArtworksPage       from "./pages/admin/ArtworksPage";
 import ArtworkFormPage    from "./pages/admin/ArtworkFormPage";
 import BulkArtworkUploadPage from "./pages/admin/BulkArtworkUploadPage";
@@ -73,6 +74,7 @@ const App = () => (
         path="/admin/profile"
         element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
       />
+      <Route path="/admin/about-page" element={<ProtectedRoute><AboutPageEditor /></ProtectedRoute>} />
       <Route
         path="/admin/artworks"
         element={<ProtectedRoute><ArtworksPage /></ProtectedRoute>}
