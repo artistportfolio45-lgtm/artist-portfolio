@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: "/admin/dashboard", label: "Dashboard" },
   { to: "/admin/profile", label: "Profile" },
   { to: "/admin/artworks", label: "Artworks" },
+  { to: "/admin/upload-history", label: "Upload History" },
   { to: "/admin/inquiries", label: "Inquiries" },
   { to: "/admin/activity", label: "Activity" },
   { to: "/admin/security", label: "Security" },

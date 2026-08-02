@@ -28,6 +28,8 @@ const ArtworkFormPage = () => {
   const { id } = useParams();           // undefined in create mode
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const clientUploadIdRef = useRef(crypto.randomUUID());
+  const uploadBatchIdRef = useRef(crypto.randomUUID());
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [existingImages, setExistingImages] = useState([]); // already on Cloudinary
@@ -180,6 +182,8 @@ const ArtworkFormPage = () => {
         // Create mode — send everything in one multipart request
         const formData = new FormData();
         Object.entries(form).forEach(([k, v]) => formData.append(k, v));
+        formData.append("clientUploadId", clientUploadIdRef.current);
+        formData.append("uploadBatchId", uploadBatchIdRef.current);
         formData.append("images", newFiles[0]);
 
         await artworkAPI.create(formData);

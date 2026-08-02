@@ -1,7 +1,6 @@
 const rateLimit = require("express-rate-limit");
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
-const ONE_HOUR = 60 * 60 * 1000;
 
 const readNumber = (name, defaultValue) => {
   const value = Number(process.env[name]);
@@ -18,12 +17,13 @@ const logBlockedRequest = (req, reason) => {
   });
 };
 
-const createJsonLimiter = ({ windowMs, max, message, reason }) =>
+const createJsonLimiter = ({ windowMs, max, message, reason, skip }) =>
   rateLimit({
     windowMs,
     max,
     standardHeaders: true,
     legacyHeaders: false,
+    skip,
     handler: (req, res) => {
       logBlockedRequest(req, reason);
       return res.status(429).json({
@@ -47,14 +47,11 @@ const generalRateLimiter = createJsonLimiter({
   max: readNumber("GENERAL_RATE_LIMIT_MAX", 100),
   message: "Too many requests.",
   reason: "general API rate limit exceeded",
-});
-
-// Security: Allows up to 50 artwork uploads per hour per IP to support large portfolio updates while protecting the server from abuse.
-const uploadRateLimiter = createJsonLimiter({
-  windowMs: readNumber("UPLOAD_RATE_LIMIT_WINDOW", ONE_HOUR),
-  max: readNumber("UPLOAD_RATE_LIMIT_MAX", 50),
-  message: "Upload limit exceeded. Please try again in one hour.",
-  reason: "upload rate limit exceeded",
+  // Upload requests are authenticated and intentionally queued by the admin UI;
+  // keep the general limiter for every other API request.
+  skip: (req) =>
+    (req.method === "POST" && /^\/artworks(?:\/bulk|\/?$|\/[^/]+\/images)$/.test(req.path)) ||
+    (req.method === "GET" && /^\/artworks\/upload-status\/[^/]+$/.test(req.path)),
 });
 
 const otpSendRateLimiter = createJsonLimiter({
@@ -81,7 +78,6 @@ const totpVerifyRateLimiter = createJsonLimiter({
 module.exports = {
   loginRateLimiter,
   generalRateLimiter,
-  uploadRateLimiter,
   otpSendRateLimiter,
   otpVerifyRateLimiter,
   totpVerifyRateLimiter,

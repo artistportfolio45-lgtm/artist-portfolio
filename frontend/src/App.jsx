@@ -22,6 +22,7 @@ import ProfilePage        from "./pages/admin/ProfilePage";
 import ArtworksPage       from "./pages/admin/ArtworksPage";
 import ArtworkFormPage    from "./pages/admin/ArtworkFormPage";
 import BulkArtworkUploadPage from "./pages/admin/BulkArtworkUploadPage";
+import UploadHistoryPage from "./pages/admin/UploadHistoryPage";
 import InquiriesPage      from "./pages/admin/InquiriesPage";
 import ActivityPage       from "./pages/admin/ActivityPage";
 import SecurityPage       from "./pages/admin/SecurityPage";
@@ -88,6 +89,7 @@ const App = () => (
         path="/admin/artworks/:id/edit"
         element={<ProtectedRoute><ArtworkFormPage /></ProtectedRoute>}
       />
+      <Route path="/admin/upload-history" element={<ProtectedRoute><UploadHistoryPage /></ProtectedRoute>} />
       <Route
         path="/admin/inquiries"
         element={<ProtectedRoute><InquiriesPage /></ProtectedRoute>}

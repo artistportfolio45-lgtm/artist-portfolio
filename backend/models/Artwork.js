@@ -39,6 +39,10 @@ const artworkSchema = new mongoose.Schema(
       default: false,
     },
     images: [imageSchema],
+    clientUploadId: { type: String, unique: true, sparse: true, trim: true },
+    uploadBatchId: { type: String, trim: true },
+    uploadStatus: { type: String, enum: ["success", "failed"], default: "success" },
+    uploadedBy: { type: String, trim: true },
     // Denormalized for easy display
     year: { type: Number, default: null },
   },

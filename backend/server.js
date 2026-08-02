@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
+const { ensureUploadIndexes } = require("./utils/ensureUploadIndexes");
 const { validateGmailConfig } = require("./services/emailService");
 const {
   assertAdminSeedConfig,
@@ -168,6 +169,7 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   validateGmailConfig();
   await connectDB();
+  await ensureUploadIndexes();
   await invalidateLegacyTwoFactorSecrets();
 
   if (process.env.SEED_ADMIN_ON_START === "true" || process.env.RESET_ADMIN_2FA_ON_START === "true") {

@@ -4,14 +4,13 @@
 const express = require("express");
 const router = express.Router();
 const Artwork = require("../models/Artwork");
+const UploadBatch = require("../models/UploadBatch");
 const { protect } = require("../middleware/auth");
-const { uploadRateLimiter } = require("../middleware/rateLimiter");
 const {
   uploadArtwork,
   uploadBulkArtwork,
   cloudinary,
   getCloudinaryFileInfo,
-  MAX_BULK_ARTWORKS,
 } = require("../config/cloudinary");
 
 const optionalText = (value) => (typeof value === "string" ? value.trim() : "");
@@ -25,9 +24,21 @@ const normalizeYear = (value) => {
 };
 const invalidPrice = (value) => value !== null && (!Number.isFinite(value) || value < 0);
 const invalidYear = (value) => value !== null && (!Number.isInteger(value) || value < 0);
+const dateBoundary = (value, endOfDay = false) => {
+  if (!value) return null;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}+05:30`)
+    : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 const discardUploadedImages = (images) =>
   Promise.allSettled(images.map((image) => cloudinary.uploader.destroy(image.publicId)));
-const BULK_UPLOAD_CONCURRENCY = 4;
+
+const adminOnly = (req, res, next) => {
+  if (req.user?.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
+  next();
+};
+const uploadedByValue = (user) => user?._id?.toString() || user?.email || undefined;
 
 const titleFromFilename = (filename = "") => {
   const withoutExtension = filename.replace(/\.[^.]+$/, "");
@@ -40,7 +51,7 @@ const titleFromFilename = (filename = "") => {
   return readable.replace(/\b\w/g, (letter) => letter.toUpperCase());
 };
 
-const uploadBulkImage = (file) =>
+const uploadBulkImage = (file, clientUploadId) =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
@@ -48,24 +59,15 @@ const uploadBulkImage = (file) =>
         resource_type: "image",
         quality: "auto",
         fetch_format: "auto",
+        public_id: clientUploadId,
+        unique_filename: false,
+        overwrite: true,
       },
       (error, result) => (error ? reject(error) : resolve(result))
     );
     stream.end(file.buffer);
   });
 
-const runWithConcurrency = async (items, limit, worker) => {
-  const results = new Array(items.length);
-  let nextIndex = 0;
-  const runWorker = async () => {
-    while (nextIndex < items.length) {
-      const index = nextIndex++;
-      results[index] = await worker(items[index], index);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runWorker));
-  return results;
-};
 
 // ─── PUBLIC ROUTES ──────────────────────────────────────────────────────────
 
@@ -177,23 +179,42 @@ router.get("/categories", async (req, res) => {
 });
 
 // @route   POST /api/artworks/bulk
-// @desc    Create one artwork per uploaded image, with bounded Cloudinary concurrency
+// @desc    Create one artwork per uploaded image, strictly sequentially
 // @access  Private
 router.post(
   "/bulk",
-  uploadRateLimiter,
   protect,
-  uploadBulkArtwork.array("images", MAX_BULK_ARTWORKS),
+  adminOnly,
+  uploadBulkArtwork.array("images"),
   async (req, res) => {
     const files = req.files || [];
     const clientIds = Array.isArray(req.body?.clientIds)
       ? req.body.clientIds
       : req.body?.clientIds ? [req.body.clientIds] : [];
+    const uploadBatchId = optionalText(req.body?.uploadBatchId) || undefined;
+    const selectedCount = Math.max(files.length, Number.parseInt(req.body?.batchSize, 10) || 0);
     if (!files.length) {
       return res.status(400).json({ success: false, message: "Select at least one artwork image" });
     }
+    if (clientIds.length !== files.length || clientIds.some((id) => !optionalText(id))) {
+      return res.status(400).json({ success: false, message: "Every artwork requires a clientUploadId" });
+    }
+    if (uploadBatchId) {
+      try {
+        await UploadBatch.findOneAndUpdate(
+          { uploadBatchId },
+          { $max: { selectedCount }, $set: { uploadedBy: uploadedByValue(req.user) } },
+          { upsert: true, setDefaultsOnInsert: true }
+        );
+      } catch (error) {
+        console.error("Upload batch initialization error:", error);
+        return res.status(500).json({ success: false, message: "Could not initialize upload batch" });
+      }
+    }
 
-    const results = await runWithConcurrency(files, BULK_UPLOAD_CONCURRENCY, async (file, index) => {
+    const results = [];
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
       const baseResult = {
         index,
         filename: file.originalname,
@@ -202,7 +223,13 @@ router.post(
 
       let uploadedImage;
       try {
-        const uploaded = await uploadBulkImage(file);
+        const clientUploadId = clientIds[index] || undefined;
+        const existing = await Artwork.findOne({ clientUploadId });
+        if (existing) {
+          results.push({ ...baseResult, clientId: clientUploadId, status: "successful", message: "Artwork was already uploaded.", artwork: existing });
+          continue;
+        }
+        const uploaded = await uploadBulkImage(file, clientUploadId);
         uploadedImage = {
           url: uploaded.secure_url,
           publicId: uploaded.public_id,
@@ -220,20 +247,33 @@ router.post(
           isFeatured: false,
           year: null,
           images: [uploadedImage],
+          clientUploadId,
+          uploadBatchId,
+          uploadStatus: "success",
+          uploadedBy: uploadedByValue(req.user),
         });
-        return { ...baseResult, status: "successful", artwork };
+        results.push({ ...baseResult, status: "successful", artwork });
       } catch (error) {
+        if (error?.code === 11000 && clientIds[index]) {
+          const existing = await Artwork.findOne({ clientUploadId: clientIds[index] });
+          if (existing) {
+            if (uploadedImage?.publicId) await cloudinary.uploader.destroy(uploadedImage.publicId).catch(() => {});
+            results.push({ ...baseResult, status: "successful", message: "Artwork was already uploaded.", artwork: existing });
+            continue;
+          }
+        }
         if (uploadedImage?.publicId) {
           await cloudinary.uploader.destroy(uploadedImage.publicId).catch(() => {});
         }
         console.error("Bulk artwork upload item failed:", error);
-        return {
+        results.push({
           ...baseResult,
           status: "failed",
           error: "This image could not be uploaded. Please retry it.",
-        };
+        });
+        continue;
       }
-    });
+    }
 
     const successful = results.filter((item) => item.status === "successful").length;
     const failed = results.length - successful;
@@ -247,6 +287,97 @@ router.post(
     });
   }
 );
+
+// @route   GET /api/artworks/upload-status/:clientUploadId
+router.get("/upload-status/:clientUploadId", protect, adminOnly, async (req, res) => {
+  try {
+    const artwork = await Artwork.findOne({ clientUploadId: req.params.clientUploadId })
+      .select("_id title images createdAt uploadStatus");
+    return res.json({ success: true, exists: Boolean(artwork), ...(artwork ? { artwork } : {}) });
+  } catch (error) {
+    console.error("Upload status error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// @route   GET /api/artworks/upload-history
+router.get("/upload-history", protect, adminOnly, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search, status, batchId, startDate, endDate } = req.query;
+    const query = {};
+    if (search) query.title = { $regex: search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
+    if (status === "success") query.$or = [{ uploadStatus: "success" }, { uploadStatus: { $exists: false } }];
+    if (status === "failed") query.uploadStatus = "failed";
+    if (batchId) query.uploadBatchId = batchId;
+    if (startDate || endDate) {
+      query.createdAt = {};
+      const start = dateBoundary(startDate);
+      const end = dateBoundary(endDate, true);
+      if (start) query.createdAt.$gte = start;
+      if (end) query.createdAt.$lte = end;
+    }
+    const currentPage = Math.max(1, parseInt(page, 10) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const [artworks, total] = await Promise.all([
+      Artwork.find(query)
+        .select("_id title category images createdAt updatedAt uploadedBy uploadBatchId uploadStatus")
+        .sort({ createdAt: -1 }).skip((currentPage - 1) * pageSize).limit(pageSize).lean(),
+      Artwork.countDocuments(query),
+    ]);
+    res.json({ success: true, artworks, pagination: { total, page: currentPage, limit: pageSize, pages: Math.ceil(total / pageSize) } });
+  } catch (error) { console.error("Upload history error:", error); res.status(500).json({ success: false, message: "Server error" }); }
+});
+
+router.get("/upload-history/batches", protect, adminOnly, async (req, res) => {
+  try {
+    const [artworkBatches, savedBatches] = await Promise.all([Artwork.aggregate([
+      { $match: { uploadBatchId: { $exists: true, $ne: "" } } },
+      { $group: { _id: "$uploadBatchId", uploadedAt: { $max: "$createdAt" }, total: { $sum: 1 }, successful: { $sum: { $cond: [{ $eq: ["$uploadStatus", "success"] }, 1, 0] } }, failed: { $sum: { $cond: [{ $eq: ["$uploadStatus", "failed"] }, 1, 0] } }, uploadedBy: { $first: "$uploadedBy" } } },
+      { $sort: { uploadedAt: -1 } },
+    ]), UploadBatch.find().sort({ createdAt: -1 }).lean()]);
+    const summaries = new Map(savedBatches.map((batch) => [batch.uploadBatchId, batch]));
+    const batches = artworkBatches.map(({ _id, ...batch }) => {
+      const saved = summaries.get(_id);
+      summaries.delete(_id);
+      return {
+        uploadBatchId: _id,
+        ...batch,
+        uploadedAt: saved?.createdAt || batch.uploadedAt,
+        total: saved?.selectedCount || batch.total,
+        successful: saved?.successfulCount || batch.successful,
+        failed: saved?.failedCount || batch.failed,
+        uploadedBy: saved?.uploadedBy || batch.uploadedBy,
+      };
+    });
+    for (const saved of summaries.values()) batches.push({
+      uploadBatchId: saved.uploadBatchId,
+      uploadedAt: saved.createdAt,
+      total: saved.selectedCount,
+      successful: saved.successfulCount,
+      failed: saved.failedCount,
+      uploadedBy: saved.uploadedBy,
+    });
+    batches.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    res.json({ success: true, batches });
+  } catch (error) { res.status(500).json({ success: false, message: "Server error" }); }
+});
+
+router.put("/upload-history/batches/:uploadBatchId", protect, adminOnly, async (req, res) => {
+  try {
+    const selectedCount = Math.max(0, Number.parseInt(req.body.selected, 10) || 0);
+    const successfulCount = Math.max(0, Number.parseInt(req.body.successful, 10) || 0);
+    const failedCount = Math.max(0, Number.parseInt(req.body.failed, 10) || 0);
+    const batch = await UploadBatch.findOneAndUpdate(
+      { uploadBatchId: req.params.uploadBatchId },
+      { selectedCount, successfulCount, failedCount, uploadedBy: uploadedByValue(req.user) },
+      { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }
+    );
+    res.json({ success: true, batch });
+  } catch (error) {
+    console.error("Upload batch summary error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 // @route   GET /api/artworks/:id
 // @desc    Get single artwork by ID
@@ -269,13 +400,25 @@ router.get("/:id", async (req, res) => {
 // @route   POST /api/artworks
 // @desc    Create new artwork with images
 // @access  Private
-router.post("/", uploadRateLimiter, protect, uploadArtwork.array("images", 10), async (req, res) => {
+router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (req, res) => {
+  let images = [];
   try {
-    const { title, description, category, price, medium, dimensions, isAvailable, isFeatured, year } = req.body;
+    const { title, description, category, price, medium, dimensions, isAvailable, isFeatured, year, clientUploadId, uploadBatchId } = req.body;
+
+    images = (req.files || []).map(getCloudinaryFileInfo).filter((img) => img.url && img.publicId);
+    if (!optionalText(clientUploadId)) {
+      await discardUploadedImages(images);
+      return res.status(400).json({ success: false, message: "clientUploadId is required" });
+    }
+    if (clientUploadId) {
+      const existing = await Artwork.findOne({ clientUploadId });
+      if (existing) {
+        await discardUploadedImages(images);
+        return res.json({ success: true, message: "Artwork was already uploaded.", artwork: existing });
+      }
+    }
 
     // Map uploaded files to image objects
-    const images = (req.files || []).map(getCloudinaryFileInfo).filter((img) => img.url && img.publicId);
-
     if (images.length === 0) {
       return res.status(400).json({ success: false, message: "Please upload at least one artwork image" });
     }
@@ -309,10 +452,22 @@ router.post("/", uploadRateLimiter, protect, uploadArtwork.array("images", 10), 
       isFeatured: isFeatured === "true",
       year: normalizedYear,
       images,
+      clientUploadId: optionalText(clientUploadId) || undefined,
+      uploadBatchId: optionalText(uploadBatchId) || undefined,
+      uploadStatus: "success",
+      uploadedBy: uploadedByValue(req.user),
     });
 
     res.status(201).json({ success: true, message: "Artwork created", artwork });
   } catch (error) {
+    if (error?.code === 11000 && error?.keyPattern?.clientUploadId && req.body?.clientUploadId) {
+      const existing = await Artwork.findOne({ clientUploadId: req.body.clientUploadId });
+      if (existing) {
+        await discardUploadedImages(images);
+        return res.json({ success: true, message: "Artwork was already uploaded.", artwork: existing });
+      }
+    }
+    await discardUploadedImages(images);
     console.error("Create artwork error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
@@ -369,7 +524,7 @@ router.put("/:id", protect, async (req, res) => {
 // @route   POST /api/artworks/:id/images
 // @desc    Add images to existing artwork
 // @access  Private
-router.post("/:id/images", uploadRateLimiter, protect, uploadArtwork.array("images", 10), async (req, res) => {
+router.post("/:id/images", protect, adminOnly, uploadArtwork.array("images", 10), async (req, res) => {
   try {
     const artwork = await Artwork.findById(req.params.id);
     if (!artwork) {
@@ -455,6 +610,6 @@ router.use((error, req, res, next) => {
   return next(error);
 });
 
-router.__testables = { titleFromFilename, runWithConcurrency, BULK_UPLOAD_CONCURRENCY };
+router.__testables = { titleFromFilename };
 
 module.exports = router;

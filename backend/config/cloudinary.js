@@ -14,7 +14,6 @@ const ARTWORK_IMAGE_MIME_TYPES = new Set([
 ]);
 const ARTWORK_IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
 const MAX_ARTWORK_FILE_SIZE = 10 * 1024 * 1024;
-const MAX_BULK_ARTWORKS = 50;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -80,7 +79,9 @@ const logoStorage = createStorage({
 const uploadArtwork = multer({ storage: artworkStorage });
 const uploadBulkArtwork = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_ARTWORK_FILE_SIZE, files: MAX_BULK_ARTWORKS },
+  // The UI sends one file at a time. Deliberately do not impose a file-count
+  // limit so the endpoint also remains valid for arbitrarily large batches.
+  limits: { fileSize: MAX_ARTWORK_FILE_SIZE },
   fileFilter: (req, file, callback) => {
     const extension = file.originalname.slice(file.originalname.lastIndexOf(".")).toLowerCase();
     if (ARTWORK_IMAGE_MIME_TYPES.has(file.mimetype) && ARTWORK_IMAGE_EXTENSIONS.has(extension)) {
@@ -112,5 +113,4 @@ module.exports = {
   ARTWORK_IMAGE_MIME_TYPES,
   ARTWORK_IMAGE_EXTENSIONS,
   MAX_ARTWORK_FILE_SIZE,
-  MAX_BULK_ARTWORKS,
 };
