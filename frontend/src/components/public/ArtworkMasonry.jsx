@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { saveGalleryRestoreState } from "../../utils/galleryRestore";
 import {
   GALLERY_THUMBNAIL_WIDTHS,
   cloudinaryThumbnailUrl,
@@ -118,7 +119,7 @@ const ArtworkMasonryImage = ({ image, title, priority }) => {
   );
 };
 
-const ArtworkMasonryItem = ({ artwork, priority = false }) => {
+const ArtworkMasonryItem = ({ artwork, priority = false, galleryRestoreState = null }) => {
   const image = artwork.images?.[0];
   const title = artwork.title || "Untitled";
   const metadata = [
@@ -128,10 +129,21 @@ const ArtworkMasonryItem = ({ artwork, priority = false }) => {
     .filter(Boolean)
     .join(" · ");
 
+  const handleRestoreClick = () => {
+    if (!galleryRestoreState) return;
+    saveGalleryRestoreState({
+      ...galleryRestoreState,
+      artworkId: artwork._id,
+      scrollY: window.scrollY,
+    });
+  };
+
   return (
-    <article className="artwork-masonry-item">
+    <article className="artwork-masonry-item" data-gallery-artwork-id={artwork._id}>
       <Link
         to={`/artwork/${artwork._id}`}
+        state={{ restoreFromArtwork: true }}
+        onClick={handleRestoreClick}
         aria-label={`View ${title}`}
         className="artwork-masonry-link group block bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
       >
@@ -194,6 +206,7 @@ const ArtworkMasonry = ({
   priorityCount = 0,
   emptyState = null,
   className = "",
+  galleryRestoreState = null,
 }) => {
   if (loading) return <ArtworkMasonrySkeleton count={skeletonCount} />;
   if (!artworks.length) return emptyState;
@@ -205,6 +218,7 @@ const ArtworkMasonry = ({
           key={artwork._id}
           artwork={artwork}
           priority={index < priorityCount}
+          galleryRestoreState={galleryRestoreState}
         />
       ))}
     </div>

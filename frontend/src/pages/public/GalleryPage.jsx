@@ -1,21 +1,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkMasonry from "../../components/public/ArtworkMasonry";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { publicDataAPI } from "../../services/publicData";
 import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import CachedDataNotice from "../../components/public/CachedDataNotice";
+import { clearGalleryRestoreState, normalizeGalleryPage, readGalleryRestoreState, saveGalleryRestoreState } from "../../utils/galleryRestore";
 
 const DEFAULT_SORT = "createdAt-desc";
+const GALLERY_PAGE_SIZE = 50;
+const GALLERY_RESTORE_ANCHOR_SELECTOR = "[data-gallery-artwork-id]";
 
 const GalleryPage = () => {
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [artworks, setArtworks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingPage, setLoadingPage] = useState(false);
   const [error, setError] = useState("");
   const [category, setCategory] = useState(() => searchParams.get("category") || "all");
   const [availability, setAvailability] = useState(
@@ -28,33 +32,53 @@ const GalleryPage = () => {
   const [medium, setMedium] = useState(() => searchParams.get("medium") || "");
   const [year, setYear] = useState(() => searchParams.get("year") || "");
   const [decade, setDecade] = useState(() => searchParams.get("decade") || "");
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => normalizeGalleryPage(searchParams.get("page"), 1));
+  const restoreState = useMemo(() => ({
+    pathname: location.pathname,
+    search: location.search,
+    page,
+    scrollY: typeof window !== "undefined" ? window.scrollY : 0,
+    filters: {
+      category,
+      availability,
+      sort: sortValue,
+      search,
+      collection,
+      medium,
+      year,
+      decade,
+    },
+  }), [availability, category, collection, decade, location.pathname, location.search, medium, page, search, sortValue, year]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dataSource, setDataSource] = useState("loading");
   const requestIdRef = useRef(0);
   const mountedRef = useRef(true);
+  const gridRef = useRef(null);
+  const restoreRequestedRef = useRef(false);
+  const restorePendingRef = useRef(false);
+  const restoreFrameRef = useRef(null);
+  const activeArtworkIdRef = useRef("");
 
   const applyResult = useCallback((result, requestedPage) => {
     if (!mountedRef.current) return;
     const incoming = result.items || [];
-    setArtworks((current) => {
-      if (requestedPage === 1) return incoming;
-      const byId = new Map([...current, ...incoming].map((artwork) => [artwork._id, artwork]));
-      return [...byId.values()];
-    });
+    setArtworks(incoming);
     setPagination(result.pagination || {});
     setDataSource(result.isStale ? "static" : "live");
+    if (requestedPage > 1 && incoming.length === 0) {
+      setPage((current) => Math.max(1, current - 1));
+    }
   }, []);
 
-  const fetchArtworks = useCallback(async () => {
+  const fetchArtworks = useCallback(async (requestedPage = page) => {
     const requestId = ++requestIdRef.current;
     let liveApplied = false;
-    page === 1 ? setLoading(true) : setLoadingMore(true);
+    requestedPage === 1 ? setLoading(true) : setLoadingPage(true);
     setError("");
     const [sort, order] = sortValue.split("-");
 
     try {
-      const params = { page, limit: 36, sort, order };
+      const params = { page: requestedPage, limit: GALLERY_PAGE_SIZE, sort, order };
       if (category !== "all") params.category = category;
       if (availability !== "all") params.available = availability;
       if (search) params.search = search;
@@ -66,16 +90,16 @@ const GalleryPage = () => {
       const result = await publicDataAPI.getArtworks(params, {
         onLiveData: (liveResult) => {
           liveApplied = true;
-          if (requestId === requestIdRef.current) applyResult(liveResult, page);
+          if (requestId === requestIdRef.current) applyResult(liveResult, requestedPage);
         },
       });
       if (requestId !== requestIdRef.current) return;
-      if (!liveApplied || result.source === "live") applyResult(result, page);
+      if (!liveApplied || result.source === "live") applyResult(result, requestedPage);
     } catch {
       setError("The gallery could not be loaded. Please try again.");
     } finally {
       setLoading(false);
-      setLoadingMore(false);
+      setLoadingPage(false);
     }
   }, [applyResult, availability, category, collection, decade, medium, page, search, sortValue, year]);
 
@@ -86,9 +110,32 @@ const GalleryPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchArtworks();
-    return subscribeToArtworkRefresh(fetchArtworks);
-  }, [fetchArtworks]);
+    const nextPage = normalizeGalleryPage(searchParams.get("page"), 1);
+    const nextCategory = searchParams.get("category") || "all";
+    const nextAvailability = searchParams.get("availability") || "all";
+    const nextSort = searchParams.get("sort") || DEFAULT_SORT;
+    const nextSearch = searchParams.get("q") || "";
+    const nextCollection = searchParams.get("collection") || "";
+    const nextMedium = searchParams.get("medium") || "";
+    const nextYear = searchParams.get("year") || "";
+    const nextDecade = searchParams.get("decade") || "";
+
+    setPage(nextPage);
+    setCategory(nextCategory);
+    setAvailability(nextAvailability);
+    setSortValue(nextSort);
+    setSearch(nextSearch);
+    setSearchInput(nextSearch);
+    setCollection(nextCollection);
+    setMedium(nextMedium);
+    setYear(nextYear);
+    setDecade(nextDecade);
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchArtworks(page);
+    return subscribeToArtworkRefresh(() => fetchArtworks(page));
+  }, [fetchArtworks, page]);
 
   useEffect(() => () => {
     mountedRef.current = false;
@@ -105,7 +152,7 @@ const GalleryPage = () => {
     });
   }, [categories]);
 
-  const updateCollection = (changes = {}) => {
+  const updateCollection = (changes = {}, nextPage = 1) => {
     const nextCategory = changes.category ?? category;
     const nextAvailability = changes.availability ?? availability;
     const nextSort = changes.sortValue ?? sortValue;
@@ -115,7 +162,7 @@ const GalleryPage = () => {
     const nextYear = changes.year ?? year;
     const nextDecade = changes.decade ?? decade;
 
-    setPage(1);
+    setPage(nextPage);
     setArtworks([]);
     setCategory(nextCategory);
     setAvailability(nextAvailability);
@@ -127,6 +174,7 @@ const GalleryPage = () => {
     setDecade(nextDecade);
 
     const nextParams = new URLSearchParams();
+    if (nextPage > 1) nextParams.set("page", String(nextPage));
     if (nextCategory !== "all") nextParams.set("category", nextCategory);
     if (nextAvailability !== "all") nextParams.set("availability", nextAvailability);
     if (nextSort !== DEFAULT_SORT) nextParams.set("sort", nextSort);
@@ -149,12 +197,114 @@ const GalleryPage = () => {
 
   const clearFilters = () => {
     setSearchInput("");
-    updateCollection({ category: "all", availability: "all", search: "", collection: "", medium: "", year: "", decade: "" });
+    updateCollection({ category: "all", availability: "all", search: "", collection: "", medium: "", year: "", decade: "" }, 1);
   };
 
   const hasActiveFilters =
     category !== "all" || availability !== "all" || Boolean(search || collection || medium || year || decade);
   const resultCount = pagination.total ?? artworks.length;
+  const totalPages = Math.max(1, Number(pagination.pages) || 1);
+  const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  const scrollGalleryToStart = useCallback(() => {
+    const top = gridRef.current?.getBoundingClientRect().top + window.scrollY - 120;
+    window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? "auto" : "smooth", left: 0 });
+  }, [prefersReducedMotion]);
+
+  const goToPage = useCallback((nextPage) => {
+    const safePage = Math.min(Math.max(1, Number(nextPage) || 1), totalPages);
+    if (safePage === page || loadingPage) return;
+
+    setLoadingPage(true);
+    setPage(safePage);
+    const nextParams = new URLSearchParams(searchParams);
+    if (safePage > 1) nextParams.set("page", String(safePage)); else nextParams.delete("page");
+    if (category !== "all") nextParams.set("category", category);
+    if (availability !== "all") nextParams.set("availability", availability);
+    if (sortValue !== DEFAULT_SORT) nextParams.set("sort", sortValue);
+    if (search) nextParams.set("q", search);
+    if (collection) nextParams.set("collection", collection);
+    if (medium) nextParams.set("medium", medium);
+    if (year) nextParams.set("year", year);
+    if (decade && !year) nextParams.set("decade", decade);
+    setSearchParams(nextParams, { replace: false });
+    requestAnimationFrame(() => scrollGalleryToStart());
+  }, [availability, category, collection, decade, loadingPage, medium, page, prefersReducedMotion, search, searchParams, setSearchParams, sortValue, totalPages, year, scrollGalleryToStart]);
+
+  useEffect(() => {
+    const restoreState = readGalleryRestoreState();
+    if (!restoreState || restoreRequestedRef.current) return;
+
+    const currentPath = `${location.pathname}${location.search}`;
+    const restorePath = `${restoreState.pathname}${restoreState.search || ""}`;
+    if (currentPath !== restorePath) return;
+
+    const normalizedPage = normalizeGalleryPage(restoreState.page, 1);
+    const restoredPage = Math.min(normalizedPage, totalPages);
+    const restoreSearch = restoreState.filters?.search || "";
+    const restoreCategory = restoreState.filters?.category || "all";
+    const restoreAvailability = restoreState.filters?.availability || "all";
+    const restoreSort = restoreState.filters?.sort || DEFAULT_SORT;
+
+    if (restoreState.artworkId) activeArtworkIdRef.current = restoreState.artworkId;
+    if (restoredPage !== page) {
+      setPage(restoredPage);
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        if (restoredPage > 1) next.set("page", String(restoredPage)); else next.delete("page");
+        if (restoreCategory !== "all") next.set("category", restoreCategory);
+        if (restoreAvailability !== "all") next.set("availability", restoreAvailability);
+        if (restoreSort !== DEFAULT_SORT) next.set("sort", restoreSort);
+        if (restoreSearch) next.set("q", restoreSearch);
+        return next;
+      }, { replace: true });
+    }
+
+    restoreRequestedRef.current = true;
+  }, [location.pathname, location.search, page, setSearchParams, totalPages]);
+
+  useEffect(() => {
+    if (!gridRef.current || !restoreRequestedRef.current || !activeArtworkIdRef.current) return;
+    if (restorePendingRef.current) return;
+    restorePendingRef.current = true;
+    const anchor = gridRef.current.querySelector(`${GALLERY_RESTORE_ANCHOR_SELECTOR}[data-gallery-artwork-id="${activeArtworkIdRef.current}"]`);
+    if (!anchor) {
+      requestAnimationFrame(() => {
+        restorePendingRef.current = false;
+        const fallback = gridRef.current?.querySelector(GALLERY_RESTORE_ANCHOR_SELECTOR);
+        if (fallback) {
+          fallback.scrollIntoView({ block: "start" });
+        }
+      });
+      return;
+    }
+
+    const restorePosition = () => {
+      const rect = anchor.getBoundingClientRect();
+      const targetY = Math.max(0, window.scrollY + rect.top - 96);
+      window.scrollTo({ top: targetY, behavior: prefersReducedMotion ? "auto" : "smooth", left: 0 });
+      restorePendingRef.current = false;
+      clearGalleryRestoreState();
+    };
+
+    requestAnimationFrame(() => restorePosition());
+  }, [artworks, page, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!location.search || !location.pathname.includes("gallery")) {
+      clearGalleryRestoreState();
+    }
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (pagination.pages && page > pagination.pages) {
+      const safePage = Math.max(1, Number(pagination.pages) || 1);
+      setPage(safePage);
+      const nextParams = new URLSearchParams(searchParams);
+      if (safePage > 1) nextParams.set("page", String(safePage)); else nextParams.delete("page");
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [page, pagination.pages, searchParams, setSearchParams]);
 
   const availabilitySelect = (
     <label className="block">
@@ -309,6 +459,7 @@ const GalleryPage = () => {
         <section
           className="gallery-results mx-auto max-w-[1920px] px-4 pb-8 sm:px-6 lg:px-6"
           aria-live="polite"
+          ref={gridRef}
         >
           <CachedDataNotice
             visible={dataSource === "static"}
@@ -328,6 +479,7 @@ const GalleryPage = () => {
               artworks={artworks}
               loading={loading}
               priorityCount={6}
+              galleryRestoreState={restoreState}
               emptyState={
                 <div className="mx-auto my-16 max-w-xl px-6 py-12 text-center">
                   <p className="font-display text-3xl">No artworks found</p>
@@ -342,17 +494,32 @@ const GalleryPage = () => {
             />
           )}
 
-          {page < (pagination.pages || 0) && !loading && (
-            <div className="flex justify-center py-10">
-              <button
-                type="button"
-                onClick={() => setPage((value) => value + 1)}
-                disabled={loadingMore}
-                className="btn-secondary flex items-center gap-2 disabled:opacity-50"
-              >
-                {loadingMore && <LoadingSpinner size="sm" />} Load More
-              </button>
-            </div>
+          {totalPages > 1 && !loading && (
+            <nav className="mt-8 flex flex-col gap-4 border-t border-charcoal/10 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Gallery pagination">
+              <div className="text-sm text-slate/60">
+                Page {page} of {totalPages}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page <= 1 || loadingPage}
+                  aria-label="Go to previous Gallery page"
+                  className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {loadingPage && page > 1 ? <LoadingSpinner size="sm" /> : "PREVIOUS"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page >= totalPages || loadingPage}
+                  aria-label="Go to next Gallery page"
+                  className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {loadingPage && page < totalPages ? <LoadingSpinner size="sm" /> : "NEXT"}
+                </button>
+              </div>
+            </nav>
           )}
         </section>
       </div>

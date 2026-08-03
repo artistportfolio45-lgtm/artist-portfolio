@@ -15,7 +15,7 @@ test("public artwork recovery is bounded, deduplicated, cancellable and stale-aw
 
 test("gallery provides debounced URL filters, pagination and cached retry state", async () => {
   const gallery = await source("src/pages/public/GalleryPage.jsx");
-  for (const token of ["setTimeout", "collection", "medium", "year", "Load More", "CachedDataNotice", "setSearchParams"]) assert.ok(gallery.includes(token), token);
+  for (const token of ["setTimeout", "collection", "medium", "year", "Gallery pagination", "CachedDataNotice", "setSearchParams"]) assert.ok(gallery.includes(token), token);
 });
 
 test("contact selection and artwork detail retain accessible scalable behaviors", async () => {
