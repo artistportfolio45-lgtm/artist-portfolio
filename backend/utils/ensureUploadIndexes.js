@@ -12,8 +12,8 @@ const UPLOAD_BATCH_INDEX = {
 };
 
 const ARTWORK_PUBLIC_INDEXES = [
-  { keys: { publicationStatus: 1, createdAt: -1, _id: -1 }, options: { name: "public_createdAt_1" } },
-  { keys: { publicationStatus: 1, category: 1, year: -1, _id: -1 }, options: { name: "public_category_year_1" } },
+  { keys: { publicationStatus: 1, createdAt: -1, _id: -1 }, options: {} },
+  { keys: { publicationStatus: 1, category: 1, year: -1, _id: -1 }, options: {} },
   { keys: { catalogueNumber: 1 }, options: { unique: true, name: "catalogueNumber_1", partialFilterExpression: { catalogueNumber: { $type: "string", $gt: "" } } } },
 ];
 
