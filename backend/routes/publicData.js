@@ -4,6 +4,15 @@ const { protect } = require("../middleware/auth");
 const { buildPublicSnapshot } = require("../utils/publicSnapshot");
 const { triggerStaticRebuild } = require("../utils/staticRebuild");
 
+router.use((req, res, next) => {
+  res.set({
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
+  next();
+});
+
 router.get("/", async (req, res) => {
   try {
     const exportKey = process.env.PUBLIC_DATA_EXPORT_KEY;

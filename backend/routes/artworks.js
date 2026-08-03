@@ -2,6 +2,7 @@
 // Full CRUD for artworks — public read, admin write
 
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const Artwork = require("../models/Artwork");
 const UploadBatch = require("../models/UploadBatch");
@@ -12,8 +13,10 @@ const {
   cloudinary,
   getCloudinaryFileInfo,
 } = require("../config/cloudinary");
+const { triggerStaticRebuild } = require("../utils/staticRebuild");
 
 const optionalText = (value) => (typeof value === "string" ? value.trim() : "");
+const escapeRegex = (value) => optionalText(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const normalizePrice = (value) => {
   if (value === undefined || value === null || String(value).trim() === "") return null;
   return Number(value);
@@ -39,6 +42,27 @@ const adminOnly = (req, res, next) => {
   next();
 };
 const uploadedByValue = (user) => user?._id?.toString() || user?.email || undefined;
+const validatePublishableArtwork = ({ title, description, year, images, catalogueNumber, allowLongDescription }) => {
+  const errors = [];
+  const currentYear = new Date().getFullYear();
+  if (!optionalText(title) || optionalText(title).length > 180) errors.push("Published artwork requires a title of 180 characters or fewer");
+  if (optionalText(description).length > 12000 && allowLongDescription !== true && allowLongDescription !== "true") errors.push("Description exceeds the 12,000 character publishing limit unless explicitly reviewed");
+  if (year !== null && year !== undefined && (year < 1000 || year > currentYear + 1)) errors.push(`Year must be between 1000 and ${currentYear + 1}`);
+  if (!Array.isArray(images) || images.length === 0) errors.push("Published artwork requires at least one image");
+  if (optionalText(catalogueNumber).length > 100) errors.push("Catalogue number must be 100 characters or fewer");
+  return errors;
+};
+
+const setArtworkNoStore = (req, res, next) => {
+  res.set({
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  });
+  next();
+};
+
+router.use(setArtworkNoStore);
 
 const titleFromFilename = (filename = "") => {
   const withoutExtension = filename.replace(/\.[^.]+$/, "");
@@ -79,6 +103,10 @@ router.get("/", async (req, res) => {
     const {
       search,
       category,
+      collection,
+      medium,
+      year,
+      decade,
       available,
       featured,
       page = 1,
@@ -87,7 +115,7 @@ router.get("/", async (req, res) => {
       order = "desc",
     } = req.query;
 
-    const query = {};
+    const query = { publicationStatus: { $nin: ["draft", "unpublished", "archived"] } };
 
     // Text search
     if (search) {
@@ -104,7 +132,7 @@ router.get("/", async (req, res) => {
           { category: "" },
         ];
       } else {
-        query.category = { $regex: category, $options: "i" };
+        query.category = { $regex: escapeRegex(category), $options: "i" };
       }
     }
 
@@ -114,6 +142,13 @@ router.get("/", async (req, res) => {
 
     // Featured filter
     if (featured === "true") query.isFeatured = true;
+
+    if (collection) query.collection = { $regex: escapeRegex(collection), $options: "i" };
+    if (medium) query.medium = { $regex: escapeRegex(medium), $options: "i" };
+    if (year && Number.isInteger(Number(year))) query.year = Number(year);
+    if (decade && Number.isInteger(Number(decade))) {
+      query.year = { $gte: Number(decade), $lte: Number(decade) + 9 };
+    }
 
     const safeSortFields = new Set([
       "createdAt",
@@ -133,7 +168,7 @@ router.get("/", async (req, res) => {
 
     const [artworks, total] = await Promise.all([
       Artwork.find(query)
-        .sort({ [sortField]: sortDirection })
+        .sort({ [sortField]: sortDirection, _id: sortDirection })
         .skip(skip)
         .limit(pageSize),
       Artwork.countDocuments(query),
@@ -161,8 +196,9 @@ router.get("/", async (req, res) => {
 router.get("/categories", async (req, res) => {
   try {
     const [categories, incompleteCount] = await Promise.all([
-      Artwork.distinct("category"),
+      Artwork.distinct("category", { publicationStatus: { $nin: ["draft", "unpublished", "archived"] } }),
       Artwork.countDocuments({
+        publicationStatus: { $nin: ["draft", "unpublished", "archived"] },
         $or: [
           { category: { $exists: false } },
           { category: null },
@@ -173,6 +209,52 @@ router.get("/categories", async (req, res) => {
     const normalized = categories.map((item) => item?.trim()).filter(Boolean);
     if (incompleteCount > 0) normalized.push("Uncategorized");
     res.json({ success: true, categories: [...new Set(normalized)].sort() });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Admin collection includes every publication state; public endpoints never expose drafts.
+router.get("/manage", protect, adminOnly, async (req, res) => {
+  try {
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(200, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const query = {};
+    if (req.query.available === "true") query.isAvailable = true;
+    if (req.query.available === "false") query.isAvailable = false;
+    if (req.query.featured === "true") query.isFeatured = true;
+    const [artworks, total] = await Promise.all([
+      Artwork.find(query).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit),
+      Artwork.countDocuments(query),
+    ]);
+    res.json({ success: true, artworks, pagination: { total, page, limit, pages: Math.ceil(total / limit) } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.get("/manage/:id", protect, adminOnly, async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid artwork ID" });
+    const artwork = await Artwork.findById(req.params.id);
+    if (!artwork) return res.status(404).json({ success: false, message: "Artwork not found" });
+    res.json({ success: true, artwork });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.get("/:id/neighbors", async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid artwork ID" });
+    const current = await Artwork.findOne({ _id: req.params.id, publicationStatus: { $nin: ["draft", "unpublished", "archived"] } }).select("createdAt");
+    if (!current) return res.status(404).json({ success: false, message: "Artwork not found" });
+    const published = { publicationStatus: { $nin: ["draft", "unpublished", "archived"] } };
+    const [previous, next] = await Promise.all([
+      Artwork.findOne({ ...published, $or: [{ createdAt: { $lt: current.createdAt } }, { createdAt: current.createdAt, _id: { $lt: current._id } }] }).sort({ createdAt: -1, _id: -1 }).select("title images year catalogueNumber"),
+      Artwork.findOne({ ...published, $or: [{ createdAt: { $gt: current.createdAt } }, { createdAt: current.createdAt, _id: { $gt: current._id } }] }).sort({ createdAt: 1, _id: 1 }).select("title images year catalogueNumber"),
+    ]);
+    res.json({ success: true, previous, next });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
@@ -277,6 +359,9 @@ router.post(
 
     const successful = results.filter((item) => item.status === "successful").length;
     const failed = results.length - successful;
+    const staticRebuild = successful > 0
+      ? await triggerStaticRebuild("artwork-bulk-uploaded")
+      : { triggered: false, message: "No successful artwork changes" };
     res.status(failed ? 207 : 201).json({
       success: failed === 0,
       message: failed ? "Some artworks could not be uploaded" : "Artworks uploaded",
@@ -284,6 +369,7 @@ router.post(
       successful,
       failed,
       results,
+      staticRebuild,
     });
   }
 );
@@ -384,7 +470,13 @@ router.put("/upload-history/batches/:uploadBatchId", protect, adminOnly, async (
 // @access  Public
 router.get("/:id", async (req, res) => {
   try {
-    const artwork = await Artwork.findById(req.params.id);
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid artwork ID" });
+    }
+    const artwork = await Artwork.findOne({
+      _id: req.params.id,
+      publicationStatus: { $nin: ["draft", "unpublished", "archived"] },
+    });
     if (!artwork) {
       return res.status(404).json({ success: false, message: "Artwork not found" });
     }
@@ -403,7 +495,7 @@ router.get("/:id", async (req, res) => {
 router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (req, res) => {
   let images = [];
   try {
-    const { title, description, category, price, medium, dimensions, isAvailable, isFeatured, year, clientUploadId, uploadBatchId } = req.body;
+    const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, publicationStatus, allowLongDescription, isAvailable, isFeatured, year, clientUploadId, uploadBatchId } = req.body;
 
     images = (req.files || []).map(getCloudinaryFileInfo).filter((img) => img.url && img.publicId);
     if (!optionalText(clientUploadId)) {
@@ -441,13 +533,22 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
       });
     }
 
-    const artwork = await Artwork.create({
+    const draftArtwork = {
       title: optionalText(title) || titleFromFilename(req.files[0]?.originalname),
       description: optionalText(description),
       category: optionalText(category) || "Uncategorized",
       price: normalizedPrice,
       medium: optionalText(medium),
       dimensions: optionalText(dimensions),
+      collection: optionalText(collection),
+      series: optionalText(series),
+      catalogueNumber: optionalText(catalogueNumber),
+      provenance: optionalText(provenance),
+      exhibitionHistory: optionalText(exhibitionHistory),
+      publications: optionalText(publications),
+      creationLocation: optionalText(creationLocation),
+      publicationStatus: ["draft", "published", "unpublished", "archived"].includes(publicationStatus) ? publicationStatus : "published",
+      allowLongDescription,
       isAvailable: isAvailable === "false" ? false : true,
       isFeatured: isFeatured === "true",
       year: normalizedYear,
@@ -456,9 +557,18 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
       uploadBatchId: optionalText(uploadBatchId) || undefined,
       uploadStatus: "success",
       uploadedBy: uploadedByValue(req.user),
-    });
+    };
+    if (draftArtwork.publicationStatus === "published") {
+      const publishingErrors = validatePublishableArtwork(draftArtwork);
+      if (publishingErrors.length) {
+        await discardUploadedImages(images);
+        return res.status(400).json({ success: false, message: publishingErrors[0], errors: publishingErrors });
+      }
+    }
+    const artwork = await Artwork.create(draftArtwork);
 
-    res.status(201).json({ success: true, message: "Artwork created", artwork });
+    const staticRebuild = await triggerStaticRebuild("artwork-created");
+    res.status(201).json({ success: true, message: "Artwork created", artwork, staticRebuild });
   } catch (error) {
     if (error?.code === 11000 && error?.keyPattern?.clientUploadId && req.body?.clientUploadId) {
       const existing = await Artwork.findOne({ clientUploadId: req.body.clientUploadId });
@@ -478,12 +588,13 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
 // @access  Private
 router.put("/:id", protect, async (req, res) => {
   try {
-    const { title, description, category, price, medium, dimensions, isAvailable, isFeatured, year } = req.body;
+    const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, publicationStatus, allowLongDescription, isAvailable, isFeatured, year } = req.body;
 
     const artwork = await Artwork.findById(req.params.id);
     if (!artwork) {
       return res.status(404).json({ success: false, message: "Artwork not found" });
     }
+    const wasPublished = !artwork.publicationStatus || artwork.publicationStatus === "published";
 
     if (title !== undefined) artwork.title = optionalText(title) || "Untitled";
     if (description !== undefined) artwork.description = optionalText(description);
@@ -500,6 +611,15 @@ router.put("/:id", protect, async (req, res) => {
     }
     if (medium !== undefined) artwork.medium = optionalText(medium);
     if (dimensions !== undefined) artwork.dimensions = optionalText(dimensions);
+    for (const field of ["collection", "series", "catalogueNumber", "provenance", "exhibitionHistory", "publications", "creationLocation"]) {
+      if (req.body[field] !== undefined) artwork[field] = optionalText(req.body[field]);
+    }
+    if (publicationStatus !== undefined) {
+      if (!["draft", "published", "unpublished", "archived"].includes(publicationStatus)) {
+        return res.status(400).json({ success: false, message: "Invalid publication status" });
+      }
+      artwork.publicationStatus = publicationStatus;
+    }
     if (isAvailable !== undefined) artwork.isAvailable = isAvailable === "false" ? false : Boolean(isAvailable);
     if (isFeatured !== undefined) artwork.isFeatured = isFeatured === "true" || isFeatured === true;
     if (year !== undefined) {
@@ -513,8 +633,13 @@ router.put("/:id", protect, async (req, res) => {
       artwork.year = normalizedYear;
     }
 
+    if (publicationStatus === "published" && !wasPublished) {
+      const publishingErrors = validatePublishableArtwork({ ...artwork.toObject(), allowLongDescription });
+      if (publishingErrors.length) return res.status(400).json({ success: false, message: publishingErrors[0], errors: publishingErrors });
+    }
     await artwork.save();
-    res.json({ success: true, message: "Artwork updated", artwork });
+    const staticRebuild = await triggerStaticRebuild("artwork-updated");
+    res.json({ success: true, message: "Artwork updated", artwork, staticRebuild });
   } catch (error) {
     console.error("Update artwork error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -540,7 +665,8 @@ router.post("/:id/images", protect, adminOnly, uploadArtwork.array("images", 10)
     artwork.images.push(...newImages);
     await artwork.save();
 
-    res.json({ success: true, message: "Images added", artwork });
+    const staticRebuild = await triggerStaticRebuild("artwork-images-added");
+    res.json({ success: true, message: "Images added", artwork, staticRebuild });
   } catch (error) {
     console.error("Add images error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -567,7 +693,8 @@ router.delete("/:id/images/:publicId", protect, async (req, res) => {
     artwork.images = artwork.images.filter((img) => img.publicId !== publicId);
     await artwork.save();
 
-    res.json({ success: true, message: "Image removed", artwork });
+    const staticRebuild = await triggerStaticRebuild("artwork-image-removed");
+    res.json({ success: true, message: "Image removed", artwork, staticRebuild });
   } catch (error) {
     console.error("Delete image error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -592,7 +719,8 @@ router.delete("/:id", protect, async (req, res) => {
 
     await artwork.deleteOne();
 
-    res.json({ success: true, message: "Artwork deleted" });
+    const staticRebuild = await triggerStaticRebuild("artwork-deleted");
+    res.json({ success: true, message: "Artwork deleted", staticRebuild });
   } catch (error) {
     console.error("Delete artwork error:", error);
     res.status(500).json({ success: false, message: "Server error" });

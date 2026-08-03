@@ -116,7 +116,7 @@
   }
 
   .container-site {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply w-full min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   /* Artwork image hover overlay */
@@ -311,6 +311,19 @@
     padding: 1.25rem 0 0;
     box-shadow: none;
   }
+}
+
+/* Detail pages keep one document scroll; long editorial text never sits in a nested scroller. */
+@media (min-width: 1024px) {
+  body:has(.artwork-detail-page) { overflow: auto; }
+  .artwork-detail-page { height: auto; min-height: 100vh; overflow: visible; }
+  .artwork-detail-shell { display: block; height: auto; padding-top: 2rem; padding-bottom: 5rem; }
+  .artwork-detail-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr); min-height: 0; gap: 3rem; overflow: visible; align-items: start; }
+  .artwork-image-panel { position: sticky; top: 2rem; display: block; height: auto; overflow: visible; }
+  .artwork-image-stage { height: auto; min-height: 60vh; }
+  .artwork-detail-image { width: 100%; height: auto; max-height: calc(100vh - 5rem); object-fit: contain; }
+  .artwork-info-panel, .artwork-info-content { display: block; height: auto; overflow: visible; }
+  .artwork-info-footer { margin-top: 1rem; }
 }
 
 .public-sidebar {

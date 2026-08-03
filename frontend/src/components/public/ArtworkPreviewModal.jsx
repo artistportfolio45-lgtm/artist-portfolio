@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { cloudinaryThumbnailUrl } from "../../utils/imageDelivery";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 5;
@@ -153,7 +154,9 @@ const ArtworkPreviewModal = ({ artwork, initialIndex = 0, onClose, onIndexChange
         onPointerCancel={handlePointerUp}
       >
         <img
-          src={image.url}
+          src={cloudinaryThumbnailUrl(image.url, 2048)}
+          srcSet={[960, 1440, 2048, 2560].filter((width) => !image.width || width <= image.width || width === 960).map((width) => `${cloudinaryThumbnailUrl(image.url, width)} ${width}w`).join(", ")}
+          sizes="100vw"
           alt={`${artwork.title || "Untitled"} image ${index + 1}`}
           draggable="false"
           className="max-h-[100dvh] max-w-[100vw] select-none object-contain will-change-transform"

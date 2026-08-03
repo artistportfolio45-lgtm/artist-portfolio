@@ -12,6 +12,8 @@ import { PageLoader } from "../../components/shared/LoadingSpinner";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
 import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
+import ArtworkMasonry from "../../components/public/ArtworkMasonry";
+import { cloudinaryThumbnailUrl, galleryThumbnailWidths } from "../../utils/imageDelivery";
 
 const emptyInquiryForm = {
   name: "",
@@ -32,6 +34,9 @@ const ArtworkDetailPage = () => {
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState(emptyInquiryForm);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [related, setRelated] = useState([]);
+  const [neighbors, setNeighbors] = useState({ previous: null, next: null });
   const artworkImageRef = useRef(null);
   const artworkInfoRef = useRef(null);
 
@@ -44,6 +49,42 @@ const ArtworkDetailPage = () => {
       .catch(() => toast.error("Artwork not found"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!artwork?._id) return undefined;
+    let active = true;
+    publicDataAPI.getArtworks({ category: artwork.category, limit: 6 }, {
+      onLiveData: (result) => active && setRelated((result.items || []).filter((item) => item._id !== artwork._id).slice(0, 4)),
+    }).then((result) => {
+      if (active) setRelated((result.items || []).filter((item) => item._id !== artwork._id).slice(0, 4));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [artwork?._id, artwork?.category]);
+
+  useEffect(() => {
+    if (!artwork?._id) return undefined;
+    let active = true;
+    publicDataAPI.getArtworkNeighbors(artwork._id)
+      .then((items) => { if (active) setNeighbors(items); })
+      .catch(() => { if (active) setNeighbors({ previous: null, next: null }); });
+    return () => { active = false; };
+  }, [artwork?._id]);
+
+  useEffect(() => {
+    if (!artwork) return;
+    const siteTitle = "Artist Portfolio";
+    document.title = `${artwork.title || "Artwork"} | ${siteTitle}`;
+    const description = (artwork.description || [artwork.medium, artwork.year].filter(Boolean).join(" · ")).slice(0, 300);
+    const setMeta = (selector, attribute, value) => {
+      let tag = document.querySelector(selector);
+      if (!tag) { tag = document.createElement("meta"); document.head.appendChild(tag); }
+      tag.setAttribute(attribute, selector.includes("property=") ? selector.match(/property="([^"]+)/)?.[1] : selector.match(/name="([^"]+)/)?.[1]);
+      tag.content = value;
+    };
+    if (description) setMeta('meta[name="description"]', "name", description);
+    setMeta('meta[property="og:title"]', "property", artwork.title || "Artwork");
+    if (artwork.images?.[0]?.url) setMeta('meta[property="og:image"]', "property", artwork.images[0].url);
+  }, [artwork]);
 
   useEffect(() => {
     artworkInfoRef.current?.scrollTo({ top: 0 });
@@ -161,7 +202,9 @@ const ArtworkDetailPage = () => {
               >
                 {artwork.images?.[activeImage]?.url ? (
                   <img
-                    src={artwork.images[activeImage].url}
+                    src={cloudinaryThumbnailUrl(artwork.images[activeImage].url, 1440)}
+                    srcSet={galleryThumbnailWidths(artwork.images[activeImage].width).map((width) => `${cloudinaryThumbnailUrl(artwork.images[activeImage].url, width)} ${width}w`).join(", ")}
+                    sizes="(max-width: 1023px) 100vw, 58vw"
                     alt={`${displayTitle} image ${activeImage + 1}`}
                     width={artwork.images[activeImage].width || undefined}
                     height={artwork.images[activeImage].height || undefined}
@@ -238,11 +281,25 @@ const ArtworkDetailPage = () => {
                     <p className="text-sm text-charcoal">{artwork.year}</p>
                   </div>
                 )}
+                {artwork.collection && <div><p className="mb-1 text-xs font-label uppercase tracking-widest text-slate/50">Collection</p><p className="text-sm text-charcoal">{artwork.collection}</p></div>}
+                {artwork.catalogueNumber && <div><p className="mb-1 text-xs font-label uppercase tracking-widest text-slate/50">Catalogue</p><p className="text-sm text-charcoal">{artwork.catalogueNumber}</p></div>}
               </div>}
 
               {artwork.description && (
-                <p className="text-slate leading-relaxed mb-8 font-light">{artwork.description}</p>
+                <div className="mb-8">
+                  <p className="whitespace-pre-line text-slate leading-relaxed font-light">
+                    {!descriptionExpanded && artwork.description.length > 1200 ? `${artwork.description.slice(0, 1200).trim()}…` : artwork.description}
+                  </p>
+                  {artwork.description.length > 1200 && <button type="button" className="mt-4 min-h-11 font-label text-xs uppercase tracking-wider text-charcoal underline decoration-gold underline-offset-4" onClick={() => setDescriptionExpanded((value) => !value)} aria-expanded={descriptionExpanded}>{descriptionExpanded ? "Show less" : "Read more"}</button>}
+                </div>
               )}
+
+              {[['Provenance', artwork.provenance], ['Exhibition history', artwork.exhibitionHistory], ['Publications', artwork.publications]].filter(([, value]) => value).map(([label, value]) => <section key={label} className="mb-6 border-t border-gray-100 pt-5"><h2 className="mb-2 text-xs font-label uppercase tracking-widest text-slate/50">{label}</h2><p className="whitespace-pre-line text-sm leading-relaxed text-slate/80">{value}</p></section>)}
+
+              <div className="mb-8 flex flex-wrap gap-3" aria-label="Share artwork">
+                {typeof navigator !== "undefined" && navigator.share && <button type="button" className="btn-secondary min-h-11" onClick={() => navigator.share({ title: displayTitle, url: currentUrl }).catch(() => {})}>Share</button>}
+                <button type="button" className="btn-secondary min-h-11" onClick={() => navigator.clipboard.writeText(currentUrl).then(() => toast.success("Artwork link copied")).catch(() => toast.error("Could not copy the link"))}>Copy link</button>
+              </div>
 
               {showInquiry && (
                 <form
@@ -296,6 +353,7 @@ const ArtworkDetailPage = () => {
                         id="artwork-inquiry-name"
                         name="name"
                         type="text"
+                        autoComplete="name"
                         value={form.name}
                         onChange={(event) => updateField("name", event.target.value)}
                         aria-invalid={Boolean(errors.name)}
@@ -315,6 +373,7 @@ const ArtworkDetailPage = () => {
                         id="artwork-inquiry-email"
                         name="email"
                         type="email"
+                        autoComplete="email"
                         value={form.email}
                         onChange={(event) => updateField("email", event.target.value)}
                         aria-invalid={Boolean(errors.email)}
@@ -334,6 +393,7 @@ const ArtworkDetailPage = () => {
                         id="artwork-inquiry-phone"
                         name="phone"
                         type="tel"
+                        autoComplete="tel"
                         value={form.phone}
                         onChange={(event) => updateField("phone", event.target.value)}
                         aria-invalid={Boolean(errors.phone)}
@@ -407,6 +467,11 @@ const ArtworkDetailPage = () => {
           }}
         />
       )}
+      {related.length > 0 && <section className="border-t border-charcoal/10 bg-ivory py-12"><div className="container-site"><p className="eyebrow mb-2">Continue exploring</p><h2 className="mb-8 font-display text-3xl font-light">Related artworks</h2><ArtworkMasonry artworks={related} priorityCount={0} /></div></section>}
+      {(neighbors.previous || neighbors.next) && <nav className="border-t border-charcoal/10 bg-white py-8" aria-label="Adjacent artworks"><div className="container-site grid grid-cols-2 gap-4">
+        <div>{neighbors.previous && <Link to={`/artwork/${neighbors.previous._id}`} className="block min-h-11 text-sm text-charcoal hover:text-gold"><span className="block text-xs font-label uppercase tracking-widest text-slate/50">Previous</span>{neighbors.previous.title}</Link>}</div>
+        <div className="text-right">{neighbors.next && <Link to={`/artwork/${neighbors.next._id}`} className="block min-h-11 text-sm text-charcoal hover:text-gold"><span className="block text-xs font-label uppercase tracking-widest text-slate/50">Next</span>{neighbors.next.title}</Link>}</div>
+      </div></nav>}
     </PublicLayout>
   );
 };

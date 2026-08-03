@@ -82,6 +82,10 @@ const SettingsPage = () => {
         facebook:       settings.facebook,
         youtube:        settings.youtube,
         whatsapp:       settings.whatsapp,
+        expectedResponseTime: settings.expectedResponseTime,
+        privacyReassurance: settings.privacyReassurance,
+        studioVisitInformation: settings.studioVisitInformation,
+        additionalSocialLinks: settings.additionalSocialLinks || [],
       });
       setSettings(res.data.settings);
       setCachedSettings(res.data.settings);
@@ -505,6 +509,9 @@ const SettingsPage = () => {
                 { key: "contactEmail", label: "Contact Email", type: "email", placeholder: "hello@artist.com" },
                 { key: "contactPhone", label: "Contact Phone", type: "tel", placeholder: "+91 98765 43210" },
                 { key: "contactAddress", label: "Address / Location", type: "text", placeholder: "Mumbai, India" },
+                { key: "expectedResponseTime", label: "Expected response time", type: "text", placeholder: "Usually within 2 business days" },
+                { key: "privacyReassurance", label: "Privacy reassurance", type: "text", placeholder: "Your details are used only to respond to this enquiry." },
+                { key: "studioVisitInformation", label: "Studio visit information", type: "text", placeholder: "Visits by appointment only" },
               ].map(({ key, label, type, placeholder }) => (
                 <div key={key}>
                   <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
@@ -519,6 +526,14 @@ const SettingsPage = () => {
                   />
                 </div>
               ))}
+              {(settings?.additionalSocialLinks || []).map((link, index) => (
+                <div key={`${index}-${link.url}`} className="grid grid-cols-[1fr_2fr_auto] gap-2">
+                  <input className="input-field" aria-label={`Additional social link ${index + 1} label`} placeholder="Label" value={link.label || ""} onChange={(event) => set("additionalSocialLinks", settings.additionalSocialLinks.map((item, itemIndex) => itemIndex === index ? { ...item, label: event.target.value } : item))} />
+                  <input className="input-field" type="url" aria-label={`Additional social link ${index + 1} URL`} placeholder="https://" value={link.url || ""} onChange={(event) => set("additionalSocialLinks", settings.additionalSocialLinks.map((item, itemIndex) => itemIndex === index ? { ...item, url: event.target.value } : item))} />
+                  <button type="button" className="min-h-11 px-3 text-sm text-red-600" onClick={() => set("additionalSocialLinks", settings.additionalSocialLinks.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
+                </div>
+              ))}
+              <button type="button" className="btn-secondary text-xs" onClick={() => set("additionalSocialLinks", [...(settings?.additionalSocialLinks || []), { label: "", url: "" }])}>Add social link</button>
             </div>
           </div>
 

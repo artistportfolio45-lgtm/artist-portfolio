@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import AdminLayout from "../../components/admin/AdminLayout";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { artworkAPI } from "../../services/api";
+import { notifyArtworksChanged } from "../../services/artworkRefresh";
 
 const SESSION_KEY = "artworkUploadSession.v1";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -151,6 +152,7 @@ const BulkArtworkUploadPage = () => {
       const result = response.data.results?.[0];
       if (result?.status === "successful") {
         updateItem(item.id, { status: "success", artworkId: result.artwork?._id || "", error: "" });
+        notifyArtworksChanged();
       } else {
         updateItem(item.id, { status: "checking", error: "Verifying the server result…" });
         await markFromServer(item, "failed");

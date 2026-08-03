@@ -30,6 +30,19 @@ const artworkSchema = new mongoose.Schema(
     },
     medium: { type: String, default: "" },       // e.g., Oil on Canvas
     dimensions: { type: String, default: "" },   // e.g., 24" x 36"
+    collection: { type: String, trim: true, default: "" },
+    series: { type: String, trim: true, default: "" },
+    catalogueNumber: { type: String, trim: true, default: "" },
+    provenance: { type: String, default: "" },
+    exhibitionHistory: { type: String, default: "" },
+    publications: { type: String, default: "" },
+    creationLocation: { type: String, trim: true, default: "" },
+    publicationStatus: {
+      type: String,
+      enum: ["draft", "published", "unpublished", "archived"],
+      default: "published",
+      index: true,
+    },
     isAvailable: {
       type: Boolean,
       default: true,
@@ -46,10 +59,13 @@ const artworkSchema = new mongoose.Schema(
     // Denormalized for easy display
     year: { type: Number, default: null },
   },
-  { timestamps: true }
+  { timestamps: true, suppressReservedKeysWarning: true }
 );
 
 // Text index for search
-artworkSchema.index({ title: "text", description: "text", category: "text", medium: "text" });
+artworkSchema.index({ title: "text", description: "text", category: "text", medium: "text", collection: "text", series: "text", catalogueNumber: "text" });
+artworkSchema.index({ publicationStatus: 1, createdAt: -1, _id: -1 });
+artworkSchema.index({ publicationStatus: 1, category: 1, year: -1, _id: -1 });
+artworkSchema.index({ catalogueNumber: 1 }, { unique: true, partialFilterExpression: { catalogueNumber: { $type: "string", $gt: "" } } });
 
 module.exports = mongoose.model("Artwork", artworkSchema);

@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { artworkAPI } from "../../services/api";
+import { notifyArtworksChanged } from "../../services/artworkRefresh";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
 
@@ -18,6 +19,15 @@ const EMPTY_FORM = {
   price: "",
   medium: "",
   dimensions: "",
+  collection: "",
+  series: "",
+  catalogueNumber: "",
+  provenance: "",
+  exhibitionHistory: "",
+  publications: "",
+  creationLocation: "",
+  publicationStatus: "published",
+  allowLongDescription: false,
   year: "",
   isAvailable: true,
   isFeatured: false,
@@ -40,6 +50,8 @@ const ArtworkFormPage = () => {
   const [deletingImg, setDeletingImg] = useState(null);
   const [incompleteWarningShown, setIncompleteWarningShown] = useState(false);
   const [incompleteFields, setIncompleteFields] = useState([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const originalPublicationStatusRef = useRef("published");
   const fileInputRef = useRef();
   const fieldRefs = useRef({});
 
@@ -49,6 +61,7 @@ const ArtworkFormPage = () => {
     artworkAPI.getById(id)
       .then((res) => {
         const a = res.data.artwork;
+        originalPublicationStatusRef.current = a.publicationStatus || "published";
         setForm({
           title: a.title || "",
           description: a.description || "",
@@ -56,6 +69,15 @@ const ArtworkFormPage = () => {
           price: a.price ?? "",
           medium: a.medium || "",
           dimensions: a.dimensions || "",
+          collection: a.collection || "",
+          series: a.series || "",
+          catalogueNumber: a.catalogueNumber || "",
+          provenance: a.provenance || "",
+          exhibitionHistory: a.exhibitionHistory || "",
+          publications: a.publications || "",
+          creationLocation: a.creationLocation || "",
+          publicationStatus: a.publicationStatus || "published",
+          allowLongDescription: false,
           year: a.year ?? "",
           isAvailable: a.isAvailable,
           isFeatured: a.isFeatured,
@@ -153,6 +175,27 @@ const ArtworkFormPage = () => {
       return;
     }
 
+    const isPublishingNow = form.publicationStatus === "published" && (!isEdit || originalPublicationStatusRef.current !== "published");
+    if (isPublishingNow) {
+      if (form.title.trim().length > 180) {
+        toast.error("Title must be 180 characters or fewer");
+        fieldRefs.current.title?.focus();
+        return;
+      }
+      if (form.description.length > 12000 && !form.allowLongDescription) {
+        toast.error("Description must be 12,000 characters or fewer before publishing");
+        fieldRefs.current.description?.focus();
+        return;
+      }
+      const hasImage = existingImages.length > 0 || newFiles.length > 0;
+      const maxYear = new Date().getFullYear() + 1;
+      if (!form.title.trim() || !hasImage || (form.year !== "" && (Number(form.year) < 1000 || Number(form.year) > maxYear))) {
+        toast.error(`Publishing requires a title, image, and a year between 1000 and ${maxYear} when provided`);
+        return;
+      }
+      if (!window.confirm("Publish this artwork to the public website now?")) return;
+    }
+
     setSaving(true);
     try {
       if (isEdit) {
@@ -164,6 +207,15 @@ const ArtworkFormPage = () => {
           price: form.price,
           medium: form.medium,
           dimensions: form.dimensions,
+          collection: form.collection,
+          series: form.series,
+          catalogueNumber: form.catalogueNumber,
+          provenance: form.provenance,
+          exhibitionHistory: form.exhibitionHistory,
+          publications: form.publications,
+          creationLocation: form.creationLocation,
+          publicationStatus: form.publicationStatus,
+          allowLongDescription: form.allowLongDescription,
           year: form.year,
           isAvailable: form.isAvailable,
           isFeatured: form.isFeatured,
@@ -176,6 +228,7 @@ const ArtworkFormPage = () => {
           await artworkAPI.addImages(id, imgData);
         }
 
+        notifyArtworksChanged();
         toast.success("Artwork updated");
         navigate("/admin/artworks");
       } else {
@@ -187,6 +240,7 @@ const ArtworkFormPage = () => {
         formData.append("images", newFiles[0]);
 
         await artworkAPI.create(formData);
+        notifyArtworksChanged();
         toast.success("Artwork created!");
         navigate("/admin/artworks");
       }
@@ -350,14 +404,39 @@ const ArtworkFormPage = () => {
                   placeholder="Describe the artwork, its inspiration, or technique…"
                 />
                 <IncompleteHint field="description" />
+                {form.description.length > 12000 && <label className="mt-3 flex items-center gap-2 text-xs text-slate/70"><input type="checkbox" checked={form.allowLongDescription} onChange={(event) => set("allowLongDescription", event.target.checked)} />I reviewed this unusually long description and want to publish it.</label>}
               </div>
             </div>
           </div>
 
           {/* ── Status Toggles ─────────────────────────────────── */}
           <div className="bg-white p-6 shadow-sm">
+            <h2 className="font-display text-xl font-light mb-2">Catalogue details</h2>
+            <p className="text-xs text-slate/60 mb-5">Optional fields for collectors, exhibitions, and search.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {[["collection", "Collection"], ["series", "Series"], ["catalogueNumber", "Catalogue number"], ["creationLocation", "Creation location"]].map(([key, label]) => (
+                <label key={key} className="text-xs font-label tracking-widest uppercase text-slate/60">
+                  {label}<input className="input-field mt-1" value={form[key]} onChange={(e) => set(key, e.target.value)} />
+                </label>
+              ))}
+              {[["provenance", "Provenance"], ["exhibitionHistory", "Exhibition history"], ["publications", "Publications"]].map(([key, label]) => (
+                <label key={key} className="sm:col-span-2 text-xs font-label tracking-widest uppercase text-slate/60">
+                  {label}<textarea className="textarea-field mt-1" rows={3} value={form[key]} onChange={(e) => set(key, e.target.value)} />
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white p-6 shadow-sm">
             <h2 className="font-display text-xl font-light mb-5">Status</h2>
             <div className="flex flex-col sm:flex-row gap-6">
+              <label className="text-xs font-label tracking-widest uppercase text-slate/60">
+                Publication
+                <select className="input-field mt-1 min-w-44" value={form.publicationStatus} onChange={(e) => set("publicationStatus", e.target.value)}>
+                  <option value="published">Published</option><option value="draft">Draft</option>
+                  <option value="unpublished">Unpublished</option><option value="archived">Archived</option>
+                </select>
+              </label>
               {/* Available toggle */}
               <label className="flex items-center gap-3 cursor-pointer">
                 <div
@@ -500,6 +579,7 @@ const ArtworkFormPage = () => {
 
           {/* ── Actions ────────────────────────────────────────── */}
           <div className="flex items-center gap-4">
+            <button type="button" onClick={() => setPreviewOpen(true)} className="btn-secondary">Preview</button>
             <button
               type="submit"
               disabled={saving}
@@ -515,6 +595,14 @@ const ArtworkFormPage = () => {
             </Link>
           </div>
         </form>
+        {previewOpen && <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="artwork-preview-title" onKeyDown={(event) => { if (event.key === "Escape") setPreviewOpen(false); }}>
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto bg-white p-6" tabIndex={-1}>
+            <div className="mb-5 flex items-start justify-between gap-4"><div><p className="eyebrow">Admin preview · {form.publicationStatus}</p><h2 id="artwork-preview-title" className="font-display text-3xl">{form.title || "Untitled"}</h2></div><button type="button" className="min-h-11 min-w-11 text-2xl" aria-label="Close preview" onClick={() => setPreviewOpen(false)}>×</button></div>
+            {(previews[0] || existingImages[0]?.url) && <img src={previews[0] || existingImages[0]?.url} alt={form.title || "Artwork preview"} className="mb-6 max-h-[55vh] w-full object-contain bg-gray-50" />}
+            <p className="mb-3 text-sm text-slate/60">{[form.medium, form.dimensions, form.year, form.collection].filter(Boolean).join(" · ")}</p>
+            {form.description && <p className="whitespace-pre-line leading-relaxed text-slate">{form.description}</p>}
+          </div>
+        </div>}
       </div>
     </AdminLayout>
   );

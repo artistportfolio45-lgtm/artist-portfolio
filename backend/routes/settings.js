@@ -6,6 +6,24 @@ const router = express.Router();
 const Settings = require("../models/Settings");
 const { protect } = require("../middleware/auth");
 const { uploadLogo, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
+const { triggerStaticRebuild } = require("../utils/staticRebuild");
+
+const normalizePhone = (value = "") => {
+  const raw = String(value).trim();
+  if (!raw) return "";
+  let digits = raw.replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+  if (digits.length === 10) digits = `91${digits}`;
+  if (digits.length < 11 || digits.length > 15) throw new Error("Enter a valid phone number with country code");
+  return `+${digits}`;
+};
+const normalizeUrl = (value = "") => {
+  const raw = String(value).trim();
+  if (!raw) return "";
+  const url = new URL(raw);
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error("Social links must use http or https");
+  return url.toString();
+};
 
 // Helper: get or create the single settings document
 const getOrCreateSettings = async () => {
@@ -67,6 +85,10 @@ router.put("/", protect, async (req, res) => {
       facebook,
       youtube,
       whatsapp,
+      expectedResponseTime,
+      privacyReassurance,
+      studioVisitInformation,
+      additionalSocialLinks,
     } = req.body;
 
     const settings = await getOrCreateSettings();
@@ -99,19 +121,29 @@ router.put("/", protect, async (req, res) => {
     if (seoDescription !== undefined) settings.seoDescription = seoDescription;
     if (seoKeywords !== undefined) settings.seoKeywords = seoKeywords;
     if (contactEmail !== undefined) settings.contactEmail = contactEmail;
-    if (contactPhone !== undefined) settings.contactPhone = contactPhone;
+    if (contactPhone !== undefined) settings.contactPhone = normalizePhone(contactPhone);
     if (contactAddress !== undefined) settings.contactAddress = contactAddress;
-    if (instagram !== undefined) settings.instagram = instagram;
-    if (facebook !== undefined) settings.facebook = facebook;
-    if (youtube !== undefined) settings.youtube = youtube;
-    if (whatsapp !== undefined) settings.whatsapp = whatsapp;
+    if (instagram !== undefined) settings.instagram = normalizeUrl(instagram);
+    if (facebook !== undefined) settings.facebook = normalizeUrl(facebook);
+    if (youtube !== undefined) settings.youtube = normalizeUrl(youtube);
+    if (whatsapp !== undefined) settings.whatsapp = normalizePhone(whatsapp);
+    if (expectedResponseTime !== undefined) settings.expectedResponseTime = String(expectedResponseTime).trim();
+    if (privacyReassurance !== undefined) settings.privacyReassurance = String(privacyReassurance).trim();
+    if (studioVisitInformation !== undefined) settings.studioVisitInformation = String(studioVisitInformation).trim();
+    if (additionalSocialLinks !== undefined) {
+      if (!Array.isArray(additionalSocialLinks) || additionalSocialLinks.length > 12) throw new Error("Additional social links must be a list of at most 12 links");
+      settings.additionalSocialLinks = additionalSocialLinks
+        .map((link) => ({ label: String(link?.label || "").trim().slice(0, 60), url: normalizeUrl(link?.url || "") }))
+        .filter((link) => link.label && link.url);
+    }
 
     await settings.save();
 
-    res.json({ success: true, message: "Settings updated", settings });
+    const staticRebuild = await triggerStaticRebuild("settings-updated");
+    res.json({ success: true, message: "Settings updated", settings, staticRebuild });
   } catch (error) {
     console.error("Update settings error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(error?.name === "TypeError" || /valid|Social links/.test(error.message) ? 400 : 500).json({ success: false, message: error.message || "Server error" });
   }
 });
 
@@ -140,7 +172,8 @@ router.put("/logo", protect, uploadLogo.single("logo"), async (req, res) => {
     settings.logoPublicId = uploadedLogo.publicId;
     await settings.save();
 
-    res.json({ success: true, message: "Logo updated", settings });
+    const staticRebuild = await triggerStaticRebuild("logo-updated");
+    res.json({ success: true, message: "Logo updated", settings, staticRebuild });
   } catch (error) {
     console.error("Logo upload error:", error);
     res.status(500).json({ success: false, message: "Server error" });

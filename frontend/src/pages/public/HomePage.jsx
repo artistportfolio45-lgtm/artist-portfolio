@@ -1,42 +1,68 @@
 // pages/public/HomePage.jsx
 // Landing page: hero + featured artworks + about preview + CTA
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkCard from "../../components/public/ArtworkCard";
 import ArtworkMasonry from "../../components/public/ArtworkMasonry";
 import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
 import { publicDataAPI } from "../../services/publicData";
+import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import { useSettings } from "../../hooks/useSettings";
+import CachedDataNotice from "../../components/public/CachedDataNotice";
 
 const HomePage = () => {
   const { settings } = useSettings();
   const [featured, setFeatured] = useState([]);
   const [latestArtworks, setLatestArtworks] = useState([]);
   const [latestLoading, setLatestLoading] = useState(true);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [dataSource, setDataSource] = useState("loading");
   const [profile, setProfile] = useState(null);
   const [featuredPreview, setFeaturedPreview] = useState(null);
+  const requestIdRef = useRef(0);
 
-  useEffect(() => {
+  const fetchHomeData = useCallback(() => {
+    const requestId = ++requestIdRef.current;
+    let featuredLive = false;
+    let latestLive = false;
+    setLatestLoading(true);
+    setFeaturedLoading(true);
+
     Promise.allSettled([
       publicDataAPI.getArtworks(
         { featured: "true", limit: 6 },
-        { onLiveData: (res) => setFeatured(res.items || []) }
+        { onLiveData: (res) => {
+          featuredLive = true;
+          if (requestId === requestIdRef.current) {
+            setFeatured(res.items || []);
+            setDataSource("live");
+          }
+        } }
       ),
       publicDataAPI.getArtworks(
         { limit: 8 },
-        { onLiveData: (res) => setLatestArtworks(res.items || []) }
+        { onLiveData: (res) => {
+          latestLive = true;
+          if (requestId === requestIdRef.current) {
+            setLatestArtworks(res.items || []);
+            setDataSource("live");
+          }
+        } }
       ),
       publicDataAPI.getProfile({ onLiveData: setProfile }),
     ])
       .then(([featuredRes, latestRes, profileRes]) => {
-        if (featuredRes.status === "fulfilled") {
+        if (requestId !== requestIdRef.current) return;
+        if (featuredRes.status === "fulfilled" && (!featuredLive || featuredRes.value.source === "live")) {
           setFeatured(featuredRes.value.items || []);
+          if (featuredRes.value.isStale) setDataSource("static");
         }
 
-        if (latestRes.status === "fulfilled") {
+        if (latestRes.status === "fulfilled" && (!latestLive || latestRes.value.source === "live")) {
           setLatestArtworks(latestRes.value.items || []);
+          if (latestRes.value.isStale) setDataSource("static");
         }
 
         if (profileRes.status === "fulfilled") {
@@ -44,8 +70,18 @@ const HomePage = () => {
         }
       })
       .catch(console.error)
-      .finally(() => setLatestLoading(false));
+      .finally(() => {
+        if (requestId === requestIdRef.current) {
+          setLatestLoading(false);
+          setFeaturedLoading(false);
+        }
+      });
   }, []);
+
+  useEffect(() => {
+    fetchHomeData();
+    return subscribeToArtworkRefresh(fetchHomeData);
+  }, [fetchHomeData]);
 
   return (
     <PublicLayout>
@@ -89,6 +125,7 @@ const HomePage = () => {
       {/* ── Featured Artworks ─────────────────────────────────── */}
       <section className="featured-artworks section bg-ivory" aria-label="Featured Artworks">
         <div className="container-site">
+          <CachedDataNotice visible={dataSource === "static"} busy={latestLoading} onRetry={fetchHomeData} />
           <div className="text-center mb-12">
             <p className="eyebrow mb-3">Curated Selection</p>
             <h2 className="font-display text-4xl md:text-5xl font-light text-charcoal">
@@ -96,7 +133,11 @@ const HomePage = () => {
             </h2>
           </div>
 
-          {featured.length === 0 ? (
+          {featuredLoading ? (
+            <div role="status" aria-label="Loading featured artworks" className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2].map((item) => <div key={item} className="aspect-[4/3] animate-pulse bg-charcoal/5" />)}
+            </div>
+          ) : featured.length === 0 ? (
             <div className="text-center py-16 text-slate/50">
               <p className="font-display text-2xl mb-2">No featured artworks yet</p>
               <p className="text-sm">Check back soon for new additions</p>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useSettings } from "../../hooks/useSettings";
 import PublicSocialLinks from "./PublicSocialLinks";
@@ -34,6 +34,8 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { settings } = useSettings();
   const location = useLocation();
+  const menuButtonRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -43,6 +45,33 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => setMenuOpen(false), [location]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = () => [menuButtonRef.current, ...menuRef.current.querySelectorAll("a[href]")].filter(Boolean);
+    menuRef.current.querySelector("a[href]")?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMenuOpen(false);
+        requestAnimationFrame(() => menuButtonRef.current?.focus());
+      }
+      if (event.key === "Tab") {
+        const items = focusable();
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
 
   const lightMobilePage =
     location.pathname === "/gallery" || location.pathname.startsWith("/artwork/");
@@ -107,6 +136,7 @@ const Navbar = () => {
             />
 
             <button
+              ref={menuButtonRef}
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
               className={`inline-flex h-11 w-11 items-center justify-center transition-colors ${
@@ -125,11 +155,10 @@ const Navbar = () => {
           </div>
         </nav>
 
-        <div
+        {menuOpen && <div
+          ref={menuRef}
           id="public-mobile-menu"
-          className={`overflow-hidden bg-charcoal transition-all duration-300 ${
-            menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
-          }`}
+          className="overflow-hidden bg-charcoal"
         >
           <ul className="container-site flex flex-col gap-1 py-4">
             {navLinks.map((link) => (
@@ -148,7 +177,7 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-        </div>
+        </div>}
       </header>
     </>
   );

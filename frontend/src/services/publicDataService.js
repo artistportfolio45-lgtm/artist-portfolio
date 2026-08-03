@@ -1,6 +1,7 @@
 import api from "./api";
 
 const STATIC_FALLBACK_URL = "/data/portfolio.json";
+export const ARTWORKS_CHANGED_EVENT = "artist-portfolio:artworks-changed";
 
 const emptyPortfolio = {
   generatedAt: null,
@@ -12,6 +13,69 @@ const emptyPortfolio = {
 };
 
 let fallbackPortfolioPromise = null;
+const liveArtworkRequests = new Map();
+let retryTimer = null;
+let retryAttempt = 0;
+let refreshQueued = false;
+
+const artworkRequestKey = (params = {}) => JSON.stringify(
+  Object.entries(params).filter(([key]) => key !== "_t").sort(([a], [b]) => a.localeCompare(b))
+);
+
+const queueArtworkRefresh = () => {
+  if (typeof window === "undefined" || refreshQueued) return;
+  refreshQueued = true;
+  window.setTimeout(() => {
+    refreshQueued = false;
+    if (document.visibilityState !== "hidden") notifyArtworksChanged();
+  }, 150);
+};
+
+const clearArtworkRetry = () => {
+  retryAttempt = 0;
+  if (retryTimer) window.clearTimeout(retryTimer);
+  retryTimer = null;
+};
+
+const scheduleArtworkRetry = () => {
+  if (typeof window === "undefined" || retryTimer) return;
+  const delays = [2000, 5000, 10000, 30000, 60000];
+  const base = delays[Math.min(retryAttempt, delays.length - 1)];
+  const jitter = Math.round(base * (Math.random() * 0.3 - 0.15));
+  retryAttempt += 1;
+  retryTimer = window.setTimeout(() => {
+    retryTimer = null;
+    queueArtworkRefresh();
+  }, base + jitter);
+};
+
+export const notifyArtworksChanged = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(ARTWORKS_CHANGED_EVENT));
+  }
+};
+
+export const subscribeToArtworkRefresh = (callback) => {
+  if (typeof window === "undefined") return () => {};
+
+  const refresh = () => {
+    if (document.visibilityState === "hidden") return;
+    callback();
+  };
+  window.addEventListener(ARTWORKS_CHANGED_EVENT, refresh);
+  window.addEventListener("online", queueArtworkRefresh);
+  window.addEventListener("visibilitychange", queueArtworkRefresh);
+  window.addEventListener("focus", queueArtworkRefresh);
+  window.addEventListener("pageshow", queueArtworkRefresh);
+
+  return () => {
+    window.removeEventListener(ARTWORKS_CHANGED_EVENT, refresh);
+    window.removeEventListener("online", queueArtworkRefresh);
+    window.removeEventListener("visibilitychange", queueArtworkRefresh);
+    window.removeEventListener("focus", queueArtworkRefresh);
+    window.removeEventListener("pageshow", queueArtworkRefresh);
+  };
+};
 
 const withNoStoreParam = (params = {}) => ({
   ...params,
@@ -85,8 +149,14 @@ export const normalizeArtwork = (artwork) => {
   };
 };
 
-const normalizeArtworksArray = (value) =>
-  (Array.isArray(value) ? value : []).map(normalizeArtwork).filter((artwork) => artwork?._id);
+const normalizeArtworksArray = (value) => {
+  const byId = new Map();
+  (Array.isArray(value) ? value : [])
+    .map(normalizeArtwork)
+    .filter((artwork) => artwork?._id)
+    .forEach((artwork) => byId.set(artwork._id, artwork));
+  return [...byId.values()];
+};
 
 const pickArtworks = (data) => {
   const payload = unwrap(data);
@@ -178,13 +248,14 @@ const preferStaticData = async ({ loadStatic, loadLive, hasStaticData, onLiveDat
 const matchesSearch = (artwork, search) => {
   if (!search) return true;
   const term = search.trim().toLowerCase();
-  return [artwork.title, artwork.description, artwork.category, artwork.medium]
+  return [artwork.title, artwork.description, artwork.category, artwork.medium, artwork.collection, artwork.series, artwork.catalogueNumber]
     .filter(Boolean)
     .some((value) => String(value).toLowerCase().includes(term));
 };
 
 const filterArtworks = (artworks, params = {}) =>
   artworks.filter((artwork) => {
+    if (["draft", "unpublished", "archived"].includes(artwork.publicationStatus)) return false;
     if (!matchesSearch(artwork, params.search)) return false;
     if (
       params.category &&
@@ -196,6 +267,10 @@ const filterArtworks = (artworks, params = {}) =>
     if (params.available === "true" && !artwork.isAvailable) return false;
     if (params.available === "false" && artwork.isAvailable) return false;
     if (params.featured === "true" && !artwork.isFeatured) return false;
+    if (params.collection && !String(artwork.collection || "").toLowerCase().includes(String(params.collection).toLowerCase())) return false;
+    if (params.medium && !String(artwork.medium || "").toLowerCase().includes(String(params.medium).toLowerCase())) return false;
+    if (params.year && Number(artwork.year) !== Number(params.year)) return false;
+    if (params.decade && (Number(artwork.year) < Number(params.decade) || Number(artwork.year) > Number(params.decade) + 9)) return false;
     return true;
   });
 
@@ -246,18 +321,46 @@ const paginate = (items, page = 1, limit = 12) => {
 const getFallbackArtworks = async (params = {}) => {
   const portfolio = await loadFallbackPortfolio();
   const filtered = filterArtworks(portfolio.artworks, params);
-  return paginate(sortArtworks(filtered, params.sort, params.order), params.page, params.limit);
+  return {
+    ...paginate(sortArtworks(filtered, params.sort, params.order), params.page, params.limit),
+    source: "static",
+    isStale: true,
+    generatedAt: portfolio.generatedAt || null,
+  };
 };
 
 const getLiveArtworks = async (params = {}) => {
-  const response = await api.get("/artworks", { params: withNoStoreParam(params) });
-  const payload = unwrap(response.data);
-  const items = normalizeArtworksArray(pickArtworks(payload));
+  const key = artworkRequestKey(params);
+  if (liveArtworkRequests.has(key)) return liveArtworkRequests.get(key);
 
-  return {
-    items,
-    pagination: pickPagination(payload, items.length),
-  };
+  const controller = new AbortController();
+  const abortTimer = window.setTimeout(() => controller.abort("Public artwork request timed out"), 4500);
+  const request = api.get("/artworks", {
+    params: withNoStoreParam(params),
+    timeout: 4500,
+    signal: controller.signal,
+    headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+  }).then((response) => {
+    const payload = unwrap(response.data);
+    const items = normalizeArtworksArray(pickArtworks(payload));
+    clearArtworkRetry();
+    return {
+      items,
+      pagination: pickPagination(payload, items.length),
+      source: "live",
+      isStale: false,
+      generatedAt: payload?.generatedAt || new Date().toISOString(),
+    };
+  }).catch((error) => {
+    scheduleArtworkRetry();
+    throw error;
+  }).finally(() => {
+    window.clearTimeout(abortTimer);
+    liveArtworkRequests.delete(key);
+  });
+
+  liveArtworkRequests.set(key, request);
+  return request;
 };
 
 export const publicDataAPI = {
@@ -355,17 +458,31 @@ export const publicDataAPI = {
   },
 
   getArtworks: async (params = {}, { onLiveData } = {}) => {
+    const livePromise = getLiveArtworks(params);
+    livePromise.catch(() => {});
+
     try {
-      return await preferStaticData({
-        loadStatic: () => getFallbackArtworks(params),
-        loadLive: () => getLiveArtworks(params),
-        hasStaticData: (result) => result.items.length > 0,
-        onLiveData,
-        label: "artworks",
-      });
+      const staticData = await getFallbackArtworks(params);
+      if (staticData.items.length > 0) {
+        livePromise
+          .then((liveData) => onLiveData?.(liveData))
+          .catch((error) => console.warn("Live public artworks refresh failed.", error));
+        return staticData;
+      }
+
+      const liveData = await livePromise;
+      onLiveData?.(liveData);
+      return liveData;
     } catch (error) {
-      console.warn("Live public artworks failed; using static fallback.", error);
-      return getFallbackArtworks(params);
+      try {
+        const staticData = await getFallbackArtworks(params);
+        console.warn("Live public artworks failed; using static fallback.", error);
+        if (staticData.items.length > 0) return staticData;
+        throw error;
+      } catch (fallbackError) {
+        console.warn("Both live and static public artworks failed.", fallbackError);
+        throw error;
+      }
     }
   },
 
@@ -395,6 +512,13 @@ export const publicDataAPI = {
       return portfolio.artworks.find((artwork) => artwork._id === id || artwork.slug === id) || null;
     }
   },
+
+  getArtworkNeighbors: async (id) => api
+    .get(`/artworks/${encodeURIComponent(id)}/neighbors`, { params: withNoStoreParam(), timeout: 4500 })
+    .then((response) => ({
+      previous: normalizeArtwork(unwrap(response.data)?.previous),
+      next: normalizeArtwork(unwrap(response.data)?.next),
+    })),
 
   getCategories: async ({ onLiveData } = {}) => {
     try {

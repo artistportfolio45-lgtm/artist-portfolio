@@ -1,7 +1,7 @@
 // src/App.jsx
 // Root component — all routes defined here
 
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./components/shared/AuthContext";
@@ -11,23 +11,23 @@ import ScrollToTop from "./components/shared/ScrollToTop";
 // ── Public pages
 import HomePage           from "./pages/public/HomePage";
 import GalleryPage        from "./pages/public/GalleryPage";
-import ArtworkDetailPage  from "./pages/public/ArtworkDetailPage";
-import AboutPage          from "./pages/public/AboutPage";
-import ContactPage        from "./pages/public/ContactPage";
+const ArtworkDetailPage = lazy(() => import("./pages/public/ArtworkDetailPage"));
+const AboutPage = lazy(() => import("./pages/public/AboutPage"));
+const ContactPage = lazy(() => import("./pages/public/ContactPage"));
 
 // ── Admin pages
-import LoginPage          from "./pages/admin/LoginPage";
-import DashboardPage      from "./pages/admin/DashboardPage";
-import ProfilePage        from "./pages/admin/ProfilePage";
-import AboutPageEditor    from "./pages/admin/AboutPageEditor";
-import ArtworksPage       from "./pages/admin/ArtworksPage";
-import ArtworkFormPage    from "./pages/admin/ArtworkFormPage";
-import BulkArtworkUploadPage from "./pages/admin/BulkArtworkUploadPage";
-import UploadHistoryPage from "./pages/admin/UploadHistoryPage";
-import InquiriesPage      from "./pages/admin/InquiriesPage";
-import ActivityPage       from "./pages/admin/ActivityPage";
-import SecurityPage       from "./pages/admin/SecurityPage";
-import SettingsPage       from "./pages/admin/SettingsPage";
+const LoginPage = lazy(() => import("./pages/admin/LoginPage"));
+const DashboardPage = lazy(() => import("./pages/admin/DashboardPage"));
+const ProfilePage = lazy(() => import("./pages/admin/ProfilePage"));
+const AboutPageEditor = lazy(() => import("./pages/admin/AboutPageEditor"));
+const ArtworksPage = lazy(() => import("./pages/admin/ArtworksPage"));
+const ArtworkFormPage = lazy(() => import("./pages/admin/ArtworkFormPage"));
+const BulkArtworkUploadPage = lazy(() => import("./pages/admin/BulkArtworkUploadPage"));
+const UploadHistoryPage = lazy(() => import("./pages/admin/UploadHistoryPage"));
+const InquiriesPage = lazy(() => import("./pages/admin/InquiriesPage"));
+const ActivityPage = lazy(() => import("./pages/admin/ActivityPage"));
+const SecurityPage = lazy(() => import("./pages/admin/SecurityPage"));
+const SettingsPage = lazy(() => import("./pages/admin/SettingsPage"));
 
 const App = () => (
   <AuthProvider>
@@ -54,6 +54,7 @@ const App = () => (
       }}
     />
 
+    <Suspense fallback={<div className="min-h-screen bg-ivory flex items-center justify-center" role="status">Loading page…</div>}>
     <Routes>
       {/* ── Public ─────────────────────────────────────────────── */}
       <Route path="/"              element={<HomePage />} />
@@ -126,6 +127,7 @@ const App = () => (
         }
       />
     </Routes>
+    </Suspense>
   </AuthProvider>
 );
 

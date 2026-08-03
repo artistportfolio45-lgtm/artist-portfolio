@@ -68,12 +68,6 @@ const Footer = () => {
           <p className="text-xs text-white/30">
             {settings?.footerText || "(c) 2026 Artist Portfolio. All rights reserved."}
           </p>
-          <Link
-            to="/admin/login"
-            className="text-xs text-white/20 transition-colors hover:text-white/40"
-          >
-            Admin
-          </Link>
         </div>
       </div>
     </footer>

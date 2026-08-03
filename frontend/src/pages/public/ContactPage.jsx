@@ -9,6 +9,9 @@ import { submitNetlifyForm } from "../../services/netlifyForms";
 import { validateInquiryForm } from "../../services/inquiryValidation";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
+import ArtworkCombobox from "../../components/public/ArtworkCombobox";
+import PublicSocialLinks from "../../components/public/PublicSocialLinks";
+import { useSettings } from "../../hooks/useSettings";
 
 const emptyForm = {
   name: "",
@@ -21,23 +24,39 @@ const emptyForm = {
 };
 
 const ContactPage = () => {
+  const { settings } = useSettings();
   const [profile, setProfile] = useState(null);
-  const [artworks, setArtworks] = useState([]);
+  const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const contact = {
+    ...(profile || {}),
+    email: settings?.contactEmail || profile?.email,
+    phone: settings?.contactPhone || profile?.phone,
+    whatsapp: settings?.whatsapp || profile?.whatsapp,
+    address: settings?.contactAddress || profile?.address,
+  };
 
   useEffect(() => {
-    Promise.all([
-      publicDataAPI.getProfile(),
-      publicDataAPI.getArtworks({ available: "true", limit: 100 }),
-    ])
-      .then(([profileRes, artworksRes]) => {
-        setProfile(profileRes);
-        setArtworks(artworksRes.items || []);
-      })
+    publicDataAPI.getProfile({ onLiveData: setProfile })
+      .then(setProfile)
       .catch(console.error);
+    const artworkId = new URLSearchParams(window.location.search).get("artwork");
+    if (artworkId) {
+      publicDataAPI.getArtworkById(artworkId, { onLiveData: setSelectedArtwork })
+        .then((artwork) => {
+          if (!artwork) return;
+          setSelectedArtwork(artwork);
+          setForm((current) => ({
+            ...current,
+            artworkId: artwork._id,
+            subject: current.subject || `Enquiry about ${artwork.title}${artwork.catalogueNumber ? ` (${artwork.catalogueNumber})` : ""}`,
+          }));
+        })
+        .catch(console.error);
+    }
   }, []);
 
   const updateField = (field, value) => {
@@ -59,7 +78,6 @@ const ContactPage = () => {
 
     setSubmitting(true);
     try {
-      const selectedArtwork = artworks.find((artwork) => artwork._id === form.artworkId);
       const payload = {
         name: data.name,
         email: data.email,
@@ -90,6 +108,7 @@ const ContactPage = () => {
       setSent(true);
       setErrors({});
       setForm(emptyForm);
+      setSelectedArtwork(null);
     } catch (error) {
       console.error("Backend enquiry submission failed:", error);
       const message =
@@ -129,35 +148,35 @@ const ContactPage = () => {
               </p>
 
               <div className="space-y-5">
-                {profile?.email && (
+                {contact.email && (
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 border border-gold/30 flex items-center justify-center text-gold flex-shrink-0">
                       &#9993;
                     </div>
                     <div>
                       <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-0.5">Email</p>
-                      <a href={`mailto:${profile.email}`} className="text-charcoal hover:text-gold transition-colors">
-                        {profile.email}
+                      <a href={`mailto:${contact.email}`} className="text-charcoal hover:text-gold transition-colors">
+                        {contact.email}
                       </a>
                     </div>
                   </div>
                 )}
 
-                {profile?.phone && (
+                {contact.phone && (
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 border border-gold/30 flex items-center justify-center text-gold flex-shrink-0">
                       &#9742;
                     </div>
                     <div>
                       <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-0.5">Phone</p>
-                      <a href={`tel:${profile.phone}`} className="text-charcoal hover:text-gold transition-colors">
-                        {profile.phone}
+                      <a href={`tel:${contact.phone}`} className="text-charcoal hover:text-gold transition-colors">
+                        {contact.phone}
                       </a>
                     </div>
                   </div>
                 )}
 
-                {profile?.whatsapp && (
+                {contact.whatsapp && (
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 border border-gold/30 flex items-center justify-center text-gold flex-shrink-0">
                       &#128172;
@@ -165,7 +184,7 @@ const ContactPage = () => {
                     <div>
                       <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-0.5">WhatsApp</p>
                       <a
-                        href={`https://wa.me/${profile.whatsapp.replace(/\D/g, "")}`}
+                        href={`https://wa.me/${contact.whatsapp.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-charcoal hover:text-gold transition-colors"
@@ -176,38 +195,26 @@ const ContactPage = () => {
                   </div>
                 )}
 
-                {profile?.address && (
+                {contact.address && (
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 border border-gold/30 flex items-center justify-center text-gold flex-shrink-0 mt-0.5">
                       &#8982;
                     </div>
                     <div>
                       <p className="text-xs font-label tracking-widest uppercase text-slate/50 mb-0.5">Location</p>
-                      <p className="text-charcoal">{profile.address}</p>
+                      <p className="text-charcoal">{contact.address}</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {(profile?.instagram || profile?.facebook || profile?.youtube) && (
-                <div className="mt-10 flex gap-4">
-                  {profile.instagram && (
-                    <a href={profile.instagram} target="_blank" rel="noopener noreferrer" className="text-xs font-label tracking-widest uppercase border border-charcoal/20 px-4 py-2 hover:bg-charcoal hover:text-white transition-colors">
-                      Instagram
-                    </a>
-                  )}
-                  {profile.facebook && (
-                    <a href={profile.facebook} target="_blank" rel="noopener noreferrer" className="text-xs font-label tracking-widest uppercase border border-charcoal/20 px-4 py-2 hover:bg-charcoal hover:text-white transition-colors">
-                      Facebook
-                    </a>
-                  )}
-                  {profile.youtube && (
-                    <a href={profile.youtube} target="_blank" rel="noopener noreferrer" className="text-xs font-label tracking-widest uppercase border border-charcoal/20 px-4 py-2 hover:bg-charcoal hover:text-white transition-colors">
-                      YouTube
-                    </a>
-                  )}
-                </div>
-              )}
+              {(settings?.expectedResponseTime || settings?.studioVisitInformation || settings?.privacyReassurance) && <div className="mt-8 space-y-2 border-l-2 border-gold/40 pl-4 text-sm leading-relaxed text-slate/70">
+                {settings.expectedResponseTime && <p>{settings.expectedResponseTime}</p>}
+                {settings.studioVisitInformation && <p>{settings.studioVisitInformation}</p>}
+                {settings.privacyReassurance && <p>{settings.privacyReassurance}</p>}
+              </div>}
+              <div className="mt-8"><PublicSocialLinks /></div>
+
             </div>
 
             <div>
@@ -256,6 +263,7 @@ const ContactPage = () => {
                         id="contact-name"
                         name="name"
                         type="text"
+                        autoComplete="name"
                         value={form.name}
                         onChange={(event) => updateField("name", event.target.value)}
                         aria-invalid={Boolean(errors.name)}
@@ -274,6 +282,7 @@ const ContactPage = () => {
                         id="contact-email"
                         name="email"
                         type="email"
+                        autoComplete="email"
                         value={form.email}
                         onChange={(event) => updateField("email", event.target.value)}
                         aria-invalid={Boolean(errors.email)}
@@ -294,6 +303,7 @@ const ContactPage = () => {
                       id="contact-phone"
                       name="phone"
                       type="tel"
+                      autoComplete="tel"
                       value={form.phone}
                       onChange={(event) => updateField("phone", event.target.value)}
                       aria-invalid={Boolean(errors.phone)}
@@ -326,18 +336,16 @@ const ContactPage = () => {
                     <label htmlFor="contact-artwork" className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
                       Interested in Artwork
                     </label>
-                    <select
-                      id="contact-artwork"
-                      name="artworkId"
-                      value={form.artworkId}
-                      onChange={(event) => updateField("artworkId", event.target.value)}
-                      className="input-field"
-                    >
-                      <option value="">General Enquiry</option>
-                      {artworks.map((artwork) => (
-                        <option key={artwork._id} value={artwork._id}>{artwork.title}</option>
-                      ))}
-                    </select>
+                    <ArtworkCombobox
+                      selected={selectedArtwork}
+                      onSelect={(artwork) => {
+                        setSelectedArtwork(artwork);
+                        updateField("artworkId", artwork?._id || "");
+                        if (artwork && !form.subject.trim()) {
+                          updateField("subject", `Enquiry about ${artwork.title}${artwork.catalogueNumber ? ` (${artwork.catalogueNumber})` : ""}`);
+                        }
+                      }}
+                    />
                   </div>
 
                   <div>

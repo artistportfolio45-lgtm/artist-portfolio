@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkMasonry from "../../components/public/ArtworkMasonry";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { publicDataAPI } from "../../services/publicData";
+import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
+import CachedDataNotice from "../../components/public/CachedDataNotice";
 
 const DEFAULT_SORT = "createdAt-desc";
 
@@ -22,10 +24,18 @@ const GalleryPage = () => {
   const [sortValue, setSortValue] = useState(() => searchParams.get("sort") || DEFAULT_SORT);
   const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
   const [search, setSearch] = useState(() => searchParams.get("q") || "");
+  const [collection, setCollection] = useState(() => searchParams.get("collection") || "");
+  const [medium, setMedium] = useState(() => searchParams.get("medium") || "");
+  const [year, setYear] = useState(() => searchParams.get("year") || "");
+  const [decade, setDecade] = useState(() => searchParams.get("decade") || "");
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [dataSource, setDataSource] = useState("loading");
+  const requestIdRef = useRef(0);
+  const mountedRef = useRef(true);
 
   const applyResult = useCallback((result, requestedPage) => {
+    if (!mountedRef.current) return;
     const incoming = result.items || [];
     setArtworks((current) => {
       if (requestedPage === 1) return incoming;
@@ -33,9 +43,12 @@ const GalleryPage = () => {
       return [...byId.values()];
     });
     setPagination(result.pagination || {});
+    setDataSource(result.isStale ? "static" : "live");
   }, []);
 
   const fetchArtworks = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    let liveApplied = false;
     page === 1 ? setLoading(true) : setLoadingMore(true);
     setError("");
     const [sort, order] = sortValue.split("-");
@@ -45,18 +58,26 @@ const GalleryPage = () => {
       if (category !== "all") params.category = category;
       if (availability !== "all") params.available = availability;
       if (search) params.search = search;
+      if (collection) params.collection = collection;
+      if (medium) params.medium = medium;
+      if (year) params.year = year;
+      if (decade && !year) params.decade = decade;
 
       const result = await publicDataAPI.getArtworks(params, {
-        onLiveData: (liveResult) => applyResult(liveResult, page),
+        onLiveData: (liveResult) => {
+          liveApplied = true;
+          if (requestId === requestIdRef.current) applyResult(liveResult, page);
+        },
       });
-      applyResult(result, page);
+      if (requestId !== requestIdRef.current) return;
+      if (!liveApplied || result.source === "live") applyResult(result, page);
     } catch {
       setError("The gallery could not be loaded. Please try again.");
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [applyResult, availability, category, page, search, sortValue]);
+  }, [applyResult, availability, category, collection, decade, medium, page, search, sortValue, year]);
 
   useEffect(() => {
     publicDataAPI.getCategories({ onLiveData: setCategories })
@@ -66,7 +87,13 @@ const GalleryPage = () => {
 
   useEffect(() => {
     fetchArtworks();
+    return subscribeToArtworkRefresh(fetchArtworks);
   }, [fetchArtworks]);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    requestIdRef.current += 1;
+  }, []);
 
   const galleryCategories = useMemo(() => {
     const seen = new Set();
@@ -83,6 +110,10 @@ const GalleryPage = () => {
     const nextAvailability = changes.availability ?? availability;
     const nextSort = changes.sortValue ?? sortValue;
     const nextSearch = changes.search ?? search;
+    const nextCollection = changes.collection ?? collection;
+    const nextMedium = changes.medium ?? medium;
+    const nextYear = changes.year ?? year;
+    const nextDecade = changes.decade ?? decade;
 
     setPage(1);
     setArtworks([]);
@@ -90,22 +121,39 @@ const GalleryPage = () => {
     setAvailability(nextAvailability);
     setSortValue(nextSort);
     setSearch(nextSearch);
+    setCollection(nextCollection);
+    setMedium(nextMedium);
+    setYear(nextYear);
+    setDecade(nextDecade);
 
     const nextParams = new URLSearchParams();
     if (nextCategory !== "all") nextParams.set("category", nextCategory);
     if (nextAvailability !== "all") nextParams.set("availability", nextAvailability);
     if (nextSort !== DEFAULT_SORT) nextParams.set("sort", nextSort);
     if (nextSearch) nextParams.set("q", nextSearch);
+    if (nextCollection) nextParams.set("collection", nextCollection);
+    if (nextMedium) nextParams.set("medium", nextMedium);
+    if (nextYear) nextParams.set("year", nextYear);
+    if (nextDecade && !nextYear) nextParams.set("decade", nextDecade);
     setSearchParams(nextParams, { replace: true });
   };
 
+  useEffect(() => {
+    const normalized = searchInput.trim();
+    if (normalized === search) return undefined;
+    const timeout = window.setTimeout(() => updateCollection({ search: normalized }), 350);
+    return () => window.clearTimeout(timeout);
+  // updateCollection intentionally reads the latest controlled filter state.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput, search]);
+
   const clearFilters = () => {
     setSearchInput("");
-    updateCollection({ category: "all", availability: "all", search: "" });
+    updateCollection({ category: "all", availability: "all", search: "", collection: "", medium: "", year: "", decade: "" });
   };
 
   const hasActiveFilters =
-    category !== "all" || availability !== "all" || Boolean(search);
+    category !== "all" || availability !== "all" || Boolean(search || collection || medium || year || decade);
   const resultCount = pagination.total ?? artworks.length;
 
   const availabilitySelect = (
@@ -134,6 +182,7 @@ const GalleryPage = () => {
         <option value="createdAt-desc">Newest</option>
         <option value="createdAt-asc">Oldest</option>
         <option value="title-asc">Title A–Z</option>
+        <option value="title-desc">Title Z–A</option>
         <option value="price-asc">Price low–high</option>
         <option value="price-desc">Price high–low</option>
       </select>
@@ -201,7 +250,7 @@ const GalleryPage = () => {
               <button
                 type="button"
                 onClick={() => setFiltersOpen((open) => !open)}
-                className="h-11 flex-shrink-0 border border-charcoal/15 px-3 text-sm text-charcoal lg:hidden"
+                className="h-11 flex-shrink-0 border border-charcoal/15 px-3 text-sm text-charcoal"
                 aria-expanded={filtersOpen}
                 aria-controls="gallery-mobile-filters"
               >
@@ -216,12 +265,26 @@ const GalleryPage = () => {
 
             <div
               id="gallery-mobile-filters"
-              className={`grid grid-cols-1 gap-2 overflow-hidden transition-all lg:hidden ${
-                filtersOpen ? "mt-3 max-h-32 opacity-100" : "max-h-0 opacity-0"
+              className={`grid grid-cols-1 gap-2 overflow-hidden transition-all sm:grid-cols-2 lg:grid-cols-5 ${
+                filtersOpen ? "mt-3 max-h-96 opacity-100" : "max-h-0 opacity-0"
               }`}
             >
               {availabilitySelect}
               {sortSelect}
+              {[["collection", collection, setCollection], ["medium", medium, setMedium], ["year", year, setYear], ["decade", decade, setDecade]].map(([key, value, setter]) => (
+                <label key={key} className="block">
+                  <span className="sr-only">Filter by {key}</span>
+                  <input
+                    type={key === "year" ? "number" : "text"}
+                    value={value}
+                    onChange={(event) => setter(event.target.value)}
+                    onBlur={() => updateCollection({ collection, medium, year, decade })}
+                    onKeyDown={(event) => { if (event.key === "Enter") updateCollection({ collection, medium, year, decade }); }}
+                    className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
+                    placeholder={key[0].toUpperCase() + key.slice(1)}
+                  />
+                </label>
+              ))}
             </div>
 
             <div className="mt-2 flex min-h-7 items-center justify-between gap-4 text-xs text-slate/50">
@@ -247,6 +310,11 @@ const GalleryPage = () => {
           className="gallery-results mx-auto max-w-[1920px] px-4 pb-8 sm:px-6 lg:px-6"
           aria-live="polite"
         >
+          <CachedDataNotice
+            visible={dataSource === "static"}
+            busy={loading}
+            onRetry={fetchArtworks}
+          />
           {error && !loading ? (
             <div className="mx-auto my-16 max-w-xl px-6 py-12 text-center">
               <p className="font-display text-3xl">Gallery unavailable</p>

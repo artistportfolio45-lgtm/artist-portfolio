@@ -43,6 +43,12 @@ api.interceptors.request.use(
       delete config.headers["Content-Type"];
     }
 
+    if (config.method === "get" && config.url?.startsWith("/artworks")) {
+      config.params = { ...(config.params || {}), _t: Date.now() };
+      config.headers["Cache-Control"] = "no-cache";
+      config.headers.Pragma = "no-cache";
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -104,9 +110,9 @@ export const aboutAdminAPI = {
 };
 
 export const artworkAPI = {
-  getAll: (params) => api.get("/artworks", { params }),
+  getAll: (params) => api.get("/artworks/manage", { params }),
   getCategories: () => api.get("/artworks/categories"),
-  getById: (id) => api.get(`/artworks/${id}`),
+  getById: (id) => api.get(`/artworks/manage/${id}`),
   create: (formData) => api.post("/artworks", formData, { timeout: 0 }),
   bulkUpload: (formData, config = {}) => api.post("/artworks/bulk", formData, { timeout: 0, ...config }),
   uploadStatus: (clientUploadId) => api.get(`/artworks/upload-status/${encodeURIComponent(clientUploadId)}`),

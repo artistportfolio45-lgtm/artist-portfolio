@@ -43,11 +43,20 @@ const buildPublicSnapshot = async () => {
     getOrCreateSettings(),
     getOrCreateProfile(),
     getOrCreateAboutPage(),
-    Artwork.find({}).sort({ createdAt: -1 }).lean({ versionKey: false }),
+    Artwork.find({ publicationStatus: { $nin: ["draft", "unpublished", "archived"] } })
+      .sort({ createdAt: -1, _id: -1 })
+      .lean({ versionKey: false }),
     Artwork.distinct("category"),
   ]);
 
   return {
+    schemaVersion: 2,
+    contentVersion: Math.max(
+      ...artworks.map((artwork) => new Date(artwork.updatedAt || artwork.createdAt || 0).getTime()),
+      new Date(settings.updatedAt || 0).getTime(),
+      new Date(profile.updatedAt || 0).getTime(),
+      0
+    ),
     generatedAt: new Date().toISOString(),
     settings: toPlainObject(settings),
     profile: toPlainObject(profile),

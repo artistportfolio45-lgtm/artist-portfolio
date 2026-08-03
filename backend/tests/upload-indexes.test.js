@@ -7,6 +7,7 @@ const {
   ensureUploadIndexes,
   ARTWORK_CLIENT_UPLOAD_INDEX,
   UPLOAD_BATCH_INDEX,
+  ARTWORK_PUBLIC_INDEXES,
 } = require("../utils/ensureUploadIndexes");
 
 test("startup migration creates the exact sparse and unique upload indexes", async () => {
@@ -27,6 +28,7 @@ test("startup migration creates the exact sparse and unique upload indexes", asy
   assert.deepEqual(calls, [
     { name: "artworks", ...ARTWORK_CLIENT_UPLOAD_INDEX },
     { name: "uploadbatches", ...UPLOAD_BATCH_INDEX },
+    ...ARTWORK_PUBLIC_INDEXES.map((index) => ({ name: "artworks", ...index })),
   ]);
   assert.deepEqual(ARTWORK_CLIENT_UPLOAD_INDEX, {
     keys: { clientUploadId: 1 },

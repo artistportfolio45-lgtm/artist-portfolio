@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { cloudinaryThumbnailUrl, galleryThumbnailWidths } from "../../utils/imageDelivery";
 
 const ArtworkCard = ({ artwork, variant, onPreview }) => {
   const image = artwork.images?.[0];
@@ -36,7 +37,9 @@ const ArtworkCard = ({ artwork, variant, onPreview }) => {
           >
             {image?.url ? (
               <img
-                src={image.url}
+                src={cloudinaryThumbnailUrl(image.url, 960)}
+                srcSet={galleryThumbnailWidths(image.width).map((width) => `${cloudinaryThumbnailUrl(image.url, width)} ${width}w`).join(", ")}
+                sizes="(max-width: 639px) 92vw, (max-width: 1023px) 45vw, 30vw"
                 width={image.width || undefined}
                 height={image.height || undefined}
                 alt={title}

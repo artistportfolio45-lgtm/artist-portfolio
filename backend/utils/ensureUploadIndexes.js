@@ -11,6 +11,12 @@ const UPLOAD_BATCH_INDEX = {
   options: { unique: true, name: "uploadBatchId_1" },
 };
 
+const ARTWORK_PUBLIC_INDEXES = [
+  { keys: { publicationStatus: 1, createdAt: -1, _id: -1 }, options: { name: "public_createdAt_1" } },
+  { keys: { publicationStatus: 1, category: 1, year: -1, _id: -1 }, options: { name: "public_category_year_1" } },
+  { keys: { catalogueNumber: 1 }, options: { unique: true, name: "catalogueNumber_1", partialFilterExpression: { catalogueNumber: { $type: "string", $gt: "" } } } },
+];
+
 const ensureUploadIndexes = async ({
   artworkCollection = Artwork.collection,
   uploadBatchCollection = UploadBatch.collection,
@@ -25,6 +31,9 @@ const ensureUploadIndexes = async ({
       UPLOAD_BATCH_INDEX.keys,
       UPLOAD_BATCH_INDEX.options
     );
+    for (const index of ARTWORK_PUBLIC_INDEXES) {
+      await artworkCollection.createIndex(index.keys, index.options);
+    }
     logger.log("Verified artwork upload idempotency indexes.");
   } catch (error) {
     const reason = error?.code === 11000
@@ -40,4 +49,5 @@ module.exports = {
   ensureUploadIndexes,
   ARTWORK_CLIENT_UPLOAD_INDEX,
   UPLOAD_BATCH_INDEX,
+  ARTWORK_PUBLIC_INDEXES,
 };

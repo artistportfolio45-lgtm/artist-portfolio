@@ -7,7 +7,9 @@
     "dev": "vite",
     "prebuild": "node scripts/generate-public-data.mjs",
     "build": "vite build",
+    "postbuild": "node scripts/generate-seo-pages.mjs",
     "preview": "vite preview",
+    "lint": "node scripts/lint-source.mjs",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {

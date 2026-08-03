@@ -47,6 +47,13 @@ const settingsSchema = new mongoose.Schema(
     facebook: { type: String, default: "" },
     youtube: { type: String, default: "" },
     whatsapp: { type: String, default: "" },
+    expectedResponseTime: { type: String, default: "" },
+    privacyReassurance: { type: String, default: "" },
+    studioVisitInformation: { type: String, default: "" },
+    additionalSocialLinks: {
+      type: [{ label: { type: String, trim: true }, url: { type: String, trim: true } }],
+      default: [],
+    },
   },
   { timestamps: true }
 );
