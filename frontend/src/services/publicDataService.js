@@ -18,6 +18,11 @@ let retryTimer = null;
 let retryAttempt = 0;
 let refreshQueued = false;
 
+const buildFallbackUrl = (forceRefresh = false) => {
+  const version = forceRefresh ? Date.now() : Date.now();
+  return `${STATIC_FALLBACK_URL}?v=${version}`;
+};
+
 const artworkRequestKey = (params = {}) => JSON.stringify(
   Object.entries(params).filter(([key]) => key !== "_t").sort(([a], [b]) => a.localeCompare(b))
 );
@@ -200,25 +205,42 @@ const normalizePortfolio = (data) => {
   };
 };
 
-const loadFallbackPortfolio = async () => {
-  if (!fallbackPortfolioPromise) {
-    fallbackPortfolioPromise = fetch(`${STATIC_FALLBACK_URL}?_t=${Date.now()}`, {
-      cache: "no-store",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Static portfolio fallback failed: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(normalizePortfolio)
-      .catch((error) => {
-        fallbackPortfolioPromise = null;
-        throw error;
-      });
+const loadFallbackPortfolio = async ({ forceRefresh = false } = {}) => {
+  if (!forceRefresh && fallbackPortfolioPromise) {
+    return fallbackPortfolioPromise;
   }
 
-  return fallbackPortfolioPromise;
+  const requestPromise = fetch(buildFallbackUrl(forceRefresh), {
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Static portfolio fallback failed: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(normalizePortfolio)
+    .catch((error) => {
+      if (fallbackPortfolioPromise === requestPromise) {
+        fallbackPortfolioPromise = null;
+      }
+      throw error;
+    });
+
+  fallbackPortfolioPromise = requestPromise;
+
+  try {
+    return await requestPromise;
+  } finally {
+    if (fallbackPortfolioPromise === requestPromise) {
+      fallbackPortfolioPromise = null;
+    }
+  }
 };
 
 const preferStaticData = async ({ loadStatic, loadLive, hasStaticData, onLiveData, label }) => {

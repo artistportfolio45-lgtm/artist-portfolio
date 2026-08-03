@@ -1,7 +1,2404 @@
 {
-  "generatedAt": null,
-  "settings": null,
-  "profile": null,
-  "artworks": [],
-  "categories": []
+  "generatedAt": "2026-08-03T09:05:00.998Z",
+  "settings": {
+    "_id": "6a69a828416ef8ff9de002da",
+    "websiteTitle": "Artist Portfolio",
+    "websiteDescription": "A curated portfolio of original artworks.",
+    "logoUrl": "",
+    "logoPublicId": "",
+    "footerText": "(c) 2026 Artist Portfolio. All rights reserved.",
+    "heroEyebrow": "Original Fine Art",
+    "heroHeading": "Art That",
+    "heroHeadingAccent": "Speaks",
+    "heroSubtitle": "Explore a collection of original paintings — each a singular expression of light, form, and feeling.",
+    "heroPrimaryButtonText": "Explore Gallery",
+    "heroSecondaryButtonText": "Get in Touch",
+    "primaryColor": "#202020",
+    "secondaryColor": "#F3F3F3",
+    "accentColor": "#0067C0",
+    "themePreset": "windows-light",
+    "themeMode": "light",
+    "backgroundColor": "#F3F3F3",
+    "surfaceColor": "#FFFFFF",
+    "textColor": "#1B1B1B",
+    "mutedTextColor": "#5E5E5E",
+    "borderColor": "#DADADA",
+    "buttonRadius": "24px",
+    "cardRadius": "24px",
+    "maintenanceMode": false,
+    "seoTitle": "",
+    "seoDescription": "",
+    "seoKeywords": "",
+    "contactEmail": "",
+    "contactPhone": "",
+    "contactAddress": "",
+    "instagram": "",
+    "facebook": "",
+    "youtube": "",
+    "whatsapp": " 9561606263",
+    "createdAt": "2026-07-29T07:13:44.468Z",
+    "updatedAt": "2026-07-31T07:29:03.031Z",
+    "__v": 0
+  },
+  "profile": {
+    "_id": "6a69a82a416ef8ff9de002dc",
+    "name": "",
+    "profilePhoto": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785660716/artist-portfolio/profile/ahvjmw5ug3hph0jdpsvs.jpg",
+    "profilePhotoPublicId": "artist-portfolio/profile/ahvjmw5ug3hph0jdpsvs",
+    "about": "",
+    "email": "",
+    "phone": "",
+    "whatsapp": "",
+    "instagram": "",
+    "facebook": "",
+    "youtube": "",
+    "address": "",
+    "createdAt": "2026-07-29T07:13:46.000Z",
+    "updatedAt": "2026-08-02T08:51:57.641Z",
+    "__v": 0
+  },
+  "about": {
+    "hero": {
+      "eyebrow": "Indian Visual Artist",
+      "name": "Dr. Gurugovind Namdev Ambe",
+      "roles": "Painter · Sculptor · Muralist · Illustrator · Art Educator",
+      "introduction": "A multi-disciplinary Indian artist whose practice spans painting, sculpture, murals, illustration, socially engaged cartoons and arts education.",
+      "showCollectionButton": true,
+      "visible": true,
+      "backgroundImage": {
+        "url": "",
+        "publicId": "",
+        "alt": "",
+        "caption": "",
+        "width": null,
+        "height": null
+      }
+    },
+    "artistStatement": {
+      "quote": "",
+      "statement": "His work explores Indian culture, history, spirituality, public life, social awareness and the breadth of human experience.",
+      "signatureText": "",
+      "visible": true,
+      "signatureImage": {
+        "url": "",
+        "publicId": "",
+        "alt": "",
+        "caption": "",
+        "width": null,
+        "height": null
+      },
+      "supportingImage": {
+        "url": "",
+        "publicId": "",
+        "alt": "",
+        "caption": "",
+        "width": null,
+        "height": null
+      }
+    },
+    "biography": {
+      "heading": "A life shaped through art",
+      "body": "Dr. Gurugovind Namdev Ambe is a painter, sculptor, muralist, illustrator, cartoonist, art educator and fine-arts curator. His practice moves between the intimacy of drawing and painting and the shared civic space of murals, memorial work and public sculpture.\n\nHe achieved first position at the Pune centre in G.D. Art and ninth position in the Maharashtra merit list. His works “Anpadh Ki Dasha” and “Buddha Ka Shodhan Ke Liye Rajya Tyag” received national recognition. Archive material documents a wider practice encompassing ceramic and terracotta work, installations and socially engaged visual communication.",
+      "archiveNote": "Earlier archive and media material may refer to the artist as G. N. Ambe or Raju Ambe.",
+      "visible": true,
+      "image": {
+        "url": "",
+        "publicId": "",
+        "alt": "",
+        "caption": "",
+        "width": null,
+        "height": null
+      }
+    },
+    "practices": [
+      {
+        "link": "",
+        "visible": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 212
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "Painting & Drawing",
+        "description": "Paintings and sketches shaped by Indian culture, history, spirituality and lived experience.",
+        "order": 0
+      },
+      {
+        "link": "",
+        "visible": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 213
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "Sculpture & Ceramics",
+        "description": "Sculptural, ceramic and terracotta works that bring material, memory and form into dialogue.",
+        "order": 1
+      },
+      {
+        "link": "",
+        "visible": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 214
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "Murals & Public Art",
+        "description": "Memorial works, murals and public projects conceived for shared spaces and collective remembrance.",
+        "order": 2
+      },
+      {
+        "link": "",
+        "visible": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 215
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "Illustration & Social Cartoons",
+        "description": "Illustration and socially engaged cartoons addressing public life, awareness and human dignity.",
+        "order": 3
+      }
+    ],
+    "timeline": [
+      {
+        "dateLabel": "",
+        "published": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 216
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "G.D. Art recognition",
+        "description": "First position at the Pune centre and ninth position in the Maharashtra merit list.",
+        "category": "Education",
+        "order": 0
+      },
+      {
+        "dateLabel": "",
+        "published": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 217
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "Public and memorial art practice",
+        "description": "A significant body of murals, memorial-site work, sculpture and installations created for public contexts.",
+        "category": "Public Artwork",
+        "order": 1
+      },
+      {
+        "dateLabel": "",
+        "published": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 218
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "National recognition for “Anpadh Ki Dasha”",
+        "description": "The work received national recognition for its socially engaged artistic vision.",
+        "category": "Award",
+        "order": 2
+      },
+      {
+        "dateLabel": "",
+        "published": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 219
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "title": "National painting recognition",
+        "description": "“Buddha Ka Shodhan Ke Liye Rajya Tyag” received national painting recognition.",
+        "category": "Award",
+        "order": 3
+      }
+    ],
+    "publicWorks": [],
+    "awards": [
+      {
+        "year": "",
+        "organiser": "",
+        "location": "",
+        "visible": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 220
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "awardTitle": "National recognition",
+        "artworkTitle": "Anpadh Ki Dasha",
+        "description": "National recognition for a socially engaged work.",
+        "order": 0
+      },
+      {
+        "year": "",
+        "organiser": "",
+        "location": "",
+        "visible": true,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 221
+          }
+        },
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
+        "awardTitle": "National painting recognition",
+        "artworkTitle": "Buddha Ka Shodhan Ke Liye Rajya Tyag",
+        "description": "National recognition for the painting.",
+        "order": 1
+      }
+    ],
+    "pressArchive": [],
+    "closingCta": {
+      "eyebrow": "The work continues",
+      "heading": "Art as memory, witness and shared experience",
+      "message": "Across disciplines and public spaces, the artist’s practice remains rooted in culture, social awareness and the enduring human impulse to make meaning.",
+      "showCollectionButton": true,
+      "showContactButton": true,
+      "visible": true,
+      "backgroundImage": {
+        "url": "",
+        "publicId": "",
+        "alt": "",
+        "caption": "",
+        "width": null,
+        "height": null
+      }
+    },
+    "seo": {
+      "title": "Dr. Gurugovind Namdev Ambe — Indian Visual Artist",
+      "description": "Discover the multi-disciplinary practice, public works, honours and archive of Indian artist Dr. Gurugovind Namdev Ambe.",
+      "socialImage": {
+        "url": "",
+        "publicId": "",
+        "alt": "",
+        "caption": "",
+        "width": null,
+        "height": null
+      }
+    }
+  },
+  "artworks": [
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dbaad4d344b35a5a6ed",
+      "title": "Cover Nava Tambda Futel",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613753/artist-portfolio/artworks/vud9vi12dnan0bkyonqv.jpg",
+          "publicId": "artist-portfolio/artworks/vud9vi12dnan0bkyonqv",
+          "width": 3376,
+          "height": 2551,
+          "_id": "6a6e4dbaad4d344b35a5a6ee"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:14.559Z",
+      "updatedAt": "2026-08-01T19:49:14.559Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db9ad4d344b35a5a6ea",
+      "title": "2014 02 23 810 1",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613752/artist-portfolio/artworks/twdo8dwyrfiqlo9a67rv.jpg",
+          "publicId": "artist-portfolio/artworks/twdo8dwyrfiqlo9a67rv",
+          "width": 3065,
+          "height": 2156,
+          "_id": "6a6e4db9ad4d344b35a5a6eb"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:13.542Z",
+      "updatedAt": "2026-08-01T19:49:13.542Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db9ad4d344b35a5a6e7",
+      "title": "2014 03 01 844 2",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613752/artist-portfolio/artworks/rmxvlhaapsdlpxkaavrf.jpg",
+          "publicId": "artist-portfolio/artworks/rmxvlhaapsdlpxkaavrf",
+          "width": 872,
+          "height": 1370,
+          "_id": "6a6e4db9ad4d344b35a5a6e8"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:13.418Z",
+      "updatedAt": "2026-08-01T19:49:13.418Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db8ad4d344b35a5a6e4",
+      "title": "383",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613750/artist-portfolio/artworks/tpbw7s1dlbuuajhs5m4j.jpg",
+          "publicId": "artist-portfolio/artworks/tpbw7s1dlbuuajhs5m4j",
+          "width": 3600,
+          "height": 2400,
+          "_id": "6a6e4db8ad4d344b35a5a6e5"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:12.256Z",
+      "updatedAt": "2026-08-01T19:49:12.256Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db8ad4d344b35a5a6e1",
+      "title": "384",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613750/artist-portfolio/artworks/ufbhzdoufsrscwixnfiu.jpg",
+          "publicId": "artist-portfolio/artworks/ufbhzdoufsrscwixnfiu",
+          "width": 3600,
+          "height": 2400,
+          "_id": "6a6e4db8ad4d344b35a5a6e2"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:12.213Z",
+      "updatedAt": "2026-08-01T19:49:12.213Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db8ad4d344b35a5a6de",
+      "title": "2013 10 17 077 2",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613750/artist-portfolio/artworks/s9ui5eggcuxna7gz80xc.jpg",
+          "publicId": "artist-portfolio/artworks/s9ui5eggcuxna7gz80xc",
+          "width": 2226,
+          "height": 3000,
+          "_id": "6a6e4db8ad4d344b35a5a6df"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:12.060Z",
+      "updatedAt": "2026-08-01T19:49:12.060Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db7ad4d344b35a5a6db",
+      "title": "2013 10 17 076 1",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613750/artist-portfolio/artworks/ce2xlq5adapgw927kbrl.jpg",
+          "publicId": "artist-portfolio/artworks/ce2xlq5adapgw927kbrl",
+          "width": 2215,
+          "height": 3002,
+          "_id": "6a6e4db7ad4d344b35a5a6dc"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:11.877Z",
+      "updatedAt": "2026-08-01T19:49:11.877Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db5ad4d344b35a5a6d8",
+      "title": "Slide150",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613749/artist-portfolio/artworks/tqsvy7kk7k2y6cyjsvf5.jpg",
+          "publicId": "artist-portfolio/artworks/tqsvy7kk7k2y6cyjsvf5",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db5ad4d344b35a5a6d9"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:09.877Z",
+      "updatedAt": "2026-08-01T19:49:09.877Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db5ad4d344b35a5a6d5",
+      "title": "Slide152",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613749/artist-portfolio/artworks/fjgtnzhgynlmgpb1jlbs.jpg",
+          "publicId": "artist-portfolio/artworks/fjgtnzhgynlmgpb1jlbs",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db5ad4d344b35a5a6d6"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:09.837Z",
+      "updatedAt": "2026-08-01T19:49:09.837Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db5ad4d344b35a5a6d2",
+      "title": "Slide151",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613749/artist-portfolio/artworks/ahff5tnowers5dpzphu7.jpg",
+          "publicId": "artist-portfolio/artworks/ahff5tnowers5dpzphu7",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db5ad4d344b35a5a6d3"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:09.793Z",
+      "updatedAt": "2026-08-01T19:49:09.793Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db5ad4d344b35a5a6cf",
+      "title": "Slide149",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613749/artist-portfolio/artworks/p00pyd2j1chcy4tao2kz.jpg",
+          "publicId": "artist-portfolio/artworks/p00pyd2j1chcy4tao2kz",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db5ad4d344b35a5a6d0"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:09.647Z",
+      "updatedAt": "2026-08-01T19:49:09.647Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db4ad4d344b35a5a6cc",
+      "title": "Slide148",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613748/artist-portfolio/artworks/q2ikhmodiksf7bwdykgo.jpg",
+          "publicId": "artist-portfolio/artworks/q2ikhmodiksf7bwdykgo",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db4ad4d344b35a5a6cd"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:08.903Z",
+      "updatedAt": "2026-08-01T19:49:08.903Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db4ad4d344b35a5a6c9",
+      "title": "Slide147",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613748/artist-portfolio/artworks/hgpnc04kwbs3vyrjd3oj.jpg",
+          "publicId": "artist-portfolio/artworks/hgpnc04kwbs3vyrjd3oj",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db4ad4d344b35a5a6ca"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:08.839Z",
+      "updatedAt": "2026-08-01T19:49:08.839Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db4ad4d344b35a5a6c6",
+      "title": "Slide145",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613748/artist-portfolio/artworks/h5pbstiloelzktv3wcve.jpg",
+          "publicId": "artist-portfolio/artworks/h5pbstiloelzktv3wcve",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db4ad4d344b35a5a6c7"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:08.763Z",
+      "updatedAt": "2026-08-01T19:49:08.763Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db4ad4d344b35a5a6c3",
+      "title": "Slide146",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613748/artist-portfolio/artworks/axr39mvujbsqspsut7bf.jpg",
+          "publicId": "artist-portfolio/artworks/axr39mvujbsqspsut7bf",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db4ad4d344b35a5a6c4"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:08.677Z",
+      "updatedAt": "2026-08-01T19:49:08.677Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db3ad4d344b35a5a6c0",
+      "title": "Satyapitam 8",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613746/artist-portfolio/artworks/vtcblzkjkyl7s4t5fwv1.jpg",
+          "publicId": "artist-portfolio/artworks/vtcblzkjkyl7s4t5fwv1",
+          "width": 1750,
+          "height": 2486,
+          "_id": "6a6e4db3ad4d344b35a5a6c1"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:07.849Z",
+      "updatedAt": "2026-08-01T19:49:07.849Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db3ad4d344b35a5a6bd",
+      "title": "Slide144",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613747/artist-portfolio/artworks/a0se6n1yn3inbmfscyo5.jpg",
+          "publicId": "artist-portfolio/artworks/a0se6n1yn3inbmfscyo5",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db3ad4d344b35a5a6be"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:07.830Z",
+      "updatedAt": "2026-08-01T19:49:07.830Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db3ad4d344b35a5a6ba",
+      "title": "Slide142",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613747/artist-portfolio/artworks/igg1b68vkanmwt8bwbya.jpg",
+          "publicId": "artist-portfolio/artworks/igg1b68vkanmwt8bwbya",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db3ad4d344b35a5a6bb"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:07.789Z",
+      "updatedAt": "2026-08-01T19:49:07.789Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db3ad4d344b35a5a6b7",
+      "title": "Slide143",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613747/artist-portfolio/artworks/jlqw3vgjr0s6mts0gaz9.jpg",
+          "publicId": "artist-portfolio/artworks/jlqw3vgjr0s6mts0gaz9",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db3ad4d344b35a5a6b8"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:07.754Z",
+      "updatedAt": "2026-08-01T19:49:07.754Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db2ad4d344b35a5a6b4",
+      "title": "Painting Mix Media Manshanti 42w. Cm X 52h. Cm",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613745/artist-portfolio/artworks/qd2sy1yia4nkgogyda78.jpg",
+          "publicId": "artist-portfolio/artworks/qd2sy1yia4nkgogyda78",
+          "width": 1530,
+          "height": 1846,
+          "_id": "6a6e4db2ad4d344b35a5a6b5"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:06.821Z",
+      "updatedAt": "2026-08-01T19:49:06.821Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db2ad4d344b35a5a6b1",
+      "title": "Slide141",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613746/artist-portfolio/artworks/ik5z7mqugywqizwpnrku.jpg",
+          "publicId": "artist-portfolio/artworks/ik5z7mqugywqizwpnrku",
+          "width": 960,
+          "height": 720,
+          "_id": "6a6e4db2ad4d344b35a5a6b2"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:06.796Z",
+      "updatedAt": "2026-08-01T19:49:06.796Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db2ad4d344b35a5a6ae",
+      "title": "Painting Mix Media Sadhu 52w. Cm X 52h. Cm",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613745/artist-portfolio/artworks/wrddhaoipdldduoczhpe.jpg",
+          "publicId": "artist-portfolio/artworks/wrddhaoipdldduoczhpe",
+          "width": 1530,
+          "height": 1444,
+          "_id": "6a6e4db2ad4d344b35a5a6af"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:06.771Z",
+      "updatedAt": "2026-08-01T19:49:06.771Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db1ad4d344b35a5a6ab",
+      "title": "Painting Mix Media I And My World 52w. Cm X 52h. Cm",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613744/artist-portfolio/artworks/taeppoeokedmt9dnvk8p.jpg",
+          "publicId": "artist-portfolio/artworks/taeppoeokedmt9dnvk8p",
+          "width": 1609,
+          "height": 1500,
+          "_id": "6a6e4db1ad4d344b35a5a6ac"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:05.813Z",
+      "updatedAt": "2026-08-01T19:49:05.813Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db1ad4d344b35a5a6a8",
+      "title": "Painting Mix Media I And All Of My Faces 52w. Cm X 52h. Cm",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613744/artist-portfolio/artworks/bbpupykhmb5wxxqgnqtb.jpg",
+          "publicId": "artist-portfolio/artworks/bbpupykhmb5wxxqgnqtb",
+          "width": 1584,
+          "height": 1524,
+          "_id": "6a6e4db1ad4d344b35a5a6a9"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:05.766Z",
+      "updatedAt": "2026-08-01T19:49:05.766Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db0ad4d344b35a5a6a5",
+      "title": "Painting Mix Media Bhakti 53w. Cm X 60h. Cm",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613743/artist-portfolio/artworks/cfxrapgiaubymd5cxcei.jpg",
+          "publicId": "artist-portfolio/artworks/cfxrapgiaubymd5cxcei",
+          "width": 1498,
+          "height": 1724,
+          "_id": "6a6e4db0ad4d344b35a5a6a6"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:04.794Z",
+      "updatedAt": "2026-08-01T19:49:04.794Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4db0ad4d344b35a5a6a2",
+      "title": "P.M.C.School 14 (B) 004",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613743/artist-portfolio/artworks/ellvol4pszxzea0sswh6.jpg",
+          "publicId": "artist-portfolio/artworks/ellvol4pszxzea0sswh6",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4db0ad4d344b35a5a6a3"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:04.604Z",
+      "updatedAt": "2026-08-01T19:49:04.604Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dafad4d344b35a5a69f",
+      "title": "P.M.C.School 14 (B) 002",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613742/artist-portfolio/artworks/bdeujmuxpqotcoil4xud.jpg",
+          "publicId": "artist-portfolio/artworks/bdeujmuxpqotcoil4xud",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4dafad4d344b35a5a6a0"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:03.885Z",
+      "updatedAt": "2026-08-01T19:49:03.885Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dafad4d344b35a5a69c",
+      "title": "P.M.C.School 14 (B) 001",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613741/artist-portfolio/artworks/ffd8aw00be31rplsk2qt.jpg",
+          "publicId": "artist-portfolio/artworks/ffd8aw00be31rplsk2qt",
+          "width": 1536,
+          "height": 2048,
+          "_id": "6a6e4dafad4d344b35a5a69d"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:03.488Z",
+      "updatedAt": "2026-08-01T19:49:03.488Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4daead4d344b35a5a699",
+      "title": "IMG 2350",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613741/artist-portfolio/artworks/myh9lzcvgitgh9mokssm.jpg",
+          "publicId": "artist-portfolio/artworks/myh9lzcvgitgh9mokssm",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4daead4d344b35a5a69a"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:02.665Z",
+      "updatedAt": "2026-08-01T19:49:02.665Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4daead4d344b35a5a696",
+      "title": "IMG 2348",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613741/artist-portfolio/artworks/vcoxytktyrqderwg5eew.jpg",
+          "publicId": "artist-portfolio/artworks/vcoxytktyrqderwg5eew",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4daead4d344b35a5a697"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:02.585Z",
+      "updatedAt": "2026-08-01T19:49:02.585Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4daead4d344b35a5a693",
+      "title": "IMG 2271",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613740/artist-portfolio/artworks/vrhjmwxssepsl2j4cagg.jpg",
+          "publicId": "artist-portfolio/artworks/vrhjmwxssepsl2j4cagg",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4daead4d344b35a5a694"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:02.111Z",
+      "updatedAt": "2026-08-01T19:49:02.111Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dadad4d344b35a5a690",
+      "title": "IMG 1947",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613739/artist-portfolio/artworks/f40ldiqrweri5iljb2nd.jpg",
+          "publicId": "artist-portfolio/artworks/f40ldiqrweri5iljb2nd",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4dadad4d344b35a5a691"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:01.336Z",
+      "updatedAt": "2026-08-01T19:49:01.336Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dacad4d344b35a5a68d",
+      "title": "IMG 1943",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613739/artist-portfolio/artworks/hcbwfihgbso6g0q9l0nb.jpg",
+          "publicId": "artist-portfolio/artworks/hcbwfihgbso6g0q9l0nb",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4dacad4d344b35a5a68e"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:00.687Z",
+      "updatedAt": "2026-08-01T19:49:00.687Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dacad4d344b35a5a68a",
+      "title": "IMG 1932",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613739/artist-portfolio/artworks/iqmmccmcv6tm1kmdaauw.jpg",
+          "publicId": "artist-portfolio/artworks/iqmmccmcv6tm1kmdaauw",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4dacad4d344b35a5a68b"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:00.664Z",
+      "updatedAt": "2026-08-01T19:49:00.664Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dacad4d344b35a5a687",
+      "title": "IMG 1928",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613739/artist-portfolio/artworks/pcxxxewxd1i3ejjyui1d.jpg",
+          "publicId": "artist-portfolio/artworks/pcxxxewxd1i3ejjyui1d",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4dacad4d344b35a5a688"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:49:00.333Z",
+      "updatedAt": "2026-08-01T19:49:00.333Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4dabad4d344b35a5a684",
+      "title": "IMG 1925",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613737/artist-portfolio/artworks/upwg0jfintspxc8ipcmu.jpg",
+          "publicId": "artist-portfolio/artworks/upwg0jfintspxc8ipcmu",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4dabad4d344b35a5a685"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:59.268Z",
+      "updatedAt": "2026-08-01T19:48:59.268Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4daaad4d344b35a5a681",
+      "title": "IMG 1898",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613737/artist-portfolio/artworks/s2dj5xjxlixmnaogtrhp.jpg",
+          "publicId": "artist-portfolio/artworks/s2dj5xjxlixmnaogtrhp",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4daaad4d344b35a5a682"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:58.732Z",
+      "updatedAt": "2026-08-01T19:48:58.732Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4daaad4d344b35a5a67e",
+      "title": "IMG 1892",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613737/artist-portfolio/artworks/kiejbc8qz7auvk8qvzyz.jpg",
+          "publicId": "artist-portfolio/artworks/kiejbc8qz7auvk8qvzyz",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4daaad4d344b35a5a67f"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:58.660Z",
+      "updatedAt": "2026-08-01T19:48:58.660Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4daaad4d344b35a5a67b",
+      "title": "IMG 1888",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613737/artist-portfolio/artworks/naaodywbglboghsj3lah.jpg",
+          "publicId": "artist-portfolio/artworks/naaodywbglboghsj3lah",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4daaad4d344b35a5a67c"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:58.468Z",
+      "updatedAt": "2026-08-01T19:48:58.468Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4da8ad4d344b35a5a678",
+      "title": "IMG 1885",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613735/artist-portfolio/artworks/lygkzl6idcs53b2slxrd.jpg",
+          "publicId": "artist-portfolio/artworks/lygkzl6idcs53b2slxrd",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4da8ad4d344b35a5a679"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:56.853Z",
+      "updatedAt": "2026-08-01T19:48:56.853Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4da8ad4d344b35a5a675",
+      "title": "IMG 1882",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613735/artist-portfolio/artworks/beoukmemnaygl3w4gh2k.jpg",
+          "publicId": "artist-portfolio/artworks/beoukmemnaygl3w4gh2k",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4da8ad4d344b35a5a676"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:56.669Z",
+      "updatedAt": "2026-08-01T19:48:56.669Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4da8ad4d344b35a5a672",
+      "title": "IMG 1878",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613734/artist-portfolio/artworks/gtdgmffegygteufz1cig.jpg",
+          "publicId": "artist-portfolio/artworks/gtdgmffegygteufz1cig",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4da8ad4d344b35a5a673"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:56.601Z",
+      "updatedAt": "2026-08-01T19:48:56.601Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4da8ad4d344b35a5a66f",
+      "title": "IMG 1880",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613734/artist-portfolio/artworks/pqphnuo55kmwflgur8sk.jpg",
+          "publicId": "artist-portfolio/artworks/pqphnuo55kmwflgur8sk",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4da8ad4d344b35a5a670"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:48:56.570Z",
+      "updatedAt": "2026-08-01T19:48:56.570Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c49ad4d344b35a5a5d4",
+      "title": "PicsArt 02 03 11.20.19",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613384/artist-portfolio/artworks/dvcx9bahsay9zagtehnx.jpg",
+          "publicId": "artist-portfolio/artworks/dvcx9bahsay9zagtehnx",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4c49ad4d344b35a5a5d5"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:05.483Z",
+      "updatedAt": "2026-08-01T19:43:05.483Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c49ad4d344b35a5a5d1",
+      "title": "PicsArt 02 03 10.58.06",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613384/artist-portfolio/artworks/x4somevtq2dfdk52jkjo.jpg",
+          "publicId": "artist-portfolio/artworks/x4somevtq2dfdk52jkjo",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4c49ad4d344b35a5a5d2"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:05.385Z",
+      "updatedAt": "2026-08-01T19:43:05.385Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c48ad4d344b35a5a5ce",
+      "title": "PicsArt 02 03 10.21.02",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613383/artist-portfolio/artworks/ewoevmnuz9mirhnfa6y2.jpg",
+          "publicId": "artist-portfolio/artworks/ewoevmnuz9mirhnfa6y2",
+          "width": 2023,
+          "height": 1336,
+          "_id": "6a6e4c48ad4d344b35a5a5cf"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:04.411Z",
+      "updatedAt": "2026-08-01T19:43:04.411Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c48ad4d344b35a5a5cb",
+      "title": "PicsArt 02 03 02.42.06",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613382/artist-portfolio/artworks/pp51flcujf7eakqsvvod.jpg",
+          "publicId": "artist-portfolio/artworks/pp51flcujf7eakqsvvod",
+          "width": 1536,
+          "height": 1797,
+          "_id": "6a6e4c48ad4d344b35a5a5cc"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:04.214Z",
+      "updatedAt": "2026-08-01T19:43:04.214Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c47ad4d344b35a5a5c8",
+      "title": "PicsArt 02 03 02.32.06",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613382/artist-portfolio/artworks/mo2umf1ns1ioosnprfju.jpg",
+          "publicId": "artist-portfolio/artworks/mo2umf1ns1ioosnprfju",
+          "width": 1321,
+          "height": 1531,
+          "_id": "6a6e4c47ad4d344b35a5a5c9"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:03.686Z",
+      "updatedAt": "2026-08-01T19:43:03.686Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c47ad4d344b35a5a5c5",
+      "title": "PicsArt 02 03 02.06.55",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613382/artist-portfolio/artworks/q9ha671syszotkzu0gba.jpg",
+          "publicId": "artist-portfolio/artworks/q9ha671syszotkzu0gba",
+          "width": 1371,
+          "height": 1518,
+          "_id": "6a6e4c47ad4d344b35a5a5c6"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:03.672Z",
+      "updatedAt": "2026-08-01T19:43:03.672Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c46ad4d344b35a5a5c2",
+      "title": "PicsArt 02 03 01.24.16",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613381/artist-portfolio/artworks/cfmkheh1vnb4bjpjttxb.jpg",
+          "publicId": "artist-portfolio/artworks/cfmkheh1vnb4bjpjttxb",
+          "width": 3048,
+          "height": 1186,
+          "_id": "6a6e4c46ad4d344b35a5a5c3"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:02.645Z",
+      "updatedAt": "2026-08-01T19:43:02.645Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c46ad4d344b35a5a5bf",
+      "title": "PicsArt 02 03 02.02.24",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613381/artist-portfolio/artworks/brt6cvktsmv8wd1rn1pf.jpg",
+          "publicId": "artist-portfolio/artworks/brt6cvktsmv8wd1rn1pf",
+          "width": 1599,
+          "height": 1278,
+          "_id": "6a6e4c46ad4d344b35a5a5c0"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:02.343Z",
+      "updatedAt": "2026-08-01T19:43:02.343Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c46ad4d344b35a5a5bc",
+      "title": "PicsArt 02 03 01.51.36",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613381/artist-portfolio/artworks/qxvumz52nfrhaui8vexe.jpg",
+          "publicId": "artist-portfolio/artworks/qxvumz52nfrhaui8vexe",
+          "width": 2004,
+          "height": 1362,
+          "_id": "6a6e4c46ad4d344b35a5a5bd"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:02.318Z",
+      "updatedAt": "2026-08-01T19:43:02.318Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c46ad4d344b35a5a5b9",
+      "title": "PicsArt 02 03 01.57.22",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613381/artist-portfolio/artworks/vtykffr9bbakknxljwlu.jpg",
+          "publicId": "artist-portfolio/artworks/vtykffr9bbakknxljwlu",
+          "width": 1457,
+          "height": 1151,
+          "_id": "6a6e4c46ad4d344b35a5a5ba"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:02.314Z",
+      "updatedAt": "2026-08-01T19:43:02.314Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c44ad4d344b35a5a5b6",
+      "title": "PicsArt 02 02 08.24.16",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613379/artist-portfolio/artworks/a5ewxiggqewohbsxhzr6.jpg",
+          "publicId": "artist-portfolio/artworks/a5ewxiggqewohbsxhzr6",
+          "width": 1536,
+          "height": 2048,
+          "_id": "6a6e4c44ad4d344b35a5a5b7"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:00.994Z",
+      "updatedAt": "2026-08-01T19:43:00.994Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c44ad4d344b35a5a5b3",
+      "title": "PicsArt 02 02 07.52.59",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613379/artist-portfolio/artworks/r2tjrxie19goxnynuy4g.jpg",
+          "publicId": "artist-portfolio/artworks/r2tjrxie19goxnynuy4g",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4c44ad4d344b35a5a5b4"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:00.853Z",
+      "updatedAt": "2026-08-01T19:43:00.853Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c44ad4d344b35a5a5b0",
+      "title": "PicsArt 02 02 07.39.08",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613379/artist-portfolio/artworks/mzumjdobcjxp0cz2d9bq.jpg",
+          "publicId": "artist-portfolio/artworks/mzumjdobcjxp0cz2d9bq",
+          "width": 882,
+          "height": 932,
+          "_id": "6a6e4c44ad4d344b35a5a5b1"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:00.781Z",
+      "updatedAt": "2026-08-01T19:43:00.781Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c44ad4d344b35a5a5ad",
+      "title": "PicsArt 02 02 07.51.24",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613379/artist-portfolio/artworks/g3gfngq45hh9whnd84wq.jpg",
+          "publicId": "artist-portfolio/artworks/g3gfngq45hh9whnd84wq",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4c44ad4d344b35a5a5ae"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:43:00.646Z",
+      "updatedAt": "2026-08-01T19:43:00.646Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c43ad4d344b35a5a5aa",
+      "title": "PicsArt 01 20 10.29.10",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613377/artist-portfolio/artworks/mbjbqx4ctazkpt9mflae.jpg",
+          "publicId": "artist-portfolio/artworks/mbjbqx4ctazkpt9mflae",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4c43ad4d344b35a5a5ab"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:59.222Z",
+      "updatedAt": "2026-08-01T19:42:59.222Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c43ad4d344b35a5a5a7",
+      "title": "PicsArt 01 20 09.58.25",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613377/artist-portfolio/artworks/w363g2yoavs75iugiuzg.jpg",
+          "publicId": "artist-portfolio/artworks/w363g2yoavs75iugiuzg",
+          "width": 2048,
+          "height": 1536,
+          "_id": "6a6e4c43ad4d344b35a5a5a8"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:59.120Z",
+      "updatedAt": "2026-08-01T19:42:59.120Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c42ad4d344b35a5a5a4",
+      "title": "PicsArt 01 20 11.02.23",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613378/artist-portfolio/artworks/cjcziynyytgpl0n0wedf.jpg",
+          "publicId": "artist-portfolio/artworks/cjcziynyytgpl0n0wedf",
+          "width": 720,
+          "height": 498,
+          "_id": "6a6e4c42ad4d344b35a5a5a5"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:58.859Z",
+      "updatedAt": "2026-08-01T19:42:58.859Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c42ad4d344b35a5a5a1",
+      "title": "PicsArt 01 20 11.04.07",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613378/artist-portfolio/artworks/wh8mobq0qwpdt6sibpvz.jpg",
+          "publicId": "artist-portfolio/artworks/wh8mobq0qwpdt6sibpvz",
+          "width": 720,
+          "height": 498,
+          "_id": "6a6e4c42ad4d344b35a5a5a2"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:58.846Z",
+      "updatedAt": "2026-08-01T19:42:58.846Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c41ad4d344b35a5a59e",
+      "title": "IMG 20160306 135518 HDR",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613375/artist-portfolio/artworks/fnnmwvxuxces3haooq6t.jpg",
+          "publicId": "artist-portfolio/artworks/fnnmwvxuxces3haooq6t",
+          "width": 3120,
+          "height": 4208,
+          "_id": "6a6e4c41ad4d344b35a5a59f"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:57.804Z",
+      "updatedAt": "2026-08-01T19:42:57.804Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c41ad4d344b35a5a59b",
+      "title": "IMG 20160306 135518 HDR BURST2",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613376/artist-portfolio/artworks/ku0d3cpufrtjmi3tblsh.jpg",
+          "publicId": "artist-portfolio/artworks/ku0d3cpufrtjmi3tblsh",
+          "width": 3120,
+          "height": 4208,
+          "_id": "6a6e4c41ad4d344b35a5a59c"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:57.746Z",
+      "updatedAt": "2026-08-01T19:42:57.746Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c41ad4d344b35a5a598",
+      "title": "IMG 20160306 135507 HDR",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613375/artist-portfolio/artworks/ncc5xetjihsudvxofgei.jpg",
+          "publicId": "artist-portfolio/artworks/ncc5xetjihsudvxofgei",
+          "width": 3120,
+          "height": 4208,
+          "_id": "6a6e4c41ad4d344b35a5a599"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:57.309Z",
+      "updatedAt": "2026-08-01T19:42:57.309Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c41ad4d344b35a5a595",
+      "title": "IMG 20160306 135452 HDR",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613375/artist-portfolio/artworks/fakwqjrntybr8japtdxt.jpg",
+          "publicId": "artist-portfolio/artworks/fakwqjrntybr8japtdxt",
+          "width": 3120,
+          "height": 4208,
+          "_id": "6a6e4c41ad4d344b35a5a596"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:57.283Z",
+      "updatedAt": "2026-08-01T19:42:57.283Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c3fad4d344b35a5a592",
+      "title": "IMG 20160306 135449 HDR",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613373/artist-portfolio/artworks/re7mdiryyxituuasp17q.jpg",
+          "publicId": "artist-portfolio/artworks/re7mdiryyxituuasp17q",
+          "width": 3120,
+          "height": 4208,
+          "_id": "6a6e4c3fad4d344b35a5a593"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:55.226Z",
+      "updatedAt": "2026-08-01T19:42:55.226Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c3fad4d344b35a5a58f",
+      "title": "IMG 20160306 123012 HDR",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613373/artist-portfolio/artworks/bnzoxko8ygtqepphfvag.jpg",
+          "publicId": "artist-portfolio/artworks/bnzoxko8ygtqepphfvag",
+          "width": 3120,
+          "height": 4208,
+          "_id": "6a6e4c3fad4d344b35a5a590"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:55.160Z",
+      "updatedAt": "2026-08-01T19:42:55.160Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c3ead4d344b35a5a58c",
+      "title": "IMG 20160306 135446 HDR",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613373/artist-portfolio/artworks/jyi8caahxd5qyreblorj.jpg",
+          "publicId": "artist-portfolio/artworks/jyi8caahxd5qyreblorj",
+          "width": 3120,
+          "height": 4208,
+          "_id": "6a6e4c3ead4d344b35a5a58d"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:54.983Z",
+      "updatedAt": "2026-08-01T19:42:54.983Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6e4c3ead4d344b35a5a589",
+      "title": "IMG 20160306 123020 HDR",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785613373/artist-portfolio/artworks/dqdrc7fvfqvpjap64vkl.jpg",
+          "publicId": "artist-portfolio/artworks/dqdrc7fvfqvpjap64vkl",
+          "width": 4208,
+          "height": 3120,
+          "_id": "6a6e4c3ead4d344b35a5a58a"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-08-01T19:42:54.912Z",
+      "updatedAt": "2026-08-01T19:42:54.912Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6c523f2d92c5bdd6df3db4",
+      "title": "xx",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785483834/artist-portfolio/artworks/m3irt0mmcsjin7xj5nlb.jpg",
+          "publicId": "artist-portfolio/artworks/m3irt0mmcsjin7xj5nlb",
+          "width": 8070,
+          "height": 5196,
+          "_id": "6a6c523f2d92c5bdd6df3db5"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-07-31T07:43:59.307Z",
+      "updatedAt": "2026-07-31T07:43:59.307Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6c51df2d92c5bdd6df3d9d",
+      "title": "...",
+      "description": "",
+      "category": "Abstract",
+      "price": null,
+      "medium": "......",
+      "dimensions": "",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785483740/artist-portfolio/artworks/rfburyberjslwkdasf0w.jpg",
+          "publicId": "artist-portfolio/artworks/rfburyberjslwkdasf0w",
+          "width": 6000,
+          "height": 4000,
+          "_id": "6a6c51df2d92c5bdd6df3d9e"
+        }
+      ],
+      "year": null,
+      "createdAt": "2026-07-31T07:42:23.481Z",
+      "updatedAt": "2026-07-31T07:42:23.481Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6c51402d92c5bdd6df3d52",
+      "title": "ghghghg",
+      "description": "Fix and redesign the authentication flow in my existing full-stack Artist Portfolio project.\r\n\r\nExisting stack:\r\n- Frontend: React + Vite\r\n- Backend: Node.js + Express\r\n- Database: MongoDB with Mongoose\r\n- Authentication: JWT\r\n- Frontend deployed on Netlify\r\n- Backend deployed on Render\r\n- This is a single-admin Artist Portfolio website.\r\n\r\nCurrent problem:\r\nThe admin login page displays an Authenticator QR code and manual setup key. This is incorrect and insecure. The QR code and manual key must never appear on the login page.\r\n\r\nI also do not want the email input to be treated as frontend text or compared using hardcoded frontend values. Login must use the real registered admin account stored securely in the backend/database. Email ownership must be verified by sending a real OTP to the registered email address.\r\n\r\nImplement the following complete authentication flow.\r\n\r\n==================================================\r\n1. LOGIN PAGE\r\n==================================================\r\n\r\nThe normal admin login page must initially display only:\r\n\r\n- Email address\r\n- Password\r\n- Sign In button\r\n- Loading state\r\n- Proper error messages\r\n\r\nRemove the following from the initial login page:\r\n\r\n- Authenticator QR code\r\n- Authenticator manual key\r\n- Authenticator setup instructions\r\n- Authenticator setup secret\r\n- Authenticator setup URI\r\n\r\nNever generate a new Authenticator secret during login.\r\n\r\nNever return a QR code, manual key, otpauth URI, TOTP secret, password hash, or other sensitive information from the normal login endpoint.\r\n\r\n==================================================\r\n2. REAL BACKEND EMAIL AND PASSWORD LOGIN\r\n==================================================\r\n\r\nThe frontend must send the entered email and password to the backend login API.\r\n\r\nThe backend must:\r\n\r\n1. Normalize the email using trim and lowercase.\r\n2. Find the admin account in MongoDB.\r\n3. Compare the entered password against the bcrypt password hash.\r\n4. Reject an incorrect email or password.\r\n5. Return a generic error:\r\n   \"Invalid email or password.\"\r\n6. Never compare credentials only in the React frontend.\r\n7. Never store plain-text passwords.\r\n8. Never put the admin password or private credentials inside frontend environment variables.\r\n9. Do not issue the final JWT until all required verification steps are complete.\r\n\r\nUse the existing admin model and authentication routes where possible. Do not create duplicate authentication systems.\r\n\r\n==================================================\r\n3. REAL EMAIL OTP VERIFICATION\r\n==================================================\r\n\r\nAfter the email and password are successfully verified, send a real one-time verification code to the registered admin email address.\r\n\r\nUse the project’s existing email provider if one is already configured. If no provider exists, add a clean email service implementation using Nodemailer with SMTP environment variables.\r\n\r\nRequired backend environment variables:\r\n\r\nSMTP_HOST=\r\nSMTP_PORT=\r\nSMTP_SECURE=\r\nSMTP_USER=\r\nSMTP_PASS=\r\nEMAIL_FROM=\r\nFRONTEND_URL=\r\n\r\nDo not hardcode SMTP credentials.\r\n\r\nEmail OTP requirements:\r\n\r\n- Generate a cryptographically secure 6-digit OTP.\r\n- OTP expires after 10 minutes.\r\n- Store only a secure hash of the OTP, not the plain OTP.\r\n- Store the OTP purpose, expiry time, attempt count, and admin ID.\r\n- Invalidate the OTP after successful use.\r\n- Invalidate old OTPs when sending a new one.\r\n- Limit verification attempts.\r\n- Add a resend cooldown of at least 60 seconds.\r\n- Add rate limiting to OTP generation and verification endpoints.\r\n- Do not reveal whether an arbitrary email address exists.\r\n- Send the OTP only to the email stored on the authenticated admin account.\r\n\r\nAfter password verification, return a short-lived temporary login challenge token. Do not return the final authentication JWT yet.\r\n\r\nThe frontend must then show a second step containing:\r\n\r\n- A message that the code was sent to the registered email\r\n- A 6-digit OTP input\r\n- Verify button\r\n- Resend code button with countdown\r\n- Back to login button\r\n- Loading and error states\r\n\r\nMask the displayed email address, for example:\r\n\r\na***********5@gmail.com\r\n\r\nDo not expose the full email unnecessarily.\r\n\r\n==================================================\r\n4. AUTHENTICATOR SETUP ONLY IN ADMIN SETTINGS\r\n==================================================\r\n\r\nMove all Authenticator setup functionality to:\r\n\r\nAdmin Dashboard → Settings → Security → Two-Factor Authentication\r\n\r\nOnly an already authenticated admin may access this area.\r\n\r\nThe Authenticator setup page may contain:\r\n\r\n- Enable Authenticator button\r\n- QR code\r\n- Manual setup key\r\n- Verification code input\r\n- Confirm and Enable button\r\n- Disable Authenticator button\r\n- Status showing Enabled or Disabled\r\n- Recovery codes, if implemented securely\r\n\r\nThe backend setup endpoint must:\r\n\r\n1. Require a valid authenticated admin JWT.\r\n2. Generate a new TOTP secret only when the admin explicitly starts setup.\r\n3. Store the pending secret securely.\r\n4. Return the QR code and manual key only for that authenticated setup request.\r\n5. Require a valid current 6-digit Authenticator code before enabling TOTP.\r\n6. Set `totpEnabled` to true only after successful verification.\r\n7. Remove or invalidate an unfinished pending secret after an appropriate expiry time.\r\n\r\nDo not enable TOTP just because a secret was generated.\r\n\r\nDo not show the QR code again after TOTP has been enabled. If the admin wants a new QR code, require them to disable/reset Authenticator and complete a new secure setup.\r\n\r\nFor sensitive actions such as disabling or resetting Authenticator, require password confirmation and/or a valid current Authenticator code.\r\n\r\n==================================================\r\n5. LOGIN WHEN AUTHENTICATOR IS DISABLED\r\n==================================================\r\n\r\nRequired login flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Backend sends a real OTP to the registered admin email.\r\n4. Admin enters the email OTP.\r\n5. Backend verifies the OTP.\r\n6. Backend issues the final JWT.\r\n7. Admin is redirected to the dashboard.\r\n\r\nThe QR code and manual key must never appear in this flow.\r\n\r\n==================================================\r\n6. LOGIN WHEN AUTHENTICATOR IS ENABLED\r\n==================================================\r\n\r\nIf the admin has enabled Authenticator from Settings, use this flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Frontend shows a simple 6-digit Authenticator code input.\r\n4. Backend verifies the code against the admin’s stored TOTP secret.\r\n5. If valid, continue with the configured email OTP requirement or issue the final JWT according to the existing security policy.\r\n6. Redirect to the dashboard only after all required factors pass.\r\n\r\nImportant:\r\nDuring login, show only the 6-digit Authenticator code input.\r\n\r\nNever show:\r\n\r\n- QR code\r\n- Manual key\r\n- TOTP secret\r\n- Authenticator enrollment instructions\r\n- otpauth URI\r\n\r\nClearly separate these two operations:\r\n\r\n- Authenticator enrollment/setup: Settings only\r\n- Authenticator code verification: Login only when already enabled\r\n\r\n==================================================\r\n7. REQUIRED BACKEND ROUTES\r\n==================================================\r\n\r\nInspect and reuse existing routes where possible.\r\n\r\nThe final API structure should logically provide equivalents of:\r\n\r\nPOST /api/auth/login\r\n- Validate email and password\r\n- Determine required next verification step\r\n- Send email OTP when required\r\n- Return a short-lived challenge token\r\n- Never return the final JWT before verification is complete\r\n\r\nPOST /api/auth/verify-email-otp\r\n- Validate the challenge token and email OTP\r\n- Continue to the next required step or issue the final JWT\r\n\r\nPOST /api/auth/resend-email-otp\r\n- Resend with cooldown and rate limiting\r\n\r\nPOST /api/auth/verify-totp\r\n- Verify the Authenticator code during login\r\n- Issue the final JWT only after all required checks pass\r\n\r\nGET /api/admin/security/2fa/status\r\n- Return whether TOTP is enabled\r\n- Never return the TOTP secret\r\n\r\nPOST /api/admin/security/2fa/setup\r\n- Authenticated Settings-only endpoint\r\n- Start Authenticator enrollment\r\n- Return temporary QR/manual-key information only here\r\n\r\nPOST /api/admin/security/2fa/enable\r\n- Verify the setup code\r\n- Enable TOTP\r\n\r\nPOST /api/admin/security/2fa/disable\r\n- Require secure reauthentication\r\n- Disable TOTP and remove its secret\r\n\r\nUse the project’s existing route naming conventions if they differ, but preserve this separation of responsibilities.\r\n\r\n==================================================\r\n8. DATABASE REQUIREMENTS\r\n==================================================\r\n\r\nInspect the existing admin/user schema and safely add only the required fields.\r\n\r\nPossible fields include:\r\n\r\n- email\r\n- passwordHash\r\n- emailVerified\r\n- totpEnabled\r\n- totpSecret\r\n- pendingTotpSecret\r\n- pendingTotpExpiresAt\r\n- otpHash\r\n- otpExpiresAt\r\n- otpAttempts\r\n- otpLastSentAt\r\n- failedLoginAttempts\r\n- lockUntil\r\n\r\nDo not store:\r\n\r\n- Plain-text password\r\n- Plain-text email OTP\r\n- TOTP secret in frontend storage\r\n- TOTP secret inside JWT\r\n- QR code inside the database unless absolutely necessary\r\n\r\nIf the project already has equivalent fields, reuse them instead of creating duplicates.\r\n\r\nProtect the stored TOTP secret appropriately. If the project has an encryption utility, use it. Otherwise add server-side encryption using an environment key and authenticated encryption, without hardcoding the key.\r\n\r\n==================================================\r\n9. JWT AND FRONTEND STORAGE\r\n==================================================\r\n\r\nDo not issue the final JWT after password verification alone when another factor is required.\r\n\r\nTemporary login challenge tokens must:\r\n\r\n- Have a short expiry\r\n- Be scoped only to completing login\r\n- Not grant access to protected admin APIs\r\n\r\nPrefer secure HttpOnly cookies for final authentication if compatible with the existing deployment.\r\n\r\nIf the current project uses token storage, preserve compatibility while avoiding unnecessary exposure. Do not place passwords, OTP values, TOTP secrets, or SMTP credentials in localStorage.\r\n\r\nEnsure logout clears authentication state correctly.\r\n\r\n==================================================\r\n10. UI REQUIREMENTS\r\n==================================================\r\n\r\nPreserve the existing premium Artist Portfolio design.\r\n\r\nDo not redesign unrelated pages.\r\n\r\nLogin page:\r\n\r\nStep 1:\r\n- Email\r\n- Password\r\n- Sign In\r\n\r\nStep 2 when email OTP is required:\r\n- Email verification heading\r\n- Masked destination email\r\n- Six-digit OTP input\r\n- Verify button\r\n- Resend button with countdown\r\n- Back button\r\n\r\nStep 2 when Authenticator is required:\r\n- Authenticator verification heading\r\n- Six-digit code input\r\n- Verify and Sign In button\r\n- Back button\r\n\r\nSettings → Security:\r\n\r\n- Email status\r\n- Authenticator status\r\n- Enable/disable controls\r\n- QR code only during active setup\r\n- Manual key only during active setup\r\n- Clear setup instructions\r\n\r\nThe forms must be responsive and accessible.\r\n\r\nUse proper labels, autocomplete attributes, keyboard support, focus management, disabled states, and error messages.\r\n\r\n==================================================\r\n11. SECURITY REQUIREMENTS\r\n==================================================\r\n\r\n- Use bcrypt for passwords.\r\n- Use cryptographically secure OTP generation.\r\n- Hash email OTPs before storage.\r\n- Rate-limit login, OTP resend, OTP verification, and TOTP verification.\r\n- Apply expiry and attempt limits.\r\n- Do not log passwords, OTPs, JWTs, SMTP passwords, TOTP secrets, QR content, or manual keys.\r\n- Do not expose account existence through error messages.\r\n- Validate and sanitize API input.\r\n- Preserve existing Helmet and CORS configuration.\r\n- Allow only the configured frontend origin.\r\n- Keep all secrets in backend environment variables.\r\n- Never use `VITE_` variables for private backend secrets.\r\n- Revoke or replace any previously exposed Authenticator secret.\r\n\r\n==================================================\r\n12. IMPORTANT CURRENT SECRET RESET\r\n==================================================\r\n\r\nThe current Authenticator QR code and manual key were exposed in a screenshot.\r\n\r\nTreat the existing TOTP secret as compromised.\r\n\r\nRemove or invalidate the existing TOTP secret, set TOTP as disabled, and require a completely new Authenticator setup from:\r\n\r\nAdmin Dashboard → Settings → Security\r\n\r\nDo not reuse the previously displayed secret.\r\n\r\nDo not print the new secret in terminal logs or the final report.\r\n\r\n==================================================\r\n13. TESTING\r\n==================================================\r\n\r\nTest all of these cases:\r\n\r\n1. Correct email and password.\r\n2. Incorrect email.\r\n3. Incorrect password.\r\n4. Expired email OTP.\r\n5. Incorrect email OTP.\r\n6. Email OTP resend cooldown.\r\n7. Too many OTP attempts.\r\n8. Login when Authenticator is disabled.\r\n9. Authenticator enrollment from Settings.\r\n10. Correct Authenticator setup code.\r\n11. Incorrect Authenticator setup code.\r\n12. Login when Authenticator is enabled.\r\n13. Incorrect Authenticator login code.\r\n14. Authenticator disable/reset flow.\r\n15. Protected Settings endpoints without JWT.\r\n16. Page refresh during verification.\r\n17. Logout.\r\n18. Desktop and mobile layouts.\r\n\r\nRun the frontend and backend tests if present.\r\n\r\nRun the frontend production build.\r\n\r\nFix all errors caused by these changes.\r\n\r\n==================================================\r\n14. FINAL REPORT\r\n==================================================\r\n\r\nAfter implementation, report:\r\n\r\n- Exact files changed\r\n- New routes added\r\n- New environment variable names\r\n- MongoDB schema changes\r\n- How the final login flow works\r\n- How to configure the email provider\r\n- How to reset and enroll Authenticator from Settings\r\n- Test/build results\r\n\r\nDo not include any actual passwords, OTPs, SMTP credentials, JWTs, TOTP secrets, manual keys, or QR content in the final report.\r\n\r\nDo not change unrelated pages, gallery functionality, artwork functionality, admin artwork management, Cloudinary, MongoDB content, Netlify settings, or Render settings unless required for this authentication fix.",
+      "category": "Landscape",
+      "price": 323232,
+      "medium": "Charcoal on Paper",
+      "dimensions": "24 x 36",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785483581/artist-portfolio/artworks/fdoczyovwjcbhaqyzizx.jpg",
+          "publicId": "artist-portfolio/artworks/fdoczyovwjcbhaqyzizx",
+          "width": 5580,
+          "height": 3720,
+          "_id": "6a6c51402d92c5bdd6df3d53"
+        }
+      ],
+      "year": 2026,
+      "createdAt": "2026-07-31T07:39:44.446Z",
+      "updatedAt": "2026-07-31T07:39:44.446Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6c50d62d92c5bdd6df3d21",
+      "title": "jjjjjjjjjjjjjjj",
+      "description": "Fix and redesign the authentication flow in my existing full-stack Artist Portfolio project.\r\n\r\nExisting stack:\r\n- Frontend: React + Vite\r\n- Backend: Node.js + Express\r\n- Database: MongoDB with Mongoose\r\n- Authentication: JWT\r\n- Frontend deployed on Netlify\r\n- Backend deployed on Render\r\n- This is a single-admin Artist Portfolio website.\r\n\r\nCurrent problem:\r\nThe admin login page displays an Authenticator QR code and manual setup key. This is incorrect and insecure. The QR code and manual key must never appear on the login page.\r\n\r\nI also do not want the email input to be treated as frontend text or compared using hardcoded frontend values. Login must use the real registered admin account stored securely in the backend/database. Email ownership must be verified by sending a real OTP to the registered email address.\r\n\r\nImplement the following complete authentication flow.\r\n\r\n==================================================\r\n1. LOGIN PAGE\r\n==================================================\r\n\r\nThe normal admin login page must initially display only:\r\n\r\n- Email address\r\n- Password\r\n- Sign In button\r\n- Loading state\r\n- Proper error messages\r\n\r\nRemove the following from the initial login page:\r\n\r\n- Authenticator QR code\r\n- Authenticator manual key\r\n- Authenticator setup instructions\r\n- Authenticator setup secret\r\n- Authenticator setup URI\r\n\r\nNever generate a new Authenticator secret during login.\r\n\r\nNever return a QR code, manual key, otpauth URI, TOTP secret, password hash, or other sensitive information from the normal login endpoint.\r\n\r\n==================================================\r\n2. REAL BACKEND EMAIL AND PASSWORD LOGIN\r\n==================================================\r\n\r\nThe frontend must send the entered email and password to the backend login API.\r\n\r\nThe backend must:\r\n\r\n1. Normalize the email using trim and lowercase.\r\n2. Find the admin account in MongoDB.\r\n3. Compare the entered password against the bcrypt password hash.\r\n4. Reject an incorrect email or password.\r\n5. Return a generic error:\r\n   \"Invalid email or password.\"\r\n6. Never compare credentials only in the React frontend.\r\n7. Never store plain-text passwords.\r\n8. Never put the admin password or private credentials inside frontend environment variables.\r\n9. Do not issue the final JWT until all required verification steps are complete.\r\n\r\nUse the existing admin model and authentication routes where possible. Do not create duplicate authentication systems.\r\n\r\n==================================================\r\n3. REAL EMAIL OTP VERIFICATION\r\n==================================================\r\n\r\nAfter the email and password are successfully verified, send a real one-time verification code to the registered admin email address.\r\n\r\nUse the project’s existing email provider if one is already configured. If no provider exists, add a clean email service implementation using Nodemailer with SMTP environment variables.\r\n\r\nRequired backend environment variables:\r\n\r\nSMTP_HOST=\r\nSMTP_PORT=\r\nSMTP_SECURE=\r\nSMTP_USER=\r\nSMTP_PASS=\r\nEMAIL_FROM=\r\nFRONTEND_URL=\r\n\r\nDo not hardcode SMTP credentials.\r\n\r\nEmail OTP requirements:\r\n\r\n- Generate a cryptographically secure 6-digit OTP.\r\n- OTP expires after 10 minutes.\r\n- Store only a secure hash of the OTP, not the plain OTP.\r\n- Store the OTP purpose, expiry time, attempt count, and admin ID.\r\n- Invalidate the OTP after successful use.\r\n- Invalidate old OTPs when sending a new one.\r\n- Limit verification attempts.\r\n- Add a resend cooldown of at least 60 seconds.\r\n- Add rate limiting to OTP generation and verification endpoints.\r\n- Do not reveal whether an arbitrary email address exists.\r\n- Send the OTP only to the email stored on the authenticated admin account.\r\n\r\nAfter password verification, return a short-lived temporary login challenge token. Do not return the final authentication JWT yet.\r\n\r\nThe frontend must then show a second step containing:\r\n\r\n- A message that the code was sent to the registered email\r\n- A 6-digit OTP input\r\n- Verify button\r\n- Resend code button with countdown\r\n- Back to login button\r\n- Loading and error states\r\n\r\nMask the displayed email address, for example:\r\n\r\na***********5@gmail.com\r\n\r\nDo not expose the full email unnecessarily.\r\n\r\n==================================================\r\n4. AUTHENTICATOR SETUP ONLY IN ADMIN SETTINGS\r\n==================================================\r\n\r\nMove all Authenticator setup functionality to:\r\n\r\nAdmin Dashboard → Settings → Security → Two-Factor Authentication\r\n\r\nOnly an already authenticated admin may access this area.\r\n\r\nThe Authenticator setup page may contain:\r\n\r\n- Enable Authenticator button\r\n- QR code\r\n- Manual setup key\r\n- Verification code input\r\n- Confirm and Enable button\r\n- Disable Authenticator button\r\n- Status showing Enabled or Disabled\r\n- Recovery codes, if implemented securely\r\n\r\nThe backend setup endpoint must:\r\n\r\n1. Require a valid authenticated admin JWT.\r\n2. Generate a new TOTP secret only when the admin explicitly starts setup.\r\n3. Store the pending secret securely.\r\n4. Return the QR code and manual key only for that authenticated setup request.\r\n5. Require a valid current 6-digit Authenticator code before enabling TOTP.\r\n6. Set `totpEnabled` to true only after successful verification.\r\n7. Remove or invalidate an unfinished pending secret after an appropriate expiry time.\r\n\r\nDo not enable TOTP just because a secret was generated.\r\n\r\nDo not show the QR code again after TOTP has been enabled. If the admin wants a new QR code, require them to disable/reset Authenticator and complete a new secure setup.\r\n\r\nFor sensitive actions such as disabling or resetting Authenticator, require password confirmation and/or a valid current Authenticator code.\r\n\r\n==================================================\r\n5. LOGIN WHEN AUTHENTICATOR IS DISABLED\r\n==================================================\r\n\r\nRequired login flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Backend sends a real OTP to the registered admin email.\r\n4. Admin enters the email OTP.\r\n5. Backend verifies the OTP.\r\n6. Backend issues the final JWT.\r\n7. Admin is redirected to the dashboard.\r\n\r\nThe QR code and manual key must never appear in this flow.\r\n\r\n==================================================\r\n6. LOGIN WHEN AUTHENTICATOR IS ENABLED\r\n==================================================\r\n\r\nIf the admin has enabled Authenticator from Settings, use this flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Frontend shows a simple 6-digit Authenticator code input.\r\n4. Backend verifies the code against the admin’s stored TOTP secret.\r\n5. If valid, continue with the configured email OTP requirement or issue the final JWT according to the existing security policy.\r\n6. Redirect to the dashboard only after all required factors pass.\r\n\r\nImportant:\r\nDuring login, show only the 6-digit Authenticator code input.\r\n\r\nNever show:\r\n\r\n- QR code\r\n- Manual key\r\n- TOTP secret\r\n- Authenticator enrollment instructions\r\n- otpauth URI\r\n\r\nClearly separate these two operations:\r\n\r\n- Authenticator enrollment/setup: Settings only\r\n- Authenticator code verification: Login only when already enabled\r\n\r\n==================================================\r\n7. REQUIRED BACKEND ROUTES\r\n==================================================\r\n\r\nInspect and reuse existing routes where possible.\r\n\r\nThe final API structure should logically provide equivalents of:\r\n\r\nPOST /api/auth/login\r\n- Validate email and password\r\n- Determine required next verification step\r\n- Send email OTP when required\r\n- Return a short-lived challenge token\r\n- Never return the final JWT before verification is complete\r\n\r\nPOST /api/auth/verify-email-otp\r\n- Validate the challenge token and email OTP\r\n- Continue to the next required step or issue the final JWT\r\n\r\nPOST /api/auth/resend-email-otp\r\n- Resend with cooldown and rate limiting\r\n\r\nPOST /api/auth/verify-totp\r\n- Verify the Authenticator code during login\r\n- Issue the final JWT only after all required checks pass\r\n\r\nGET /api/admin/security/2fa/status\r\n- Return whether TOTP is enabled\r\n- Never return the TOTP secret\r\n\r\nPOST /api/admin/security/2fa/setup\r\n- Authenticated Settings-only endpoint\r\n- Start Authenticator enrollment\r\n- Return temporary QR/manual-key information only here\r\n\r\nPOST /api/admin/security/2fa/enable\r\n- Verify the setup code\r\n- Enable TOTP\r\n\r\nPOST /api/admin/security/2fa/disable\r\n- Require secure reauthentication\r\n- Disable TOTP and remove its secret\r\n\r\nUse the project’s existing route naming conventions if they differ, but preserve this separation of responsibilities.\r\n\r\n==================================================\r\n8. DATABASE REQUIREMENTS\r\n==================================================\r\n\r\nInspect the existing admin/user schema and safely add only the required fields.\r\n\r\nPossible fields include:\r\n\r\n- email\r\n- passwordHash\r\n- emailVerified\r\n- totpEnabled\r\n- totpSecret\r\n- pendingTotpSecret\r\n- pendingTotpExpiresAt\r\n- otpHash\r\n- otpExpiresAt\r\n- otpAttempts\r\n- otpLastSentAt\r\n- failedLoginAttempts\r\n- lockUntil\r\n\r\nDo not store:\r\n\r\n- Plain-text password\r\n- Plain-text email OTP\r\n- TOTP secret in frontend storage\r\n- TOTP secret inside JWT\r\n- QR code inside the database unless absolutely necessary\r\n\r\nIf the project already has equivalent fields, reuse them instead of creating duplicates.\r\n\r\nProtect the stored TOTP secret appropriately. If the project has an encryption utility, use it. Otherwise add server-side encryption using an environment key and authenticated encryption, without hardcoding the key.\r\n\r\n==================================================\r\n9. JWT AND FRONTEND STORAGE\r\n==================================================\r\n\r\nDo not issue the final JWT after password verification alone when another factor is required.\r\n\r\nTemporary login challenge tokens must:\r\n\r\n- Have a short expiry\r\n- Be scoped only to completing login\r\n- Not grant access to protected admin APIs\r\n\r\nPrefer secure HttpOnly cookies for final authentication if compatible with the existing deployment.\r\n\r\nIf the current project uses token storage, preserve compatibility while avoiding unnecessary exposure. Do not place passwords, OTP values, TOTP secrets, or SMTP credentials in localStorage.\r\n\r\nEnsure logout clears authentication state correctly.\r\n\r\n==================================================\r\n10. UI REQUIREMENTS\r\n==================================================\r\n\r\nPreserve the existing premium Artist Portfolio design.\r\n\r\nDo not redesign unrelated pages.\r\n\r\nLogin page:\r\n\r\nStep 1:\r\n- Email\r\n- Password\r\n- Sign In\r\n\r\nStep 2 when email OTP is required:\r\n- Email verification heading\r\n- Masked destination email\r\n- Six-digit OTP input\r\n- Verify button\r\n- Resend button with countdown\r\n- Back button\r\n\r\nStep 2 when Authenticator is required:\r\n- Authenticator verification heading\r\n- Six-digit code input\r\n- Verify and Sign In button\r\n- Back button\r\n\r\nSettings → Security:\r\n\r\n- Email status\r\n- Authenticator status\r\n- Enable/disable controls\r\n- QR code only during active setup\r\n- Manual key only during active setup\r\n- Clear setup instructions\r\n\r\nThe forms must be responsive and accessible.\r\n\r\nUse proper labels, autocomplete attributes, keyboard support, focus management, disabled states, and error messages.\r\n\r\n==================================================\r\n11. SECURITY REQUIREMENTS\r\n==================================================\r\n\r\n- Use bcrypt for passwords.\r\n- Use cryptographically secure OTP generation.\r\n- Hash email OTPs before storage.\r\n- Rate-limit login, OTP resend, OTP verification, and TOTP verification.\r\n- Apply expiry and attempt limits.\r\n- Do not log passwords, OTPs, JWTs, SMTP passwords, TOTP secrets, QR content, or manual keys.\r\n- Do not expose account existence through error messages.\r\n- Validate and sanitize API input.\r\n- Preserve existing Helmet and CORS configuration.\r\n- Allow only the configured frontend origin.\r\n- Keep all secrets in backend environment variables.\r\n- Never use `VITE_` variables for private backend secrets.\r\n- Revoke or replace any previously exposed Authenticator secret.\r\n\r\n==================================================\r\n12. IMPORTANT CURRENT SECRET RESET\r\n==================================================\r\n\r\nThe current Authenticator QR code and manual key were exposed in a screenshot.\r\n\r\nTreat the existing TOTP secret as compromised.\r\n\r\nRemove or invalidate the existing TOTP secret, set TOTP as disabled, and require a completely new Authenticator setup from:\r\n\r\nAdmin Dashboard → Settings → Security\r\n\r\nDo not reuse the previously displayed secret.\r\n\r\nDo not print the new secret in terminal logs or the final report.\r\n\r\n==================================================\r\n13. TESTING\r\n==================================================\r\n\r\nTest all of these cases:\r\n\r\n1. Correct email and password.\r\n2. Incorrect email.\r\n3. Incorrect password.\r\n4. Expired email OTP.\r\n5. Incorrect email OTP.\r\n6. Email OTP resend cooldown.\r\n7. Too many OTP attempts.\r\n8. Login when Authenticator is disabled.\r\n9. Authenticator enrollment from Settings.\r\n10. Correct Authenticator setup code.\r\n11. Incorrect Authenticator setup code.\r\n12. Login when Authenticator is enabled.\r\n13. Incorrect Authenticator login code.\r\n14. Authenticator disable/reset flow.\r\n15. Protected Settings endpoints without JWT.\r\n16. Page refresh during verification.\r\n17. Logout.\r\n18. Desktop and mobile layouts.\r\n\r\nRun the frontend and backend tests if present.\r\n\r\nRun the frontend production build.\r\n\r\nFix all errors caused by these changes.\r\n\r\n==================================================\r\n14. FINAL REPORT\r\n==================================================\r\n\r\nAfter implementation, report:\r\n\r\n- Exact files changed\r\n- New routes added\r\n- New environment variable names\r\n- MongoDB schema changes\r\n- How the final login flow works\r\n- How to configure the email provider\r\n- How to reset and enroll Authenticator from Settings\r\n- Test/build results\r\n\r\nDo not include any actual passwords, OTPs, SMTP credentials, JWTs, TOTP secrets, manual keys, or QR content in the final report.\r\n\r\nDo not change unrelated pages, gallery functionality, artwork functionality, admin artwork management, Cloudinary, MongoDB content, Netlify settings, or Render settings unless required for this authentication fix.",
+      "category": "Landscape",
+      "price": 565665,
+      "medium": "Oil on Canvas",
+      "dimensions": "24 x 36",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785483478/artist-portfolio/artworks/xrgq9dttztel0422ao1z.jpg",
+          "publicId": "artist-portfolio/artworks/xrgq9dttztel0422ao1z",
+          "width": 600,
+          "height": 500,
+          "_id": "6a6c50d62d92c5bdd6df3d22"
+        }
+      ],
+      "year": 2000,
+      "createdAt": "2026-07-31T07:37:58.698Z",
+      "updatedAt": "2026-07-31T07:40:15.201Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6c504d2d92c5bdd6df3ccf",
+      "title": "uuuuuuuu",
+      "description": "Fix and redesign the authentication flow in my existing full-stack Artist Portfolio project.\r\n\r\nExisting stack:\r\n- Frontend: React + Vite\r\n- Backend: Node.js + Express\r\n- Database: MongoDB with Mongoose\r\n- Authentication: JWT\r\n- Frontend deployed on Netlify\r\n- Backend deployed on Render\r\n- This is a single-admin Artist Portfolio website.\r\n\r\nCurrent problem:\r\nThe admin login page displays an Authenticator QR code and manual setup key. This is incorrect and insecure. The QR code and manual key must never appear on the login page.\r\n\r\nI also do not want the email input to be treated as frontend text or compared using hardcoded frontend values. Login must use the real registered admin account stored securely in the backend/database. Email ownership must be verified by sending a real OTP to the registered email address.\r\n\r\nImplement the following complete authentication flow.\r\n\r\n==================================================\r\n1. LOGIN PAGE\r\n==================================================\r\n\r\nThe normal admin login page must initially display only:\r\n\r\n- Email address\r\n- Password\r\n- Sign In button\r\n- Loading state\r\n- Proper error messages\r\n\r\nRemove the following from the initial login page:\r\n\r\n- Authenticator QR code\r\n- Authenticator manual key\r\n- Authenticator setup instructions\r\n- Authenticator setup secret\r\n- Authenticator setup URI\r\n\r\nNever generate a new Authenticator secret during login.\r\n\r\nNever return a QR code, manual key, otpauth URI, TOTP secret, password hash, or other sensitive information from the normal login endpoint.\r\n\r\n==================================================\r\n2. REAL BACKEND EMAIL AND PASSWORD LOGIN\r\n==================================================\r\n\r\nThe frontend must send the entered email and password to the backend login API.\r\n\r\nThe backend must:\r\n\r\n1. Normalize the email using trim and lowercase.\r\n2. Find the admin account in MongoDB.\r\n3. Compare the entered password against the bcrypt password hash.\r\n4. Reject an incorrect email or password.\r\n5. Return a generic error:\r\n   \"Invalid email or password.\"\r\n6. Never compare credentials only in the React frontend.\r\n7. Never store plain-text passwords.\r\n8. Never put the admin password or private credentials inside frontend environment variables.\r\n9. Do not issue the final JWT until all required verification steps are complete.\r\n\r\nUse the existing admin model and authentication routes where possible. Do not create duplicate authentication systems.\r\n\r\n==================================================\r\n3. REAL EMAIL OTP VERIFICATION\r\n==================================================\r\n\r\nAfter the email and password are successfully verified, send a real one-time verification code to the registered admin email address.\r\n\r\nUse the project’s existing email provider if one is already configured. If no provider exists, add a clean email service implementation using Nodemailer with SMTP environment variables.\r\n\r\nRequired backend environment variables:\r\n\r\nSMTP_HOST=\r\nSMTP_PORT=\r\nSMTP_SECURE=\r\nSMTP_USER=\r\nSMTP_PASS=\r\nEMAIL_FROM=\r\nFRONTEND_URL=\r\n\r\nDo not hardcode SMTP credentials.\r\n\r\nEmail OTP requirements:\r\n\r\n- Generate a cryptographically secure 6-digit OTP.\r\n- OTP expires after 10 minutes.\r\n- Store only a secure hash of the OTP, not the plain OTP.\r\n- Store the OTP purpose, expiry time, attempt count, and admin ID.\r\n- Invalidate the OTP after successful use.\r\n- Invalidate old OTPs when sending a new one.\r\n- Limit verification attempts.\r\n- Add a resend cooldown of at least 60 seconds.\r\n- Add rate limiting to OTP generation and verification endpoints.\r\n- Do not reveal whether an arbitrary email address exists.\r\n- Send the OTP only to the email stored on the authenticated admin account.\r\n\r\nAfter password verification, return a short-lived temporary login challenge token. Do not return the final authentication JWT yet.\r\n\r\nThe frontend must then show a second step containing:\r\n\r\n- A message that the code was sent to the registered email\r\n- A 6-digit OTP input\r\n- Verify button\r\n- Resend code button with countdown\r\n- Back to login button\r\n- Loading and error states\r\n\r\nMask the displayed email address, for example:\r\n\r\na***********5@gmail.com\r\n\r\nDo not expose the full email unnecessarily.\r\n\r\n==================================================\r\n4. AUTHENTICATOR SETUP ONLY IN ADMIN SETTINGS\r\n==================================================\r\n\r\nMove all Authenticator setup functionality to:\r\n\r\nAdmin Dashboard → Settings → Security → Two-Factor Authentication\r\n\r\nOnly an already authenticated admin may access this area.\r\n\r\nThe Authenticator setup page may contain:\r\n\r\n- Enable Authenticator button\r\n- QR code\r\n- Manual setup key\r\n- Verification code input\r\n- Confirm and Enable button\r\n- Disable Authenticator button\r\n- Status showing Enabled or Disabled\r\n- Recovery codes, if implemented securely\r\n\r\nThe backend setup endpoint must:\r\n\r\n1. Require a valid authenticated admin JWT.\r\n2. Generate a new TOTP secret only when the admin explicitly starts setup.\r\n3. Store the pending secret securely.\r\n4. Return the QR code and manual key only for that authenticated setup request.\r\n5. Require a valid current 6-digit Authenticator code before enabling TOTP.\r\n6. Set `totpEnabled` to true only after successful verification.\r\n7. Remove or invalidate an unfinished pending secret after an appropriate expiry time.\r\n\r\nDo not enable TOTP just because a secret was generated.\r\n\r\nDo not show the QR code again after TOTP has been enabled. If the admin wants a new QR code, require them to disable/reset Authenticator and complete a new secure setup.\r\n\r\nFor sensitive actions such as disabling or resetting Authenticator, require password confirmation and/or a valid current Authenticator code.\r\n\r\n==================================================\r\n5. LOGIN WHEN AUTHENTICATOR IS DISABLED\r\n==================================================\r\n\r\nRequired login flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Backend sends a real OTP to the registered admin email.\r\n4. Admin enters the email OTP.\r\n5. Backend verifies the OTP.\r\n6. Backend issues the final JWT.\r\n7. Admin is redirected to the dashboard.\r\n\r\nThe QR code and manual key must never appear in this flow.\r\n\r\n==================================================\r\n6. LOGIN WHEN AUTHENTICATOR IS ENABLED\r\n==================================================\r\n\r\nIf the admin has enabled Authenticator from Settings, use this flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Frontend shows a simple 6-digit Authenticator code input.\r\n4. Backend verifies the code against the admin’s stored TOTP secret.\r\n5. If valid, continue with the configured email OTP requirement or issue the final JWT according to the existing security policy.\r\n6. Redirect to the dashboard only after all required factors pass.\r\n\r\nImportant:\r\nDuring login, show only the 6-digit Authenticator code input.\r\n\r\nNever show:\r\n\r\n- QR code\r\n- Manual key\r\n- TOTP secret\r\n- Authenticator enrollment instructions\r\n- otpauth URI\r\n\r\nClearly separate these two operations:\r\n\r\n- Authenticator enrollment/setup: Settings only\r\n- Authenticator code verification: Login only when already enabled\r\n\r\n==================================================\r\n7. REQUIRED BACKEND ROUTES\r\n==================================================\r\n\r\nInspect and reuse existing routes where possible.\r\n\r\nThe final API structure should logically provide equivalents of:\r\n\r\nPOST /api/auth/login\r\n- Validate email and password\r\n- Determine required next verification step\r\n- Send email OTP when required\r\n- Return a short-lived challenge token\r\n- Never return the final JWT before verification is complete\r\n\r\nPOST /api/auth/verify-email-otp\r\n- Validate the challenge token and email OTP\r\n- Continue to the next required step or issue the final JWT\r\n\r\nPOST /api/auth/resend-email-otp\r\n- Resend with cooldown and rate limiting\r\n\r\nPOST /api/auth/verify-totp\r\n- Verify the Authenticator code during login\r\n- Issue the final JWT only after all required checks pass\r\n\r\nGET /api/admin/security/2fa/status\r\n- Return whether TOTP is enabled\r\n- Never return the TOTP secret\r\n\r\nPOST /api/admin/security/2fa/setup\r\n- Authenticated Settings-only endpoint\r\n- Start Authenticator enrollment\r\n- Return temporary QR/manual-key information only here\r\n\r\nPOST /api/admin/security/2fa/enable\r\n- Verify the setup code\r\n- Enable TOTP\r\n\r\nPOST /api/admin/security/2fa/disable\r\n- Require secure reauthentication\r\n- Disable TOTP and remove its secret\r\n\r\nUse the project’s existing route naming conventions if they differ, but preserve this separation of responsibilities.\r\n\r\n==================================================\r\n8. DATABASE REQUIREMENTS\r\n==================================================\r\n\r\nInspect the existing admin/user schema and safely add only the required fields.\r\n\r\nPossible fields include:\r\n\r\n- email\r\n- passwordHash\r\n- emailVerified\r\n- totpEnabled\r\n- totpSecret\r\n- pendingTotpSecret\r\n- pendingTotpExpiresAt\r\n- otpHash\r\n- otpExpiresAt\r\n- otpAttempts\r\n- otpLastSentAt\r\n- failedLoginAttempts\r\n- lockUntil\r\n\r\nDo not store:\r\n\r\n- Plain-text password\r\n- Plain-text email OTP\r\n- TOTP secret in frontend storage\r\n- TOTP secret inside JWT\r\n- QR code inside the database unless absolutely necessary\r\n\r\nIf the project already has equivalent fields, reuse them instead of creating duplicates.\r\n\r\nProtect the stored TOTP secret appropriately. If the project has an encryption utility, use it. Otherwise add server-side encryption using an environment key and authenticated encryption, without hardcoding the key.\r\n\r\n==================================================\r\n9. JWT AND FRONTEND STORAGE\r\n==================================================\r\n\r\nDo not issue the final JWT after password verification alone when another factor is required.\r\n\r\nTemporary login challenge tokens must:\r\n\r\n- Have a short expiry\r\n- Be scoped only to completing login\r\n- Not grant access to protected admin APIs\r\n\r\nPrefer secure HttpOnly cookies for final authentication if compatible with the existing deployment.\r\n\r\nIf the current project uses token storage, preserve compatibility while avoiding unnecessary exposure. Do not place passwords, OTP values, TOTP secrets, or SMTP credentials in localStorage.\r\n\r\nEnsure logout clears authentication state correctly.\r\n\r\n==================================================\r\n10. UI REQUIREMENTS\r\n==================================================\r\n\r\nPreserve the existing premium Artist Portfolio design.\r\n\r\nDo not redesign unrelated pages.\r\n\r\nLogin page:\r\n\r\nStep 1:\r\n- Email\r\n- Password\r\n- Sign In\r\n\r\nStep 2 when email OTP is required:\r\n- Email verification heading\r\n- Masked destination email\r\n- Six-digit OTP input\r\n- Verify button\r\n- Resend button with countdown\r\n- Back button\r\n\r\nStep 2 when Authenticator is required:\r\n- Authenticator verification heading\r\n- Six-digit code input\r\n- Verify and Sign In button\r\n- Back button\r\n\r\nSettings → Security:\r\n\r\n- Email status\r\n- Authenticator status\r\n- Enable/disable controls\r\n- QR code only during active setup\r\n- Manual key only during active setup\r\n- Clear setup instructions\r\n\r\nThe forms must be responsive and accessible.\r\n\r\nUse proper labels, autocomplete attributes, keyboard support, focus management, disabled states, and error messages.\r\n\r\n==================================================\r\n11. SECURITY REQUIREMENTS\r\n==================================================\r\n\r\n- Use bcrypt for passwords.\r\n- Use cryptographically secure OTP generation.\r\n- Hash email OTPs before storage.\r\n- Rate-limit login, OTP resend, OTP verification, and TOTP verification.\r\n- Apply expiry and attempt limits.\r\n- Do not log passwords, OTPs, JWTs, SMTP passwords, TOTP secrets, QR content, or manual keys.\r\n- Do not expose account existence through error messages.\r\n- Validate and sanitize API input.\r\n- Preserve existing Helmet and CORS configuration.\r\n- Allow only the configured frontend origin.\r\n- Keep all secrets in backend environment variables.\r\n- Never use `VITE_` variables for private backend secrets.\r\n- Revoke or replace any previously exposed Authenticator secret.\r\n\r\n==================================================\r\n12. IMPORTANT CURRENT SECRET RESET\r\n==================================================\r\n\r\nThe current Authenticator QR code and manual key were exposed in a screenshot.\r\n\r\nTreat the existing TOTP secret as compromised.\r\n\r\nRemove or invalidate the existing TOTP secret, set TOTP as disabled, and require a completely new Authenticator setup from:\r\n\r\nAdmin Dashboard → Settings → Security\r\n\r\nDo not reuse the previously displayed secret.\r\n\r\nDo not print the new secret in terminal logs or the final report.\r\n\r\n==================================================\r\n13. TESTING\r\n==================================================\r\n\r\nTest all of these cases:\r\n\r\n1. Correct email and password.\r\n2. Incorrect email.\r\n3. Incorrect password.\r\n4. Expired email OTP.\r\n5. Incorrect email OTP.\r\n6. Email OTP resend cooldown.\r\n7. Too many OTP attempts.\r\n8. Login when Authenticator is disabled.\r\n9. Authenticator enrollment from Settings.\r\n10. Correct Authenticator setup code.\r\n11. Incorrect Authenticator setup code.\r\n12. Login when Authenticator is enabled.\r\n13. Incorrect Authenticator login code.\r\n14. Authenticator disable/reset flow.\r\n15. Protected Settings endpoints without JWT.\r\n16. Page refresh during verification.\r\n17. Logout.\r\n18. Desktop and mobile layouts.\r\n\r\nRun the frontend and backend tests if present.\r\n\r\nRun the frontend production build.\r\n\r\nFix all errors caused by these changes.\r\n\r\n==================================================\r\n14. FINAL REPORT\r\n==================================================\r\n\r\nAfter implementation, report:\r\n\r\n- Exact files changed\r\n- New routes added\r\n- New environment variable names\r\n- MongoDB schema changes\r\n- How the final login flow works\r\n- How to configure the email provider\r\n- How to reset and enroll Authenticator from Settings\r\n- Test/build results\r\n\r\nDo not include any actual passwords, OTPs, SMTP credentials, JWTs, TOTP secrets, manual keys, or QR content in the final report.\r\n\r\nDo not change unrelated pages, gallery functionality, artwork functionality, admin artwork management, Cloudinary, MongoDB content, Netlify settings, or Render settings unless required for this authentication fix.",
+      "category": "Abstract",
+      "price": 2323232,
+      "medium": "Oil on Canvas",
+      "dimensions": "24 x 36",
+      "isAvailable": true,
+      "isFeatured": true,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785483341/artist-portfolio/artworks/y8a59kx2r5zjgtin43pu.jpg",
+          "publicId": "artist-portfolio/artworks/y8a59kx2r5zjgtin43pu",
+          "width": 600,
+          "height": 400,
+          "_id": "6a6c504d2d92c5bdd6df3cd0"
+        }
+      ],
+      "year": 2025,
+      "createdAt": "2026-07-31T07:35:41.599Z",
+      "updatedAt": "2026-07-31T07:35:56.456Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6c50182d92c5bdd6df3cc6",
+      "title": "dfdfdd",
+      "description": "Fix and redesign the authentication flow in my existing full-stack Artist Portfolio project.\r\n\r\nExisting stack:\r\n- Frontend: React + Vite\r\n- Backend: Node.js + Express\r\n- Database: MongoDB with Mongoose\r\n- Authentication: JWT\r\n- Frontend deployed on Netlify\r\n- Backend deployed on Render\r\n- This is a single-admin Artist Portfolio website.\r\n\r\nCurrent problem:\r\nThe admin login page displays an Authenticator QR code and manual setup key. This is incorrect and insecure. The QR code and manual key must never appear on the login page.\r\n\r\nI also do not want the email input to be treated as frontend text or compared using hardcoded frontend values. Login must use the real registered admin account stored securely in the backend/database. Email ownership must be verified by sending a real OTP to the registered email address.\r\n\r\nImplement the following complete authentication flow.\r\n\r\n==================================================\r\n1. LOGIN PAGE\r\n==================================================\r\n\r\nThe normal admin login page must initially display only:\r\n\r\n- Email address\r\n- Password\r\n- Sign In button\r\n- Loading state\r\n- Proper error messages\r\n\r\nRemove the following from the initial login page:\r\n\r\n- Authenticator QR code\r\n- Authenticator manual key\r\n- Authenticator setup instructions\r\n- Authenticator setup secret\r\n- Authenticator setup URI\r\n\r\nNever generate a new Authenticator secret during login.\r\n\r\nNever return a QR code, manual key, otpauth URI, TOTP secret, password hash, or other sensitive information from the normal login endpoint.\r\n\r\n==================================================\r\n2. REAL BACKEND EMAIL AND PASSWORD LOGIN\r\n==================================================\r\n\r\nThe frontend must send the entered email and password to the backend login API.\r\n\r\nThe backend must:\r\n\r\n1. Normalize the email using trim and lowercase.\r\n2. Find the admin account in MongoDB.\r\n3. Compare the entered password against the bcrypt password hash.\r\n4. Reject an incorrect email or password.\r\n5. Return a generic error:\r\n   \"Invalid email or password.\"\r\n6. Never compare credentials only in the React frontend.\r\n7. Never store plain-text passwords.\r\n8. Never put the admin password or private credentials inside frontend environment variables.\r\n9. Do not issue the final JWT until all required verification steps are complete.\r\n\r\nUse the existing admin model and authentication routes where possible. Do not create duplicate authentication systems.\r\n\r\n==================================================\r\n3. REAL EMAIL OTP VERIFICATION\r\n==================================================\r\n\r\nAfter the email and password are successfully verified, send a real one-time verification code to the registered admin email address.\r\n\r\nUse the project’s existing email provider if one is already configured. If no provider exists, add a clean email service implementation using Nodemailer with SMTP environment variables.\r\n\r\nRequired backend environment variables:\r\n\r\nSMTP_HOST=\r\nSMTP_PORT=\r\nSMTP_SECURE=\r\nSMTP_USER=\r\nSMTP_PASS=\r\nEMAIL_FROM=\r\nFRONTEND_URL=\r\n\r\nDo not hardcode SMTP credentials.\r\n\r\nEmail OTP requirements:\r\n\r\n- Generate a cryptographically secure 6-digit OTP.\r\n- OTP expires after 10 minutes.\r\n- Store only a secure hash of the OTP, not the plain OTP.\r\n- Store the OTP purpose, expiry time, attempt count, and admin ID.\r\n- Invalidate the OTP after successful use.\r\n- Invalidate old OTPs when sending a new one.\r\n- Limit verification attempts.\r\n- Add a resend cooldown of at least 60 seconds.\r\n- Add rate limiting to OTP generation and verification endpoints.\r\n- Do not reveal whether an arbitrary email address exists.\r\n- Send the OTP only to the email stored on the authenticated admin account.\r\n\r\nAfter password verification, return a short-lived temporary login challenge token. Do not return the final authentication JWT yet.\r\n\r\nThe frontend must then show a second step containing:\r\n\r\n- A message that the code was sent to the registered email\r\n- A 6-digit OTP input\r\n- Verify button\r\n- Resend code button with countdown\r\n- Back to login button\r\n- Loading and error states\r\n\r\nMask the displayed email address, for example:\r\n\r\na***********5@gmail.com\r\n\r\nDo not expose the full email unnecessarily.\r\n\r\n==================================================\r\n4. AUTHENTICATOR SETUP ONLY IN ADMIN SETTINGS\r\n==================================================\r\n\r\nMove all Authenticator setup functionality to:\r\n\r\nAdmin Dashboard → Settings → Security → Two-Factor Authentication\r\n\r\nOnly an already authenticated admin may access this area.\r\n\r\nThe Authenticator setup page may contain:\r\n\r\n- Enable Authenticator button\r\n- QR code\r\n- Manual setup key\r\n- Verification code input\r\n- Confirm and Enable button\r\n- Disable Authenticator button\r\n- Status showing Enabled or Disabled\r\n- Recovery codes, if implemented securely\r\n\r\nThe backend setup endpoint must:\r\n\r\n1. Require a valid authenticated admin JWT.\r\n2. Generate a new TOTP secret only when the admin explicitly starts setup.\r\n3. Store the pending secret securely.\r\n4. Return the QR code and manual key only for that authenticated setup request.\r\n5. Require a valid current 6-digit Authenticator code before enabling TOTP.\r\n6. Set `totpEnabled` to true only after successful verification.\r\n7. Remove or invalidate an unfinished pending secret after an appropriate expiry time.\r\n\r\nDo not enable TOTP just because a secret was generated.\r\n\r\nDo not show the QR code again after TOTP has been enabled. If the admin wants a new QR code, require them to disable/reset Authenticator and complete a new secure setup.\r\n\r\nFor sensitive actions such as disabling or resetting Authenticator, require password confirmation and/or a valid current Authenticator code.\r\n\r\n==================================================\r\n5. LOGIN WHEN AUTHENTICATOR IS DISABLED\r\n==================================================\r\n\r\nRequired login flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Backend sends a real OTP to the registered admin email.\r\n4. Admin enters the email OTP.\r\n5. Backend verifies the OTP.\r\n6. Backend issues the final JWT.\r\n7. Admin is redirected to the dashboard.\r\n\r\nThe QR code and manual key must never appear in this flow.\r\n\r\n==================================================\r\n6. LOGIN WHEN AUTHENTICATOR IS ENABLED\r\n==================================================\r\n\r\nIf the admin has enabled Authenticator from Settings, use this flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Frontend shows a simple 6-digit Authenticator code input.\r\n4. Backend verifies the code against the admin’s stored TOTP secret.\r\n5. If valid, continue with the configured email OTP requirement or issue the final JWT according to the existing security policy.\r\n6. Redirect to the dashboard only after all required factors pass.\r\n\r\nImportant:\r\nDuring login, show only the 6-digit Authenticator code input.\r\n\r\nNever show:\r\n\r\n- QR code\r\n- Manual key\r\n- TOTP secret\r\n- Authenticator enrollment instructions\r\n- otpauth URI\r\n\r\nClearly separate these two operations:\r\n\r\n- Authenticator enrollment/setup: Settings only\r\n- Authenticator code verification: Login only when already enabled\r\n\r\n==================================================\r\n7. REQUIRED BACKEND ROUTES\r\n==================================================\r\n\r\nInspect and reuse existing routes where possible.\r\n\r\nThe final API structure should logically provide equivalents of:\r\n\r\nPOST /api/auth/login\r\n- Validate email and password\r\n- Determine required next verification step\r\n- Send email OTP when required\r\n- Return a short-lived challenge token\r\n- Never return the final JWT before verification is complete\r\n\r\nPOST /api/auth/verify-email-otp\r\n- Validate the challenge token and email OTP\r\n- Continue to the next required step or issue the final JWT\r\n\r\nPOST /api/auth/resend-email-otp\r\n- Resend with cooldown and rate limiting\r\n\r\nPOST /api/auth/verify-totp\r\n- Verify the Authenticator code during login\r\n- Issue the final JWT only after all required checks pass\r\n\r\nGET /api/admin/security/2fa/status\r\n- Return whether TOTP is enabled\r\n- Never return the TOTP secret\r\n\r\nPOST /api/admin/security/2fa/setup\r\n- Authenticated Settings-only endpoint\r\n- Start Authenticator enrollment\r\n- Return temporary QR/manual-key information only here\r\n\r\nPOST /api/admin/security/2fa/enable\r\n- Verify the setup code\r\n- Enable TOTP\r\n\r\nPOST /api/admin/security/2fa/disable\r\n- Require secure reauthentication\r\n- Disable TOTP and remove its secret\r\n\r\nUse the project’s existing route naming conventions if they differ, but preserve this separation of responsibilities.\r\n\r\n==================================================\r\n8. DATABASE REQUIREMENTS\r\n==================================================\r\n\r\nInspect the existing admin/user schema and safely add only the required fields.\r\n\r\nPossible fields include:\r\n\r\n- email\r\n- passwordHash\r\n- emailVerified\r\n- totpEnabled\r\n- totpSecret\r\n- pendingTotpSecret\r\n- pendingTotpExpiresAt\r\n- otpHash\r\n- otpExpiresAt\r\n- otpAttempts\r\n- otpLastSentAt\r\n- failedLoginAttempts\r\n- lockUntil\r\n\r\nDo not store:\r\n\r\n- Plain-text password\r\n- Plain-text email OTP\r\n- TOTP secret in frontend storage\r\n- TOTP secret inside JWT\r\n- QR code inside the database unless absolutely necessary\r\n\r\nIf the project already has equivalent fields, reuse them instead of creating duplicates.\r\n\r\nProtect the stored TOTP secret appropriately. If the project has an encryption utility, use it. Otherwise add server-side encryption using an environment key and authenticated encryption, without hardcoding the key.\r\n\r\n==================================================\r\n9. JWT AND FRONTEND STORAGE\r\n==================================================\r\n\r\nDo not issue the final JWT after password verification alone when another factor is required.\r\n\r\nTemporary login challenge tokens must:\r\n\r\n- Have a short expiry\r\n- Be scoped only to completing login\r\n- Not grant access to protected admin APIs\r\n\r\nPrefer secure HttpOnly cookies for final authentication if compatible with the existing deployment.\r\n\r\nIf the current project uses token storage, preserve compatibility while avoiding unnecessary exposure. Do not place passwords, OTP values, TOTP secrets, or SMTP credentials in localStorage.\r\n\r\nEnsure logout clears authentication state correctly.\r\n\r\n==================================================\r\n10. UI REQUIREMENTS\r\n==================================================\r\n\r\nPreserve the existing premium Artist Portfolio design.\r\n\r\nDo not redesign unrelated pages.\r\n\r\nLogin page:\r\n\r\nStep 1:\r\n- Email\r\n- Password\r\n- Sign In\r\n\r\nStep 2 when email OTP is required:\r\n- Email verification heading\r\n- Masked destination email\r\n- Six-digit OTP input\r\n- Verify button\r\n- Resend button with countdown\r\n- Back button\r\n\r\nStep 2 when Authenticator is required:\r\n- Authenticator verification heading\r\n- Six-digit code input\r\n- Verify and Sign In button\r\n- Back button\r\n\r\nSettings → Security:\r\n\r\n- Email status\r\n- Authenticator status\r\n- Enable/disable controls\r\n- QR code only during active setup\r\n- Manual key only during active setup\r\n- Clear setup instructions\r\n\r\nThe forms must be responsive and accessible.\r\n\r\nUse proper labels, autocomplete attributes, keyboard support, focus management, disabled states, and error messages.\r\n\r\n==================================================\r\n11. SECURITY REQUIREMENTS\r\n==================================================\r\n\r\n- Use bcrypt for passwords.\r\n- Use cryptographically secure OTP generation.\r\n- Hash email OTPs before storage.\r\n- Rate-limit login, OTP resend, OTP verification, and TOTP verification.\r\n- Apply expiry and attempt limits.\r\n- Do not log passwords, OTPs, JWTs, SMTP passwords, TOTP secrets, QR content, or manual keys.\r\n- Do not expose account existence through error messages.\r\n- Validate and sanitize API input.\r\n- Preserve existing Helmet and CORS configuration.\r\n- Allow only the configured frontend origin.\r\n- Keep all secrets in backend environment variables.\r\n- Never use `VITE_` variables for private backend secrets.\r\n- Revoke or replace any previously exposed Authenticator secret.\r\n\r\n==================================================\r\n12. IMPORTANT CURRENT SECRET RESET\r\n==================================================\r\n\r\nThe current Authenticator QR code and manual key were exposed in a screenshot.\r\n\r\nTreat the existing TOTP secret as compromised.\r\n\r\nRemove or invalidate the existing TOTP secret, set TOTP as disabled, and require a completely new Authenticator setup from:\r\n\r\nAdmin Dashboard → Settings → Security\r\n\r\nDo not reuse the previously displayed secret.\r\n\r\nDo not print the new secret in terminal logs or the final report.\r\n\r\n==================================================\r\n13. TESTING\r\n==================================================\r\n\r\nTest all of these cases:\r\n\r\n1. Correct email and password.\r\n2. Incorrect email.\r\n3. Incorrect password.\r\n4. Expired email OTP.\r\n5. Incorrect email OTP.\r\n6. Email OTP resend cooldown.\r\n7. Too many OTP attempts.\r\n8. Login when Authenticator is disabled.\r\n9. Authenticator enrollment from Settings.\r\n10. Correct Authenticator setup code.\r\n11. Incorrect Authenticator setup code.\r\n12. Login when Authenticator is enabled.\r\n13. Incorrect Authenticator login code.\r\n14. Authenticator disable/reset flow.\r\n15. Protected Settings endpoints without JWT.\r\n16. Page refresh during verification.\r\n17. Logout.\r\n18. Desktop and mobile layouts.\r\n\r\nRun the frontend and backend tests if present.\r\n\r\nRun the frontend production build.\r\n\r\nFix all errors caused by these changes.\r\n\r\n==================================================\r\n14. FINAL REPORT\r\n==================================================\r\n\r\nAfter implementation, report:\r\n\r\n- Exact files changed\r\n- New routes added\r\n- New environment variable names\r\n- MongoDB schema changes\r\n- How the final login flow works\r\n- How to configure the email provider\r\n- How to reset and enroll Authenticator from Settings\r\n- Test/build results\r\n\r\nDo not include any actual passwords, OTPs, SMTP credentials, JWTs, TOTP secrets, manual keys, or QR content in the final report.\r\n\r\nDo not change unrelated pages, gallery functionality, artwork functionality, admin artwork management, Cloudinary, MongoDB content, Netlify settings, or Render settings unless required for this authentication fix.",
+      "category": "Still Life",
+      "price": 455555,
+      "medium": "Acrylic on Canvas",
+      "dimensions": "45 x 36",
+      "isAvailable": true,
+      "isFeatured": true,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785483286/artist-portfolio/artworks/wpuzfyxpovh9cjtwrzmu.jpg",
+          "publicId": "artist-portfolio/artworks/wpuzfyxpovh9cjtwrzmu",
+          "width": 4717,
+          "height": 2984,
+          "_id": "6a6c50182d92c5bdd6df3cc7"
+        }
+      ],
+      "year": 3000,
+      "createdAt": "2026-07-31T07:34:48.591Z",
+      "updatedAt": "2026-07-31T07:34:48.591Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6c4fdc2d92c5bdd6df3cbe",
+      "title": "dfggdf",
+      "description": "Fix and redesign the authentication flow in my existing full-stack Artist Portfolio project.\r\n\r\nExisting stack:\r\n- Frontend: React + Vite\r\n- Backend: Node.js + Express\r\n- Database: MongoDB with Mongoose\r\n- Authentication: JWT\r\n- Frontend deployed on Netlify\r\n- Backend deployed on Render\r\n- This is a single-admin Artist Portfolio website.\r\n\r\nCurrent problem:\r\nThe admin login page displays an Authenticator QR code and manual setup key. This is incorrect and insecure. The QR code and manual key must never appear on the login page.\r\n\r\nI also do not want the email input to be treated as frontend text or compared using hardcoded frontend values. Login must use the real registered admin account stored securely in the backend/database. Email ownership must be verified by sending a real OTP to the registered email address.\r\n\r\nImplement the following complete authentication flow.\r\n\r\n==================================================\r\n1. LOGIN PAGE\r\n==================================================\r\n\r\nThe normal admin login page must initially display only:\r\n\r\n- Email address\r\n- Password\r\n- Sign In button\r\n- Loading state\r\n- Proper error messages\r\n\r\nRemove the following from the initial login page:\r\n\r\n- Authenticator QR code\r\n- Authenticator manual key\r\n- Authenticator setup instructions\r\n- Authenticator setup secret\r\n- Authenticator setup URI\r\n\r\nNever generate a new Authenticator secret during login.\r\n\r\nNever return a QR code, manual key, otpauth URI, TOTP secret, password hash, or other sensitive information from the normal login endpoint.\r\n\r\n==================================================\r\n2. REAL BACKEND EMAIL AND PASSWORD LOGIN\r\n==================================================\r\n\r\nThe frontend must send the entered email and password to the backend login API.\r\n\r\nThe backend must:\r\n\r\n1. Normalize the email using trim and lowercase.\r\n2. Find the admin account in MongoDB.\r\n3. Compare the entered password against the bcrypt password hash.\r\n4. Reject an incorrect email or password.\r\n5. Return a generic error:\r\n   \"Invalid email or password.\"\r\n6. Never compare credentials only in the React frontend.\r\n7. Never store plain-text passwords.\r\n8. Never put the admin password or private credentials inside frontend environment variables.\r\n9. Do not issue the final JWT until all required verification steps are complete.\r\n\r\nUse the existing admin model and authentication routes where possible. Do not create duplicate authentication systems.\r\n\r\n==================================================\r\n3. REAL EMAIL OTP VERIFICATION\r\n==================================================\r\n\r\nAfter the email and password are successfully verified, send a real one-time verification code to the registered admin email address.\r\n\r\nUse the project’s existing email provider if one is already configured. If no provider exists, add a clean email service implementation using Nodemailer with SMTP environment variables.\r\n\r\nRequired backend environment variables:\r\n\r\nSMTP_HOST=\r\nSMTP_PORT=\r\nSMTP_SECURE=\r\nSMTP_USER=\r\nSMTP_PASS=\r\nEMAIL_FROM=\r\nFRONTEND_URL=\r\n\r\nDo not hardcode SMTP credentials.\r\n\r\nEmail OTP requirements:\r\n\r\n- Generate a cryptographically secure 6-digit OTP.\r\n- OTP expires after 10 minutes.\r\n- Store only a secure hash of the OTP, not the plain OTP.\r\n- Store the OTP purpose, expiry time, attempt count, and admin ID.\r\n- Invalidate the OTP after successful use.\r\n- Invalidate old OTPs when sending a new one.\r\n- Limit verification attempts.\r\n- Add a resend cooldown of at least 60 seconds.\r\n- Add rate limiting to OTP generation and verification endpoints.\r\n- Do not reveal whether an arbitrary email address exists.\r\n- Send the OTP only to the email stored on the authenticated admin account.\r\n\r\nAfter password verification, return a short-lived temporary login challenge token. Do not return the final authentication JWT yet.\r\n\r\nThe frontend must then show a second step containing:\r\n\r\n- A message that the code was sent to the registered email\r\n- A 6-digit OTP input\r\n- Verify button\r\n- Resend code button with countdown\r\n- Back to login button\r\n- Loading and error states\r\n\r\nMask the displayed email address, for example:\r\n\r\na***********5@gmail.com\r\n\r\nDo not expose the full email unnecessarily.\r\n\r\n==================================================\r\n4. AUTHENTICATOR SETUP ONLY IN ADMIN SETTINGS\r\n==================================================\r\n\r\nMove all Authenticator setup functionality to:\r\n\r\nAdmin Dashboard → Settings → Security → Two-Factor Authentication\r\n\r\nOnly an already authenticated admin may access this area.\r\n\r\nThe Authenticator setup page may contain:\r\n\r\n- Enable Authenticator button\r\n- QR code\r\n- Manual setup key\r\n- Verification code input\r\n- Confirm and Enable button\r\n- Disable Authenticator button\r\n- Status showing Enabled or Disabled\r\n- Recovery codes, if implemented securely\r\n\r\nThe backend setup endpoint must:\r\n\r\n1. Require a valid authenticated admin JWT.\r\n2. Generate a new TOTP secret only when the admin explicitly starts setup.\r\n3. Store the pending secret securely.\r\n4. Return the QR code and manual key only for that authenticated setup request.\r\n5. Require a valid current 6-digit Authenticator code before enabling TOTP.\r\n6. Set `totpEnabled` to true only after successful verification.\r\n7. Remove or invalidate an unfinished pending secret after an appropriate expiry time.\r\n\r\nDo not enable TOTP just because a secret was generated.\r\n\r\nDo not show the QR code again after TOTP has been enabled. If the admin wants a new QR code, require them to disable/reset Authenticator and complete a new secure setup.\r\n\r\nFor sensitive actions such as disabling or resetting Authenticator, require password confirmation and/or a valid current Authenticator code.\r\n\r\n==================================================\r\n5. LOGIN WHEN AUTHENTICATOR IS DISABLED\r\n==================================================\r\n\r\nRequired login flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Backend sends a real OTP to the registered admin email.\r\n4. Admin enters the email OTP.\r\n5. Backend verifies the OTP.\r\n6. Backend issues the final JWT.\r\n7. Admin is redirected to the dashboard.\r\n\r\nThe QR code and manual key must never appear in this flow.\r\n\r\n==================================================\r\n6. LOGIN WHEN AUTHENTICATOR IS ENABLED\r\n==================================================\r\n\r\nIf the admin has enabled Authenticator from Settings, use this flow:\r\n\r\n1. Admin enters email and password.\r\n2. Backend validates credentials.\r\n3. Frontend shows a simple 6-digit Authenticator code input.\r\n4. Backend verifies the code against the admin’s stored TOTP secret.\r\n5. If valid, continue with the configured email OTP requirement or issue the final JWT according to the existing security policy.\r\n6. Redirect to the dashboard only after all required factors pass.\r\n\r\nImportant:\r\nDuring login, show only the 6-digit Authenticator code input.\r\n\r\nNever show:\r\n\r\n- QR code\r\n- Manual key\r\n- TOTP secret\r\n- Authenticator enrollment instructions\r\n- otpauth URI\r\n\r\nClearly separate these two operations:\r\n\r\n- Authenticator enrollment/setup: Settings only\r\n- Authenticator code verification: Login only when already enabled\r\n\r\n==================================================\r\n7. REQUIRED BACKEND ROUTES\r\n==================================================\r\n\r\nInspect and reuse existing routes where possible.\r\n\r\nThe final API structure should logically provide equivalents of:\r\n\r\nPOST /api/auth/login\r\n- Validate email and password\r\n- Determine required next verification step\r\n- Send email OTP when required\r\n- Return a short-lived challenge token\r\n- Never return the final JWT before verification is complete\r\n\r\nPOST /api/auth/verify-email-otp\r\n- Validate the challenge token and email OTP\r\n- Continue to the next required step or issue the final JWT\r\n\r\nPOST /api/auth/resend-email-otp\r\n- Resend with cooldown and rate limiting\r\n\r\nPOST /api/auth/verify-totp\r\n- Verify the Authenticator code during login\r\n- Issue the final JWT only after all required checks pass\r\n\r\nGET /api/admin/security/2fa/status\r\n- Return whether TOTP is enabled\r\n- Never return the TOTP secret\r\n\r\nPOST /api/admin/security/2fa/setup\r\n- Authenticated Settings-only endpoint\r\n- Start Authenticator enrollment\r\n- Return temporary QR/manual-key information only here\r\n\r\nPOST /api/admin/security/2fa/enable\r\n- Verify the setup code\r\n- Enable TOTP\r\n\r\nPOST /api/admin/security/2fa/disable\r\n- Require secure reauthentication\r\n- Disable TOTP and remove its secret\r\n\r\nUse the project’s existing route naming conventions if they differ, but preserve this separation of responsibilities.\r\n\r\n==================================================\r\n8. DATABASE REQUIREMENTS\r\n==================================================\r\n\r\nInspect the existing admin/user schema and safely add only the required fields.\r\n\r\nPossible fields include:\r\n\r\n- email\r\n- passwordHash\r\n- emailVerified\r\n- totpEnabled\r\n- totpSecret\r\n- pendingTotpSecret\r\n- pendingTotpExpiresAt\r\n- otpHash\r\n- otpExpiresAt\r\n- otpAttempts\r\n- otpLastSentAt\r\n- failedLoginAttempts\r\n- lockUntil\r\n\r\nDo not store:\r\n\r\n- Plain-text password\r\n- Plain-text email OTP\r\n- TOTP secret in frontend storage\r\n- TOTP secret inside JWT\r\n- QR code inside the database unless absolutely necessary\r\n\r\nIf the project already has equivalent fields, reuse them instead of creating duplicates.\r\n\r\nProtect the stored TOTP secret appropriately. If the project has an encryption utility, use it. Otherwise add server-side encryption using an environment key and authenticated encryption, without hardcoding the key.\r\n\r\n==================================================\r\n9. JWT AND FRONTEND STORAGE\r\n==================================================\r\n\r\nDo not issue the final JWT after password verification alone when another factor is required.\r\n\r\nTemporary login challenge tokens must:\r\n\r\n- Have a short expiry\r\n- Be scoped only to completing login\r\n- Not grant access to protected admin APIs\r\n\r\nPrefer secure HttpOnly cookies for final authentication if compatible with the existing deployment.\r\n\r\nIf the current project uses token storage, preserve compatibility while avoiding unnecessary exposure. Do not place passwords, OTP values, TOTP secrets, or SMTP credentials in localStorage.\r\n\r\nEnsure logout clears authentication state correctly.\r\n\r\n==================================================\r\n10. UI REQUIREMENTS\r\n==================================================\r\n\r\nPreserve the existing premium Artist Portfolio design.\r\n\r\nDo not redesign unrelated pages.\r\n\r\nLogin page:\r\n\r\nStep 1:\r\n- Email\r\n- Password\r\n- Sign In\r\n\r\nStep 2 when email OTP is required:\r\n- Email verification heading\r\n- Masked destination email\r\n- Six-digit OTP input\r\n- Verify button\r\n- Resend button with countdown\r\n- Back button\r\n\r\nStep 2 when Authenticator is required:\r\n- Authenticator verification heading\r\n- Six-digit code input\r\n- Verify and Sign In button\r\n- Back button\r\n\r\nSettings → Security:\r\n\r\n- Email status\r\n- Authenticator status\r\n- Enable/disable controls\r\n- QR code only during active setup\r\n- Manual key only during active setup\r\n- Clear setup instructions\r\n\r\nThe forms must be responsive and accessible.\r\n\r\nUse proper labels, autocomplete attributes, keyboard support, focus management, disabled states, and error messages.\r\n\r\n==================================================\r\n11. SECURITY REQUIREMENTS\r\n==================================================\r\n\r\n- Use bcrypt for passwords.\r\n- Use cryptographically secure OTP generation.\r\n- Hash email OTPs before storage.\r\n- Rate-limit login, OTP resend, OTP verification, and TOTP verification.\r\n- Apply expiry and attempt limits.\r\n- Do not log passwords, OTPs, JWTs, SMTP passwords, TOTP secrets, QR content, or manual keys.\r\n- Do not expose account existence through error messages.\r\n- Validate and sanitize API input.\r\n- Preserve existing Helmet and CORS configuration.\r\n- Allow only the configured frontend origin.\r\n- Keep all secrets in backend environment variables.\r\n- Never use `VITE_` variables for private backend secrets.\r\n- Revoke or replace any previously exposed Authenticator secret.\r\n\r\n==================================================\r\n12. IMPORTANT CURRENT SECRET RESET\r\n==================================================\r\n\r\nThe current Authenticator QR code and manual key were exposed in a screenshot.\r\n\r\nTreat the existing TOTP secret as compromised.\r\n\r\nRemove or invalidate the existing TOTP secret, set TOTP as disabled, and require a completely new Authenticator setup from:\r\n\r\nAdmin Dashboard → Settings → Security\r\n\r\nDo not reuse the previously displayed secret.\r\n\r\nDo not print the new secret in terminal logs or the final report.\r\n\r\n==================================================\r\n13. TESTING\r\n==================================================\r\n\r\nTest all of these cases:\r\n\r\n1. Correct email and password.\r\n2. Incorrect email.\r\n3. Incorrect password.\r\n4. Expired email OTP.\r\n5. Incorrect email OTP.\r\n6. Email OTP resend cooldown.\r\n7. Too many OTP attempts.\r\n8. Login when Authenticator is disabled.\r\n9. Authenticator enrollment from Settings.\r\n10. Correct Authenticator setup code.\r\n11. Incorrect Authenticator setup code.\r\n12. Login when Authenticator is enabled.\r\n13. Incorrect Authenticator login code.\r\n14. Authenticator disable/reset flow.\r\n15. Protected Settings endpoints without JWT.\r\n16. Page refresh during verification.\r\n17. Logout.\r\n18. Desktop and mobile layouts.\r\n\r\nRun the frontend and backend tests if present.\r\n\r\nRun the frontend production build.\r\n\r\nFix all errors caused by these changes.\r\n\r\n==================================================\r\n14. FINAL REPORT\r\n==================================================\r\n\r\nAfter implementation, report:\r\n\r\n- Exact files changed\r\n- New routes added\r\n- New environment variable names\r\n- MongoDB schema changes\r\n- How the final login flow works\r\n- How to configure the email provider\r\n- How to reset and enroll Authenticator from Settings\r\n- Test/build results\r\n\r\nDo not include any actual passwords, OTPs, SMTP credentials, JWTs, TOTP secrets, manual keys, or QR content in the final report.\r\n\r\nDo not change unrelated pages, gallery functionality, artwork functionality, admin artwork management, Cloudinary, MongoDB content, Netlify settings, or Render settings unless required for this authentication fix.",
+      "category": "Portrait",
+      "price": 343434,
+      "medium": "Oil on Canvas",
+      "dimensions": "24 x 36",
+      "isAvailable": true,
+      "isFeatured": true,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785483226/artist-portfolio/artworks/sh3ri0kafpainhefbxrl.jpg",
+          "publicId": "artist-portfolio/artworks/sh3ri0kafpainhefbxrl",
+          "width": 2400,
+          "height": 1600,
+          "_id": "6a6c4fdc2d92c5bdd6df3cbf"
+        }
+      ],
+      "year": 2004,
+      "createdAt": "2026-07-31T07:33:48.059Z",
+      "updatedAt": "2026-07-31T07:33:48.059Z",
+      "__v": 0
+    },
+    {
+      "uploadStatus": "success",
+      "_id": "6a6b13d1e1c23cfef4ef26c1",
+      "title": "crimson horizen",
+      "description": "Redesign only the public Gallery page of the Artist Portfolio website using the uploaded Loish gallery screenshot as layout inspiration.\r\n\r\nRepository:\r\nartistportfolio45-lgtm/artist-portfolio\r\n\r\nImportant:\r\n- Do not create a left sidebar.\r\n- Do not change the main website header or navigation.\r\n- Do not copy Loish branding, logo, text, colors, or assets.\r\n- Change only the gallery page content and artwork grid.\r\n\r\nFiles to inspect:\r\n- frontend/src/pages/public/GalleryPage.jsx\r\n- gallery artwork card components\r\n- gallery filters/search components\r\n- related gallery CSS or Tailwind classes\r\n\r\nRequired gallery design:\r\n\r\n1. Keep the current website header\r\n\r\n- Existing public header remains at the top.\r\n- Existing navigation remains unchanged.\r\n- Gallery content should begin below the header.\r\n- Do not add any fixed sidebar.\r\n\r\n2. Gallery introduction\r\n\r\nKeep this section minimal.\r\n\r\nInclude:\r\n- small label such as “Portfolio”\r\n- page heading: “Gallery”\r\n- one short description if needed\r\n\r\nDo not use:\r\n- a very large hero section\r\n- large empty spaces\r\n- decorative background graphics\r\n\r\nThe artworks should become visible quickly after opening the page.\r\n\r\n3. Top filter row\r\n\r\nCreate a clean horizontal filter row above the artworks.\r\n\r\nInclude:\r\n- All\r\n- dynamically loaded categories\r\n- search control\r\n- availability control\r\n- sorting control\r\n\r\nDesktop:\r\n- categories can appear in a horizontal centered row\r\n- search/filter/sort controls may appear on the same row or directly below\r\n\r\nMobile:\r\n- category row must scroll horizontally\r\n- controls should stack cleanly\r\n- no horizontal page overflow\r\n\r\nVisual style:\r\n- simple text filters\r\n- no large pill buttons\r\n- active category uses a thin underline or subtle gold line\r\n- lightweight elegant typography\r\n\r\n4. Masonry gallery layout\r\n\r\nCreate an artwork-first masonry grid similar to the reference image.\r\n\r\nRequirements:\r\n- preserve original artwork aspect ratios\r\n- portrait images remain tall\r\n- landscape images remain wide\r\n- square images remain square\r\n- do not crop all images to equal card sizes\r\n- use narrow and consistent spacing\r\n- remove excessive card borders, shadows, and rounded containers\r\n\r\nSuggested desktop layout:\r\n- 3 columns on large screens\r\n- 2 columns on tablets\r\n- 1 column on mobile\r\n\r\nSuggested CSS:\r\n\r\n.gallery-masonry {\r\n  column-count: 3;\r\n  column-gap: 14px;\r\n}\r\n\r\n.gallery-item {\r\n  break-inside: avoid;\r\n  margin-bottom: 14px;\r\n}\r\n\r\nResponsive:\r\n- below 1024px: 2 columns\r\n- below 640px: 1 column\r\n\r\nUse Tailwind or CSS based on the existing project structure.\r\n\r\n5. Artwork appearance\r\n\r\nDefault desktop appearance:\r\n- image is the main element\r\n- minimal or no text below the image\r\n- no large card background\r\n- no heavy border\r\n- no heavy shadow\r\n- very small corner radius or square corners\r\n\r\nDesktop hover:\r\n- subtle dark overlay\r\n- artwork title\r\n- category\r\n- year\r\n- availability\r\n- “View Artwork”\r\n- smooth fade transition\r\n- very slight image scale effect\r\n\r\nMobile:\r\n- do not depend on hover\r\n- show title and category below the image, or use a permanent subtle bottom overlay\r\n- entire artwork card must be clickable\r\n\r\n6. Gallery width and spacing\r\n\r\n- Use nearly the full available page width.\r\n- Keep approximately 16–28px horizontal padding.\r\n- Avoid narrow centered containers that waste screen space.\r\n- Artwork columns should feel large and immersive.\r\n- Use approximately 12–16px gaps.\r\n\r\n7. Existing functionality must remain working\r\n\r\nPreserve:\r\n- live Render API artwork loading\r\n- MongoDB as source of truth\r\n- category filtering\r\n- search\r\n- availability filtering\r\n- sorting\r\n- artwork detail navigation\r\n- loading state\r\n- empty state\r\n- error state\r\n- Load More or pagination\r\n\r\nDo not replace live API results with stale portfolio.json data after a successful API response.\r\n\r\n8. Performance for 700–750 artworks\r\n\r\nRequired:\r\n- image lazy loading\r\n- Cloudinary optimized image URLs\r\n- responsive image sizes or srcset where practical\r\n- do not load all artworks at once\r\n- retain pagination or Load More\r\n- prevent layout shift by using width, height, or aspect ratio\r\n- avoid unnecessary re-renders\r\n\r\n9. Mobile design\r\n\r\nAt 375px width:\r\n- existing mobile header stays\r\n- one-column gallery\r\n- images use full available width\r\n- categories scroll horizontally\r\n- filter controls stack vertically\r\n- no horizontal overflow\r\n- artwork information is visible without hover\r\n- comfortable tap targets\r\n\r\n10. Visual direction\r\n\r\n- premium artist portfolio\r\n- minimal\r\n- artwork-first\r\n- clean white or warm ivory background\r\n- charcoal typography\r\n- restrained gold accent\r\n- museum-like presentation\r\n- no sidebar\r\n- no e-commerce card styling\r\n- no excessive rounded boxes\r\n- no heavy shadows\r\n\r\n11. Test these cases\r\n\r\n- portrait artwork\r\n- landscape artwork\r\n- square artwork\r\n- very long artwork title\r\n- empty gallery\r\n- empty category\r\n- 100+ artworks\r\n- filtering\r\n- sorting\r\n- Load More\r\n- desktop 1440px\r\n- tablet 768px\r\n- mobile 375px\r\n\r\n12. Build and report\r\n\r\nRun:\r\n\r\nnpm run build\r\n\r\nAfter completion provide:\r\n- modified files\r\n- gallery layout summary\r\n- responsive behavior\r\n- performance improvements\r\n- build result\r\n\r\nGit commands:\r\n\r\ngit status\r\ngit add .\r\ngit commit -m \"Redesign gallery masonry layout\"\r\ngit push origin main",
+      "category": "Landscape",
+      "price": 25000,
+      "medium": "Acrylic on Canvas",
+      "dimensions": "24 x 36",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "width": null,
+          "height": null,
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1785402318/artist-portfolio/artworks/wo4g2a3mcwkbcceaf4o7.jpg",
+          "publicId": "artist-portfolio/artworks/wo4g2a3mcwkbcceaf4o7",
+          "_id": "6a6b13d1e1c23cfef4ef26c2"
+        }
+      ],
+      "year": 2000,
+      "createdAt": "2026-07-30T09:05:21.349Z",
+      "updatedAt": "2026-07-30T09:05:21.349Z",
+      "__v": 0
+    }
+  ],
+  "categories": [
+    "Abstract",
+    "Landscape",
+    "Portrait",
+    "Still Life",
+    "Uncategorized"
+  ]
 }
