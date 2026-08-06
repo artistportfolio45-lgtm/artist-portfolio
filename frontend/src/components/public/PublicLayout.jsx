@@ -3,9 +3,9 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useSettings } from "../../hooks/useSettings";
 import { useWebsiteTheme } from "../../hooks/useWebsiteTheme";
-import { useLocation } from "react-router-dom";
 
 const PublicLayout = ({ children }) => {
   const { settings } = useSettings();
@@ -105,16 +105,24 @@ const PublicLayout = ({ children }) => {
       <Navbar />
       <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
       <Footer />
-      <button
-        type="button"
-        onClick={scrollToTop}
-        aria-label="Back to top"
-        className={`fixed bottom-5 right-5 z-50 h-11 w-11 bg-charcoal text-white shadow-lg ring-1 ring-white/10 transition-all duration-300 hover:bg-gold ${
-          showBackToTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
-        }`}
-      >
-        ↑
-      </button>
+      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+        <Link
+          to="/admin/login"
+          className="inline-flex items-center justify-center rounded-full border border-gold bg-charcoal px-4 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-gold transition-colors hover:bg-gold hover:text-charcoal"
+        >
+          Admin
+        </Link>
+        <button
+          type="button"
+          onClick={scrollToTop}
+          aria-label="Back to top"
+          className={`h-11 w-11 rounded-full bg-charcoal text-white shadow-lg ring-1 ring-white/10 transition-all duration-300 hover:bg-gold ${
+            showBackToTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
+          }`}
+        >
+          ↑
+        </button>
+      </div>
     </div>
   );
 };

@@ -9,7 +9,6 @@ const navLinks = [
   { to: "/gallery", label: "Gallery" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
-  { to: "/admin/login", label: "Admin" },
 ];
 
 const Brand = ({ mobile = false, light = false, profile, imageFailed, onImageError }) => {
@@ -131,6 +130,15 @@ const Navbar = () => {
             ))}
           </ul>
         </nav>
+
+        <div className="mt-6">
+          <Link
+            to="/admin/login"
+            className="inline-flex items-center justify-center rounded-full border border-gold bg-charcoal px-4 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-gold transition-colors hover:bg-gold hover:text-charcoal"
+          >
+            Admin
+          </Link>
+        </div>
 
         <div className="mt-auto border-t border-charcoal/10 pt-6">
           <PublicSocialLinks compact />
