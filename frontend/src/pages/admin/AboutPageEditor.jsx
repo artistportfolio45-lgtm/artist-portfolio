@@ -9,9 +9,19 @@ const TABS = [
   ["hero", "Hero"], ["artistStatement", "Artist Statement"], ["biography", "Biography"],
   ["practices", "Artistic Practice"], ["timeline", "Timeline"], ["publicWorks", "Public Works"],
   ["awards", "Awards & Honours"], ["pressArchive", "Press & Archive"],
+  ["process", "Artistic Process"], ["studio", "Studio"],
   ["closingCta", "Closing CTA"], ["seo", "Page Settings"],
 ];
 
+    {REPEATABLE[activeTab] && <RepeatableEditor section={activeTab} items={content[activeTab] || []} onChange={(items) => setContent((current) => ({ ...current, [activeTab]: items }))} />}
+    {activeTab === "studio" && <div>
+      <div className="mb-5"><h2 className="font-display text-2xl font-light">Studio</h2><p className="mt-1 text-sm text-slate/55">Studio images and description shown on the public About page.</p></div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="md:col-span-2"><Field label="Studio description" value={content.studio?.description} type="textarea" onChange={(value) => setContent((current) => ({ ...current, studio: { ...current.studio, description: value } }))} /></div>
+        <div className="md:col-span-2 mt-4"><GalleryField images={content.studio?.images || []} onChange={(images) => setContent((current) => ({ ...current, studio: { ...current.studio, images } }))} /></div>
+      </div>
+      <div className="mt-4"><Toggle label="Show this section" checked={content.studio?.visible} onChange={(visible) => setContent((current) => ({ ...current, studio: { ...current.studio, visible } }))} /></div>
+    </div>}
 const REPEATABLE = {
   practices: {
     label: "practice", titleKey: "title", defaults: { title: "New practice", description: "", link: "", visible: true },
@@ -24,6 +34,10 @@ const REPEATABLE = {
   publicWorks: {
     label: "public work", titleKey: "title", defaults: { title: "New public work", year: "", location: "", medium: "", description: "", relatedArtworks: [], sourceNote: "", visible: false, images: [] },
     fields: [["title", "Project title"], ["year", "Year"], ["location", "Location"], ["medium", "Medium"], ["description", "Story / description", "textarea"], ["relatedArtworks", "Related artwork IDs (comma-separated)", "array"], ["sourceNote", "Source note (admin only)", "textarea"]], gallery: true, visibilityKey: "visible",
+  },
+  process: {
+    label: "process step", titleKey: "title", defaults: { title: "New step", description: "", image: {}, icon: "", visible: true },
+    fields: [["title", "Title"], ["description", "Description", "textarea"], ["icon", "Icon (optional)"]], imageKey: "image", visibilityKey: "visible",
   },
   awards: {
     label: "award", titleKey: "awardTitle", defaults: { awardTitle: "New honour", artworkTitle: "", year: "", organiser: "", location: "", description: "", sourceNote: "", visible: false },

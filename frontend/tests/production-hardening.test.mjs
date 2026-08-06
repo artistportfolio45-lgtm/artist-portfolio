@@ -11,6 +11,8 @@ test("public artwork recovery is bounded, deduplicated, cancellable and stale-aw
   assert.match(data, /scheduleArtworkRetry/);
   assert.match(data, /isStale: true/);
   assert.match(data, /isStale: false/);
+  assert.match(data, /await getLiveArtworks\(params\)/);
+  assert.match(data, /12000/);
 });
 
 test("gallery provides debounced URL filters, pagination and cached retry state", async () => {
@@ -37,6 +39,7 @@ test("mobile navigation and generated SEO include focus and crawler safeguards",
     source("src/components/public/Navbar.jsx"), source("scripts/generate-seo-pages.mjs"), source("public/_redirects"),
   ]);
   for (const token of ["Escape", "document.body.style.overflow", "focus()", "aria-expanded"]) assert.ok(nav.includes(token), token);
+  for (const token of ["G. N. Ambe", "Fine Art Portfolio", "GNA", "profilePhoto", "object-cover"]) assert.ok(nav.includes(token), token);
   for (const token of ["VisualArtwork", "BreadcrumbList", "Person", "sitemap.xml", "robots.txt", "404.html"]) assert.ok(seo.includes(token), token);
   assert.match(redirects, /404\.html\s+404/);
 });

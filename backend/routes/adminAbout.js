@@ -5,7 +5,7 @@ const { getOrCreateAboutPage } = require("../utils/aboutPage");
 const { triggerStaticRebuild } = require("../utils/staticRebuild");
 
 const router = express.Router();
-const repeatableSections = new Set(["practices", "timeline", "publicWorks", "awards", "pressArchive"]);
+const repeatableSections = new Set(["practices", "timeline", "publicWorks", "awards", "pressArchive", "process"]);
 const updatedBy = (user) => user?._id?.toString() || user?.email || "";
 
 const adminOnly = (req, res, next) => {

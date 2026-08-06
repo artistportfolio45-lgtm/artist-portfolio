@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigationType, useSearchParams } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkMasonry from "../../components/public/ArtworkMasonry";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { publicDataAPI } from "../../services/publicData";
 import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import CachedDataNotice from "../../components/public/CachedDataNotice";
-import { clearGalleryRestoreState, normalizeGalleryPage, readGalleryRestoreState, saveGalleryRestoreState } from "../../utils/galleryRestore";
+import { clearGalleryRestoreState, galleryRestoreTargetY, normalizeGalleryPage, readGalleryRestoreState } from "../../utils/galleryRestore";
 
 const DEFAULT_SORT = "createdAt-desc";
 const GALLERY_PAGE_SIZE = 50;
@@ -14,6 +14,7 @@ const GALLERY_RESTORE_ANCHOR_SELECTOR = "[data-gallery-artwork-id]";
 
 const GalleryPage = () => {
   const location = useLocation();
+  const navigationType = useNavigationType();
   const [searchParams, setSearchParams] = useSearchParams();
   const [artworks, setArtworks] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -235,6 +236,11 @@ const GalleryPage = () => {
     const restoreState = readGalleryRestoreState();
     if (!restoreState || restoreRequestedRef.current) return;
 
+    if (navigationType !== "POP") {
+      clearGalleryRestoreState();
+      return;
+    }
+
     const currentPath = `${location.pathname}${location.search}`;
     const restorePath = `${restoreState.pathname}${restoreState.search || ""}`;
     if (currentPath !== restorePath) return;
@@ -261,7 +267,7 @@ const GalleryPage = () => {
     }
 
     restoreRequestedRef.current = true;
-  }, [location.pathname, location.search, page, setSearchParams, totalPages]);
+  }, [location.pathname, location.search, navigationType, page, setSearchParams, totalPages]);
 
   useEffect(() => {
     if (!gridRef.current || !restoreRequestedRef.current || !activeArtworkIdRef.current) return;
@@ -281,20 +287,20 @@ const GalleryPage = () => {
 
     const restorePosition = () => {
       const rect = anchor.getBoundingClientRect();
-      const targetY = Math.max(0, window.scrollY + rect.top - 96);
-      window.scrollTo({ top: targetY, behavior: prefersReducedMotion ? "auto" : "smooth", left: 0 });
+      const saved = readGalleryRestoreState();
+      const targetY = galleryRestoreTargetY({
+        savedScrollY: saved?.scrollY,
+        savedAnchorOffset: saved?.anchorOffset,
+        currentScrollY: window.scrollY,
+        currentAnchorOffset: rect.top,
+      });
+      window.scrollTo({ top: targetY, behavior: "auto", left: 0 });
       restorePendingRef.current = false;
       clearGalleryRestoreState();
     };
 
     requestAnimationFrame(() => restorePosition());
-  }, [artworks, page, prefersReducedMotion]);
-
-  useEffect(() => {
-    if (!location.search || !location.pathname.includes("gallery")) {
-      clearGalleryRestoreState();
-    }
-  }, [location.pathname, location.search]);
+  }, [artworks, page]);
 
   useEffect(() => {
     if (pagination.pages && page > pagination.pages) {
@@ -461,11 +467,6 @@ const GalleryPage = () => {
           aria-live="polite"
           ref={gridRef}
         >
-          <CachedDataNotice
-            visible={dataSource === "static"}
-            busy={loading}
-            onRetry={fetchArtworks}
-          />
           {error && !loading ? (
             <div className="mx-auto my-16 max-w-xl px-6 py-12 text-center">
               <p className="font-display text-3xl">Gallery unavailable</p>

@@ -56,6 +56,21 @@ const timelineSchema = new mongoose.Schema({
   order: { type: Number, default: 0 },
 });
 
+const processStepSchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true },
+  description: { type: String, default: "" },
+  image: { type: mediaSchema, default: () => ({}) },
+  icon: { type: String, default: "" },
+  visible: { type: Boolean, default: true },
+  order: { type: Number, default: 0 },
+});
+
+const studioSchema = new mongoose.Schema({
+  description: { type: String, default: "" },
+  images: { type: [mediaSchema], default: [] },
+  visible: { type: Boolean, default: true },
+}, { _id: false });
+
 const publicWorkSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   year: { type: String, default: "" },
@@ -137,6 +152,8 @@ const contentSchema = new mongoose.Schema({
     { awardTitle: "National painting recognition", artworkTitle: "Buddha Ka Shodhan Ke Liye Rajya Tyag", description: "National recognition for the painting.", sourceNote: "Verify date, organiser and location from archival proof.", order: 1 },
   ] },
   pressArchive: { type: [pressSchema], default: [] },
+  process: { type: [processStepSchema], default: () => [] },
+  studio: { type: studioSchema, default: () => ({}) },
   closingCta: { type: closingSchema, default: () => ({}) },
   seo: { type: seoSchema, default: () => ({}) },
 }, { _id: false });

@@ -7,7 +7,7 @@ const ScrollToTop = () => {
 
   useLayoutEffect(() => {
     const restoreState = sessionStorage.getItem("artist-portfolio:gallery-restore");
-    const isGalleryRestoreNavigation = pathname === "/gallery" && Boolean(restoreState);
+    const isGalleryRestoreNavigation = navigationType === "POP" && pathname === "/gallery" && Boolean(restoreState);
     if (isGalleryRestoreNavigation) {
       return undefined;
     }

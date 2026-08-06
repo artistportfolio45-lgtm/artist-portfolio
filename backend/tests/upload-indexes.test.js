@@ -60,6 +60,40 @@ test("startup migration reports duplicate data without mutating it", async () =>
   assert.equal(uploadBatchIndexAttempted, false);
 });
 
+test("startup accepts code 85 only for an equivalent publication index", async () => {
+  const publicationKeys = ARTWORK_PUBLIC_INDEXES[0].keys;
+  const artworkCollection = {
+    async createIndex(keys) {
+      if (JSON.stringify(keys) === JSON.stringify(publicationKeys)) {
+        throw Object.assign(new Error("equivalent index has a different name"), { code: 85 });
+      }
+      return "created";
+    },
+    async indexes() {
+      return [{ name: "existing_generated_name", key: publicationKeys }];
+    },
+  };
+
+  await ensureUploadIndexes({
+    artworkCollection,
+    uploadBatchCollection: { async createIndex() { return "uploadBatchId_1"; } },
+    logger: { log() {} },
+  });
+
+  const conflictingCollection = {
+    ...artworkCollection,
+    async indexes() { return [{ name: "wrong_options", key: publicationKeys, unique: true }]; },
+  };
+  await assert.rejects(
+    ensureUploadIndexes({
+      artworkCollection: conflictingCollection,
+      uploadBatchCollection: { async createIndex() { return "uploadBatchId_1"; } },
+      logger: { log() {} },
+    }),
+    /No data was changed/
+  );
+});
+
 test("server runs the index migration after connecting and before serving", () => {
   const source = fs.readFileSync(path.resolve(__dirname, "../server.js"), "utf8");
   const connectAt = source.indexOf("await connectDB()");

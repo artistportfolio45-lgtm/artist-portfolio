@@ -296,11 +296,6 @@ const ArtworkDetailPage = () => {
 
               {[['Provenance', artwork.provenance], ['Exhibition history', artwork.exhibitionHistory], ['Publications', artwork.publications]].filter(([, value]) => value).map(([label, value]) => <section key={label} className="mb-6 border-t border-gray-100 pt-5"><h2 className="mb-2 text-xs font-label uppercase tracking-widest text-slate/50">{label}</h2><p className="whitespace-pre-line text-sm leading-relaxed text-slate/80">{value}</p></section>)}
 
-              <div className="mb-8 flex flex-wrap gap-3" aria-label="Share artwork">
-                {typeof navigator !== "undefined" && navigator.share && <button type="button" className="btn-secondary min-h-11" onClick={() => navigator.share({ title: displayTitle, url: currentUrl }).catch(() => {})}>Share</button>}
-                <button type="button" className="btn-secondary min-h-11" onClick={() => navigator.clipboard.writeText(currentUrl).then(() => toast.success("Artwork link copied")).catch(() => toast.error("Could not copy the link"))}>Copy link</button>
-              </div>
-
               {showInquiry && (
                 <form
                   name="artwork-inquiry"

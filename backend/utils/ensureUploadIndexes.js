@@ -17,6 +17,27 @@ const ARTWORK_PUBLIC_INDEXES = [
   { keys: { catalogueNumber: 1 }, options: { unique: true, name: "catalogueNumber_1", partialFilterExpression: { catalogueNumber: { $type: "string", $gt: "" } } } },
 ];
 
+const sameValue = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+
+const hasEquivalentIndex = async (collection, { keys, options }) => {
+  const indexes = await collection.indexes();
+  return indexes.some((index) => (
+    sameValue(index.key, keys) &&
+    Boolean(index.unique) === Boolean(options.unique) &&
+    Boolean(index.sparse) === Boolean(options.sparse) &&
+    sameValue(index.partialFilterExpression || null, options.partialFilterExpression || null)
+  ));
+};
+
+const ensurePublicIndex = async (collection, index) => {
+  try {
+    await collection.createIndex(index.keys, index.options);
+  } catch (error) {
+    if (error?.code === 85 && await hasEquivalentIndex(collection, index)) return;
+    throw error;
+  }
+};
+
 const ensureUploadIndexes = async ({
   artworkCollection = Artwork.collection,
   uploadBatchCollection = UploadBatch.collection,
@@ -32,7 +53,7 @@ const ensureUploadIndexes = async ({
       UPLOAD_BATCH_INDEX.options
     );
     for (const index of ARTWORK_PUBLIC_INDEXES) {
-      await artworkCollection.createIndex(index.keys, index.options);
+      await ensurePublicIndex(artworkCollection, index);
     }
     logger.log("Verified artwork upload idempotency indexes.");
   } catch (error) {

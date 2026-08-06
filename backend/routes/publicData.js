@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { protect } = require("../middleware/auth");
 const { buildPublicSnapshot } = require("../utils/publicSnapshot");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const { flushStaticRebuild } = require("../utils/staticRebuild");
 
 router.use((req, res, next) => {
   res.set({
@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
 
 router.post("/rebuild", protect, async (req, res) => {
   try {
-    const result = await triggerStaticRebuild(req.body?.reason || "manual-public-data-rebuild");
+    const result = await flushStaticRebuild(req.body?.reason || "manual-public-data-rebuild");
     if (!result.triggered) {
       return res.status(400).json({
         success: false,

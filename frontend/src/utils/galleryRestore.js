@@ -1,11 +1,11 @@
 const STORAGE_KEY = "artist-portfolio:gallery-restore";
 
-export const saveGalleryRestoreState = ({ pathname, search, page, artworkId, scrollY, filters }) => {
+export const saveGalleryRestoreState = ({ pathname, search, page, artworkId, scrollY, anchorOffset, filters }) => {
   if (typeof window === "undefined") return;
 
   window.sessionStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({ pathname, search, page, artworkId, scrollY, filters })
+    JSON.stringify({ pathname, search, page, artworkId, scrollY, anchorOffset, filters })
   );
 };
 
@@ -36,4 +36,10 @@ export const normalizeGalleryPage = (value, fallback = 1) => {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return parsed;
+};
+
+export const galleryRestoreTargetY = ({ savedScrollY, savedAnchorOffset, currentScrollY, currentAnchorOffset }) => {
+  const fallback = Number(savedScrollY);
+  const anchorTarget = Number(currentScrollY) + Number(currentAnchorOffset) - Number(savedAnchorOffset);
+  return Math.max(0, Number.isFinite(anchorTarget) ? anchorTarget : (Number.isFinite(fallback) ? fallback : 0));
 };

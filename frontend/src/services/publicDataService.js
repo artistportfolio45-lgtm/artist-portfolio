@@ -356,10 +356,10 @@ const getLiveArtworks = async (params = {}) => {
   if (liveArtworkRequests.has(key)) return liveArtworkRequests.get(key);
 
   const controller = new AbortController();
-  const abortTimer = window.setTimeout(() => controller.abort("Public artwork request timed out"), 4500);
+  const abortTimer = window.setTimeout(() => controller.abort("Public artwork request timed out"), 12000);
   const request = api.get("/artworks", {
     params: withNoStoreParam(params),
-    timeout: 4500,
+    timeout: 12000,
     signal: controller.signal,
     headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
   }).then((response) => {
@@ -480,19 +480,8 @@ export const publicDataAPI = {
   },
 
   getArtworks: async (params = {}, { onLiveData } = {}) => {
-    const livePromise = getLiveArtworks(params);
-    livePromise.catch(() => {});
-
     try {
-      const staticData = await getFallbackArtworks(params);
-      if (staticData.items.length > 0) {
-        livePromise
-          .then((liveData) => onLiveData?.(liveData))
-          .catch((error) => console.warn("Live public artworks refresh failed.", error));
-        return staticData;
-      }
-
-      const liveData = await livePromise;
+      const liveData = await getLiveArtworks(params);
       onLiveData?.(liveData);
       return liveData;
     } catch (error) {

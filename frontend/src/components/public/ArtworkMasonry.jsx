@@ -129,12 +129,13 @@ const ArtworkMasonryItem = ({ artwork, priority = false, galleryRestoreState = n
     .filter(Boolean)
     .join(" · ");
 
-  const handleRestoreClick = () => {
+  const handleRestoreClick = (event) => {
     if (!galleryRestoreState) return;
     saveGalleryRestoreState({
       ...galleryRestoreState,
       artworkId: artwork._id,
       scrollY: window.scrollY,
+      anchorOffset: event.currentTarget.closest("[data-gallery-artwork-id]")?.getBoundingClientRect().top,
     });
   };
 

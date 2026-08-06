@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import AdminLayout from "../../components/admin/AdminLayout";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { artworkAPI } from "../../services/api";
+import { artworkAPI, publicSnapshotAPI } from "../../services/api";
 import { notifyArtworksChanged } from "../../services/artworkRefresh";
 
 const SESSION_KEY = "artworkUploadSession.v1";
@@ -179,6 +179,13 @@ const BulkArtworkUploadPage = () => {
           });
         } catch {
           toast.error("Artworks finished, but the batch summary could not be refreshed.");
+        }
+      }
+      if (latest.some((item) => item.status === "success")) {
+        try {
+          await publicSnapshotAPI.rebuild("bulk-upload-completed");
+        } catch {
+          toast.error("Uploads are saved, but the public gallery refresh could not be started.");
         }
       }
       toast.success("Upload processing complete.");

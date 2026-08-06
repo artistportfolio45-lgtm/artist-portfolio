@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useSettings } from "../../hooks/useSettings";
+import { publicDataAPI } from "../../services/publicData";
 import PublicSocialLinks from "./PublicSocialLinks";
 
 const navLinks = [
@@ -8,34 +9,51 @@ const navLinks = [
   { to: "/gallery", label: "Gallery" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
+  { to: "/admin/login", label: "Admin" },
 ];
 
-const Brand = ({ mobile = false, light = false, settings }) => (
-  <Link to="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
-    {settings?.logoUrl && (
+const Brand = ({ mobile = false, light = false, profile, imageFailed, onImageError }) => {
+  const artistName = profile?.name?.trim() || "G. N. Ambe";
+  const showPhoto = Boolean(profile?.profilePhoto) && !imageFailed;
+
+  return <Link to="/" className="flex min-w-0 items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+    <span className={`${mobile ? "h-10 w-10" : "h-16 w-16"} flex aspect-square flex-none items-center justify-center overflow-hidden rounded-full bg-charcoal text-xs font-semibold tracking-widest text-gold ring-1 ring-gold/25`}>
+      {showPhoto ? (
       <img
-        src={settings.logoUrl}
-        alt=""
-        className={`${mobile ? "h-10 w-10" : "h-14 w-14"} rounded-full object-cover`}
+        src={profile.profilePhoto}
+        alt={`${artistName} portrait`}
+        className="h-full w-full object-cover"
+        onError={onImageError}
       />
-    )}
-    <span
-      className={`font-display font-medium tracking-wide ${
-        mobile ? "text-xl" : "text-2xl leading-tight"
-      } ${light ? "text-white" : "text-charcoal"}`}
-    >
-      {settings?.websiteTitle || "Artist Portfolio"}
+      ) : "GNA"}
     </span>
-  </Link>
-);
+    <span className="min-w-0">
+      <span className={`block truncate font-display font-medium ${mobile ? "text-lg" : "text-xl leading-tight"} ${light ? "text-white" : "text-charcoal"}`}>
+        {artistName}
+      </span>
+      <span className={`block truncate text-[10px] uppercase tracking-widest ${light ? "text-white/65" : "text-slate/55"}`}>
+        Fine Art Portfolio
+      </span>
+      {!mobile && <span className="mt-1 block text-[9px] uppercase tracking-widest text-gold">National-Level Artist</span>}
+    </span>
+  </Link>;
+};
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { settings } = useSettings();
+  const [profile, setProfile] = useState(null);
+  const [imageFailed, setImageFailed] = useState(false);
   const location = useLocation();
   const menuButtonRef = useRef(null);
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    publicDataAPI.getProfile({ onLiveData: setProfile }).then(setProfile).catch(() => setProfile(null));
+  }, []);
+
+  useEffect(() => setImageFailed(false), [profile?.profilePhoto]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -81,7 +99,7 @@ const Navbar = () => {
     <>
       <aside className="public-sidebar" aria-label="Primary navigation">
         <div>
-          <Brand settings={settings} />
+          <Brand profile={profile} imageFailed={imageFailed} onImageError={() => setImageFailed(true)} />
           {settings?.websiteDescription && (
             <p className="mt-4 line-clamp-3 text-sm font-light leading-relaxed text-slate/55">
               {settings.websiteDescription}
@@ -132,7 +150,9 @@ const Navbar = () => {
             <Brand
               mobile
               light={!solidMobileHeader}
-              settings={settings}
+              profile={profile}
+              imageFailed={imageFailed}
+              onImageError={() => setImageFailed(true)}
             />
 
             <button
