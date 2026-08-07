@@ -5,8 +5,7 @@ import ArtworkMasonry from "../../components/public/ArtworkMasonry";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { publicDataAPI } from "../../services/publicData";
 import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
-import CachedDataNotice from "../../components/public/CachedDataNotice";
-import { clearGalleryRestoreState, galleryRestoreTargetY, normalizeGalleryPage, readGalleryRestoreState } from "../../utils/galleryRestore";
+import { clearGalleryRestoreState, galleryRestoreTargetY, normalizeGalleryPage, readGalleryRestoreState, shouldRestoreGalleryFromDetail } from "../../utils/galleryRestore";
 
 const DEFAULT_SORT = "createdAt-desc";
 const GALLERY_PAGE_SIZE = 50;
@@ -134,6 +133,15 @@ const GalleryPage = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    if (!filtersOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [filtersOpen]);
+
+  useEffect(() => {
     fetchArtworks(page);
     return subscribeToArtworkRefresh(() => fetchArtworks(page));
   }, [fetchArtworks, page]);
@@ -236,38 +244,45 @@ const GalleryPage = () => {
     const restoreState = readGalleryRestoreState();
     if (!restoreState || restoreRequestedRef.current) return;
 
-    if (navigationType !== "POP") {
+    const restoreFromDetail = shouldRestoreGalleryFromDetail(location.state, document.referrer);
+    if (navigationType !== "POP" && !restoreFromDetail) {
       clearGalleryRestoreState();
       return;
     }
 
-    const currentPath = `${location.pathname}${location.search}`;
-    const restorePath = `${restoreState.pathname}${restoreState.search || ""}`;
-    if (currentPath !== restorePath) return;
+    if (location.pathname !== restoreState.pathname) return;
 
     const normalizedPage = normalizeGalleryPage(restoreState.page, 1);
-    const restoredPage = Math.min(normalizedPage, totalPages);
     const restoreSearch = restoreState.filters?.search || "";
     const restoreCategory = restoreState.filters?.category || "all";
     const restoreAvailability = restoreState.filters?.availability || "all";
     const restoreSort = restoreState.filters?.sort || DEFAULT_SORT;
+    const restoreCollection = restoreState.filters?.collection || "";
+    const restoreMedium = restoreState.filters?.medium || "";
+    const restoreYear = restoreState.filters?.year || "";
+    const restoreDecade = restoreState.filters?.decade || "";
 
     if (restoreState.artworkId) activeArtworkIdRef.current = restoreState.artworkId;
-    if (restoredPage !== page) {
-      setPage(restoredPage);
-      setSearchParams((current) => {
-        const next = new URLSearchParams(current);
-        if (restoredPage > 1) next.set("page", String(restoredPage)); else next.delete("page");
-        if (restoreCategory !== "all") next.set("category", restoreCategory);
-        if (restoreAvailability !== "all") next.set("availability", restoreAvailability);
-        if (restoreSort !== DEFAULT_SORT) next.set("sort", restoreSort);
-        if (restoreSearch) next.set("q", restoreSearch);
-        return next;
-      }, { replace: true });
-    }
+
+    setSearchParams((current) => {
+      const next = restoreState.search
+        ? new URLSearchParams(restoreState.search)
+        : new URLSearchParams(current);
+
+      if (normalizedPage > 1) next.set("page", String(normalizedPage)); else next.delete("page");
+      if (restoreCategory !== "all") next.set("category", restoreCategory); else next.delete("category");
+      if (restoreAvailability !== "all") next.set("availability", restoreAvailability); else next.delete("availability");
+      if (restoreSort !== DEFAULT_SORT) next.set("sort", restoreSort); else next.delete("sort");
+      if (restoreSearch) next.set("q", restoreSearch); else next.delete("q");
+      if (restoreCollection) next.set("collection", restoreCollection); else next.delete("collection");
+      if (restoreMedium) next.set("medium", restoreMedium); else next.delete("medium");
+      if (restoreYear) next.set("year", restoreYear); else next.delete("year");
+      if (restoreDecade && !restoreYear) next.set("decade", restoreDecade); else next.delete("decade");
+      return next;
+    }, { replace: true });
 
     restoreRequestedRef.current = true;
-  }, [location.pathname, location.search, navigationType, page, setSearchParams, totalPages]);
+  }, [location.pathname, location.search, location.state, navigationType, setSearchParams]);
 
   useEffect(() => {
     if (!gridRef.current || !restoreRequestedRef.current || !activeArtworkIdRef.current) return;
@@ -421,8 +436,8 @@ const GalleryPage = () => {
 
             <div
               id="gallery-mobile-filters"
-              className={`grid grid-cols-1 gap-2 overflow-hidden transition-all sm:grid-cols-2 lg:grid-cols-5 ${
-                filtersOpen ? "mt-3 max-h-96 opacity-100" : "max-h-0 opacity-0"
+              className={`hidden lg:grid grid-cols-1 gap-2 overflow-hidden transition-all sm:grid-cols-2 lg:grid-cols-5 ${
+                filtersOpen ? "mt-3 max-h-96 opacity-100" : "mt-0 max-h-0 opacity-0"
               }`}
             >
               {availabilitySelect}
@@ -442,6 +457,86 @@ const GalleryPage = () => {
                 </label>
               ))}
             </div>
+            {filtersOpen && (
+              <div className="fixed inset-0 z-50 lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen(false)}
+                  className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  aria-label="Close filters"
+                />
+                <section className="absolute inset-x-0 bottom-0 rounded-t-[2rem] bg-white p-5 pb-6 shadow-2xl">
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <p className="text-xs font-label uppercase tracking-[0.25em] text-slate/70">Filter artworks</p>
+                    <button
+                      type="button"
+                      onClick={() => setFiltersOpen(false)}
+                      className="text-sm uppercase tracking-[0.2em] text-charcoal/80"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {availabilitySelect}
+                    {sortSelect}
+                    <label className="block">
+                      <span className="sr-only">Filter by collection</span>
+                      <input
+                        type="text"
+                        value={collection}
+                        onChange={(event) => setCollection(event.target.value)}
+                        onBlur={() => updateCollection({ collection, medium, year, decade })}
+                        className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
+                        placeholder="Collection"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="sr-only">Filter by medium</span>
+                      <input
+                        type="text"
+                        value={medium}
+                        onChange={(event) => setMedium(event.target.value)}
+                        onBlur={() => updateCollection({ collection, medium, year, decade })}
+                        className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
+                        placeholder="Medium"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="sr-only">Filter by year</span>
+                      <input
+                        type="number"
+                        value={year}
+                        onChange={(event) => setYear(event.target.value)}
+                        onBlur={() => updateCollection({ collection, medium, year, decade })}
+                        className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
+                        placeholder="Year"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="sr-only">Filter by decade</span>
+                      <input
+                        type="text"
+                        value={decade}
+                        onChange={(event) => setDecade(event.target.value)}
+                        onBlur={() => updateCollection({ collection, medium, year, decade })}
+                        className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
+                        placeholder="Decade"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearFilters();
+                        setFiltersOpen(false);
+                      }}
+                      className="btn-secondary w-full"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                </section>
+              </div>
+            )}
 
             <div className="mt-2 flex min-h-7 items-center justify-between gap-4 text-xs text-slate/50">
               <p aria-live="polite">
@@ -496,33 +591,57 @@ const GalleryPage = () => {
           )}
 
           {totalPages > 1 && !loading && (
-            <nav className="mt-8 flex flex-col gap-4 border-t border-charcoal/10 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Gallery pagination">
-              <div className="text-sm text-slate/60">
-                Page {page} of {totalPages}
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => goToPage(page - 1)}
-                  disabled={page <= 1 || loadingPage}
-                  aria-label="Go to previous Gallery page"
-                  className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {loadingPage && page > 1 ? <LoadingSpinner size="sm" /> : "PREVIOUS"}
-                </button>
+            <>
+              <div className="lg:hidden mt-6">
                 <button
                   type="button"
                   onClick={() => goToPage(page + 1)}
                   disabled={page >= totalPages || loadingPage}
-                  aria-label="Go to next Gallery page"
-                  className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
+                  className="btn-gold w-full py-4 text-sm font-medium"
                 >
-                  {loadingPage && page < totalPages ? <LoadingSpinner size="sm" /> : "NEXT"}
+                  {loadingPage && page < totalPages ? <LoadingSpinner size="sm" /> : page < totalPages ? "Load More" : "End of collection"}
                 </button>
               </div>
-            </nav>
+
+              <nav className="hidden lg:flex mt-8 flex-col gap-4 border-t border-charcoal/10 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Gallery pagination">
+                <div className="text-sm text-slate/60">
+                  Page {page} of {totalPages}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => goToPage(page - 1)}
+                    disabled={page <= 1 || loadingPage}
+                    aria-label="Go to previous Gallery page"
+                    className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {loadingPage && page > 1 ? <LoadingSpinner size="sm" /> : "PREVIOUS"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(page + 1)}
+                    disabled={page >= totalPages || loadingPage}
+                    aria-label="Go to next Gallery page"
+                    className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {loadingPage && page < totalPages ? <LoadingSpinner size="sm" /> : "NEXT"}
+                  </button>
+                </div>
+              </nav>
+            </>
           )}
         </section>
+ 
+        <div className="fixed bottom-24 right-4 z-40 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            className="inline-flex items-center justify-center rounded-full bg-charcoal px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-2xl shadow-black/15 transition-colors hover:bg-gold"
+            aria-label="Open gallery filters"
+          >
+            Filters
+          </button>
+        </div>
       </div>
     </PublicLayout>
   );

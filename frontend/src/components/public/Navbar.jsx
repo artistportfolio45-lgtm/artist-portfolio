@@ -105,7 +105,7 @@ const Navbar = () => {
             </p>
           )}
         </div>
-
+ 
         <nav className="mt-14">
           <ul className="space-y-1">
             {navLinks.map((link) => (
@@ -130,16 +130,8 @@ const Navbar = () => {
             ))}
           </ul>
         </nav>
-
-        <div className="mt-6">
-          <Link
-            to="/admin/login"
-            className="inline-flex items-center justify-center rounded-full border border-gold bg-charcoal px-4 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-gold transition-colors hover:bg-gold hover:text-charcoal"
-          >
-            Admin
-          </Link>
-        </div>
-
+ 
+ 
         <div className="mt-auto border-t border-charcoal/10 pt-6">
           <PublicSocialLinks compact />
           <p className="mt-5 text-[10px] leading-relaxed text-slate/35">
@@ -147,7 +139,7 @@ const Navbar = () => {
           </p>
         </div>
       </aside>
-
+ 
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 lg:hidden ${
           solidMobileHeader ? "bg-white shadow-sm" : "bg-transparent"
@@ -155,14 +147,6 @@ const Navbar = () => {
       >
         <nav className="container-site" aria-label="Mobile navigation">
           <div className="flex h-16 items-center justify-between md:h-20">
-            <Brand
-              mobile
-              light={!solidMobileHeader}
-              profile={profile}
-              imageFailed={imageFailed}
-              onImageError={() => setImageFailed(true)}
-            />
-
             <button
               ref={menuButtonRef}
               type="button"
@@ -180,32 +164,50 @@ const Navbar = () => {
                 <span className={`block h-0.5 bg-current transition-transform ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
               </span>
             </button>
+            <div className="flex-1 flex justify-center">
+              <Brand
+                mobile
+                light={!solidMobileHeader}
+                profile={profile}
+                imageFailed={imageFailed}
+                onImageError={() => setImageFailed(true)}
+              />
+            </div>
+            <div className="h-11 w-11" aria-hidden="true" />
           </div>
         </nav>
-
-        {menuOpen && <div
-          ref={menuRef}
-          id="public-mobile-menu"
-          className="overflow-hidden bg-charcoal"
-        >
-          <ul className="container-site flex flex-col gap-1 py-4">
-            {navLinks.map((link) => (
-              <li key={link.to}>
+ 
+        {menuOpen && (
+          <div
+            ref={menuRef}
+            id="public-mobile-menu"
+            className="fixed inset-0 z-50 overflow-hidden bg-charcoal text-white transition-transform duration-300"
+          >
+            <div className="container-site flex h-full flex-col justify-center gap-6 px-4 py-8">
+              {navLinks.map((link) => (
                 <NavLink
+                  key={link.to}
                   to={link.to}
                   end={link.to === "/"}
                   className={({ isActive }) =>
-                    `block px-2 py-3 text-sm font-label uppercase tracking-widest transition-colors ${
-                      isActive ? "text-gold" : "text-white/75 hover:text-white"
+                    `block rounded-3xl border border-white/10 px-4 py-4 text-center text-lg uppercase tracking-[0.22em] transition ${
+                      isActive ? "bg-gold text-charcoal" : "text-white/85 hover:bg-white/10"
                     }`
                   }
                 >
                   {link.label}
                 </NavLink>
-              </li>
-            ))}
-          </ul>
-        </div>}
+              ))}
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                className="mt-4 rounded-3xl border border-white/20 px-4 py-4 text-sm uppercase tracking-[0.22em] text-white/80 transition hover:bg-white/10"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </header>
     </>
   );

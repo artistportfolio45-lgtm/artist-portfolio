@@ -3,7 +3,7 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useSettings } from "../../hooks/useSettings";
 import { useWebsiteTheme } from "../../hooks/useWebsiteTheme";
 
@@ -103,15 +103,9 @@ const PublicLayout = ({ children }) => {
         Skip to main content
       </a>
       <Navbar />
-      <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
+      <main id="main-content" tabIndex={-1} className="flex-1 pb-24 lg:pb-0">{children}</main>
       <Footer />
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
-        <Link
-          to="/admin/login"
-          className="inline-flex items-center justify-center rounded-full border border-gold bg-charcoal px-4 py-3 text-sm font-semibold uppercase tracking-[0.35em] text-gold transition-colors hover:bg-gold hover:text-charcoal"
-        >
-          Admin
-        </Link>
+      <div className="hidden lg:flex fixed bottom-5 right-5 z-50 flex-col items-end gap-3">
         <button
           type="button"
           onClick={scrollToTop}
@@ -123,6 +117,29 @@ const PublicLayout = ({ children }) => {
           ↑
         </button>
       </div>
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-charcoal/10 bg-white/95 backdrop-blur-sm lg:hidden">
+        <div className="container-site flex items-center justify-between gap-2 px-2 py-2">
+          {[
+            { to: "/", label: "Home" },
+            { to: "/gallery", label: "Gallery" },
+            { to: "/about", label: "About" },
+            { to: "/contact", label: "Contact" },
+          ].map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.to === "/"}
+              className={({ isActive }) =>
+                `flex-1 rounded-full px-3 py-3 text-center text-[10px] uppercase tracking-[0.24em] transition ${
+                  isActive ? "bg-charcoal text-white shadow-lg" : "text-charcoal/80 hover:text-charcoal"
+                }`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 };

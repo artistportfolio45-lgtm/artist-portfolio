@@ -88,30 +88,6 @@ const ArtworkCard = ({ artwork, variant, onPreview }) => {
           </div>
         </div>
 
-        <div className="min-w-0 pb-2 pt-4">
-          {category && category !== "Uncategorized" && (
-            <p className="mb-1 break-words text-[10px] font-label uppercase tracking-widest text-slate/60">
-              {category}
-            </p>
-          )}
-          {rawTitle && (
-            <Link to={`/artwork/${artwork._id}`} className="block min-w-0">
-              <h3 className="mb-2 break-words font-display text-xl font-light leading-tight text-charcoal transition-colors group-hover:text-gold group-focus-within:text-gold">
-                {rawTitle}
-              </h3>
-            </Link>
-          )}
-          {(formattedPrice || medium) && (
-            <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1">
-              {formattedPrice && <p className="font-label text-sm font-medium text-charcoal">{formattedPrice}</p>}
-              {medium && (
-                <p className="min-w-0 max-w-full break-words text-right text-xs leading-relaxed text-slate/50">
-                  {medium}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
       </article>
     );
   }

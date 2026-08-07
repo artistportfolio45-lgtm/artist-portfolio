@@ -372,6 +372,37 @@
   min-height: 62vh;
 }
 
+@media (max-width: 1023px) {
+  .gallery-results {
+    padding-bottom: 8rem;
+  }
+
+  .artwork-masonry {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .artwork-masonry-item {
+    display: block;
+    width: auto;
+    margin-bottom: 0;
+  }
+
+  .artwork-masonry-link {
+    border-radius: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  }
+
+  .artwork-masonry-image {
+    border-radius: inherit;
+  }
+
+  .artwork-masonry-mobile-caption {
+    display: none;
+  }
+}
+
 .artwork-masonry-link,
 .artwork-masonry-skeleton {
   border-radius: min(var(--theme-card-radius), 4px);

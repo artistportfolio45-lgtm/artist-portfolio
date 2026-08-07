@@ -65,9 +65,9 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 md:flex-row">
-          <p className="text-xs text-white/30">
-            {settings?.footerText || "(c) 2026 Artist Portfolio. All rights reserved."}
-          </p>
+          <Link to="/admin" className="text-xs text-white/30 no-underline" aria-label="Admin">
+            © 2026 Curated Artist Portfolio. All rights reserved.
+          </Link>
         </div>
       </div>
     </footer>

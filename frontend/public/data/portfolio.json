@@ -1,6 +1,9 @@
 {
-  "generatedAt": "2026-08-03T09:05:00.998Z",
+  "generatedAt": "2026-08-06T18:59:33.236Z",
   "settings": {
+    "expectedResponseTime": "",
+    "privacyReassurance": "",
+    "studioVisitInformation": "",
     "_id": "6a69a828416ef8ff9de002da",
     "websiteTitle": "Artist Portfolio",
     "websiteDescription": "A curated portfolio of original artworks.",
@@ -38,7 +41,8 @@
     "whatsapp": " 9561606263",
     "createdAt": "2026-07-29T07:13:44.468Z",
     "updatedAt": "2026-07-31T07:29:03.031Z",
-    "__v": 0
+    "__v": 0,
+    "additionalSocialLinks": []
   },
   "profile": {
     "_id": "6a69a82a416ef8ff9de002dc",
@@ -63,22 +67,21 @@
       "name": "Dr. Gurugovind Namdev Ambe",
       "roles": "Painter · Sculptor · Muralist · Illustrator · Art Educator",
       "introduction": "A multi-disciplinary Indian artist whose practice spans painting, sculpture, murals, illustration, socially engaged cartoons and arts education.",
-      "showCollectionButton": true,
-      "visible": true,
       "backgroundImage": {
-        "url": "",
-        "publicId": "",
-        "alt": "",
+        "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786035218/artist-portfolio/about/kpcvjdwq89qg54xmxtfi.jpg",
+        "publicId": "artist-portfolio/about/kpcvjdwq89qg54xmxtfi",
+        "alt": "Dr. Gurugovind Namdev Ambe",
         "caption": "",
-        "width": null,
-        "height": null
-      }
+        "width": 872,
+        "height": 1370
+      },
+      "showCollectionButton": true,
+      "visible": true
     },
     "artistStatement": {
       "quote": "",
       "statement": "His work explores Indian culture, history, spirituality, public life, social awareness and the breadth of human experience.",
       "signatureText": "",
-      "visible": true,
       "signatureImage": {
         "url": "",
         "publicId": "",
@@ -94,57 +97,38 @@
         "caption": "",
         "width": null,
         "height": null
-      }
+      },
+      "visible": true
     },
     "biography": {
       "heading": "A life shaped through art",
       "body": "Dr. Gurugovind Namdev Ambe is a painter, sculptor, muralist, illustrator, cartoonist, art educator and fine-arts curator. His practice moves between the intimacy of drawing and painting and the shared civic space of murals, memorial work and public sculpture.\n\nHe achieved first position at the Pune centre in G.D. Art and ninth position in the Maharashtra merit list. His works “Anpadh Ki Dasha” and “Buddha Ka Shodhan Ke Liye Rajya Tyag” received national recognition. Archive material documents a wider practice encompassing ceramic and terracotta work, installations and socially engaged visual communication.",
       "archiveNote": "Earlier archive and media material may refer to the artist as G. N. Ambe or Raju Ambe.",
-      "visible": true,
       "image": {
-        "url": "",
-        "publicId": "",
+        "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786039806/artist-portfolio/about/zckktkksknyqqxl6u0jf.tiff",
+        "publicId": "artist-portfolio/about/zckktkksknyqqxl6u0jf",
         "alt": "",
         "caption": "",
-        "width": null,
-        "height": null
-      }
+        "width": 1200,
+        "height": 805
+      },
+      "visible": true
     },
     "practices": [
       {
-        "link": "",
-        "visible": true,
-        "_id": {
-          "buffer": {
-            "0": 106,
-            "1": 111,
-            "2": 16,
-            "3": 228,
-            "4": 222,
-            "5": 119,
-            "6": 169,
-            "7": 39,
-            "8": 23,
-            "9": 123,
-            "10": 83,
-            "11": 212
-          }
-        },
-        "image": {
-          "url": "",
-          "publicId": "",
-          "alt": "",
-          "caption": "",
-          "width": null,
-          "height": null
-        },
         "title": "Painting & Drawing",
         "description": "Paintings and sketches shaped by Indian culture, history, spirituality and lived experience.",
-        "order": 0
-      },
-      {
+        "image": {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040037/artist-portfolio/about/n3jf6e2ukzb2u5nd8tn0.jpg",
+          "publicId": "artist-portfolio/about/n3jf6e2ukzb2u5nd8tn0",
+          "alt": "",
+          "caption": "",
+          "width": 3376,
+          "height": 2551
+        },
         "link": "",
         "visible": true,
+        "order": 0,
         "_id": {
           "buffer": {
             "0": 106,
@@ -158,24 +142,24 @@
             "8": 23,
             "9": 123,
             "10": 83,
-            "11": 213
+            "11": 202
           }
-        },
-        "image": {
-          "url": "",
-          "publicId": "",
-          "alt": "",
-          "caption": "",
-          "width": null,
-          "height": null
-        },
+        }
+      },
+      {
         "title": "Sculpture & Ceramics",
         "description": "Sculptural, ceramic and terracotta works that bring material, memory and form into dialogue.",
-        "order": 1
-      },
-      {
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
         "link": "",
         "visible": true,
+        "order": 1,
         "_id": {
           "buffer": {
             "0": 106,
@@ -189,24 +173,24 @@
             "8": 23,
             "9": 123,
             "10": 83,
-            "11": 214
+            "11": 203
           }
-        },
-        "image": {
-          "url": "",
-          "publicId": "",
-          "alt": "",
-          "caption": "",
-          "width": null,
-          "height": null
-        },
+        }
+      },
+      {
         "title": "Murals & Public Art",
         "description": "Memorial works, murals and public projects conceived for shared spaces and collective remembrance.",
-        "order": 2
-      },
-      {
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
         "link": "",
         "visible": true,
+        "order": 2,
         "_id": {
           "buffer": {
             "0": 106,
@@ -220,9 +204,13 @@
             "8": 23,
             "9": 123,
             "10": 83,
-            "11": 215
+            "11": 204
           }
-        },
+        }
+      },
+      {
+        "title": "Illustration & Social Cartoons",
+        "description": "Illustration and socially engaged cartoons addressing public life, awareness and human dignity.",
         "image": {
           "url": "",
           "publicId": "",
@@ -231,47 +219,43 @@
           "width": null,
           "height": null
         },
-        "title": "Illustration & Social Cartoons",
-        "description": "Illustration and socially engaged cartoons addressing public life, awareness and human dignity.",
-        "order": 3
+        "link": "",
+        "visible": true,
+        "order": 3,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 205
+          }
+        }
       }
     ],
     "timeline": [
       {
         "dateLabel": "",
-        "published": true,
-        "_id": {
-          "buffer": {
-            "0": 106,
-            "1": 111,
-            "2": 16,
-            "3": 228,
-            "4": 222,
-            "5": 119,
-            "6": 169,
-            "7": 39,
-            "8": 23,
-            "9": 123,
-            "10": 83,
-            "11": 216
-          }
-        },
-        "image": {
-          "url": "",
-          "publicId": "",
-          "alt": "",
-          "caption": "",
-          "width": null,
-          "height": null
-        },
         "title": "G.D. Art recognition",
         "description": "First position at the Pune centre and ninth position in the Maharashtra merit list.",
         "category": "Education",
-        "order": 0
-      },
-      {
-        "dateLabel": "",
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
         "published": true,
+        "order": 0,
         "_id": {
           "buffer": {
             "0": 106,
@@ -285,25 +269,25 @@
             "8": 23,
             "9": 123,
             "10": 83,
-            "11": 217
+            "11": 206
           }
-        },
-        "image": {
-          "url": "",
-          "publicId": "",
-          "alt": "",
-          "caption": "",
-          "width": null,
-          "height": null
-        },
+        }
+      },
+      {
+        "dateLabel": "",
         "title": "Public and memorial art practice",
         "description": "A significant body of murals, memorial-site work, sculpture and installations created for public contexts.",
         "category": "Public Artwork",
-        "order": 1
-      },
-      {
-        "dateLabel": "",
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
         "published": true,
+        "order": 1,
         "_id": {
           "buffer": {
             "0": 106,
@@ -317,25 +301,25 @@
             "8": 23,
             "9": 123,
             "10": 83,
-            "11": 218
+            "11": 207
           }
-        },
-        "image": {
-          "url": "",
-          "publicId": "",
-          "alt": "",
-          "caption": "",
-          "width": null,
-          "height": null
-        },
+        }
+      },
+      {
+        "dateLabel": "",
         "title": "National recognition for “Anpadh Ki Dasha”",
         "description": "The work received national recognition for its socially engaged artistic vision.",
         "category": "Award",
-        "order": 2
-      },
-      {
-        "dateLabel": "",
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
         "published": true,
+        "order": 2,
         "_id": {
           "buffer": {
             "0": 106,
@@ -349,9 +333,15 @@
             "8": 23,
             "9": 123,
             "10": 83,
-            "11": 219
+            "11": 208
           }
-        },
+        }
+      },
+      {
+        "dateLabel": "",
+        "title": "National painting recognition",
+        "description": "“Buddha Ka Shodhan Ke Liye Rajya Tyag” received national painting recognition.",
+        "category": "Award",
         "image": {
           "url": "",
           "publicId": "",
@@ -360,53 +350,45 @@
           "width": null,
           "height": null
         },
-        "title": "National painting recognition",
-        "description": "“Buddha Ka Shodhan Ke Liye Rajya Tyag” received national painting recognition.",
-        "category": "Award",
-        "order": 3
+        "published": true,
+        "order": 3,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 209
+          }
+        }
       }
     ],
     "publicWorks": [],
     "awards": [
       {
-        "year": "",
-        "organiser": "",
-        "location": "",
-        "visible": true,
-        "_id": {
-          "buffer": {
-            "0": 106,
-            "1": 111,
-            "2": 16,
-            "3": 228,
-            "4": 222,
-            "5": 119,
-            "6": 169,
-            "7": 39,
-            "8": 23,
-            "9": 123,
-            "10": 83,
-            "11": 220
-          }
-        },
-        "image": {
-          "url": "",
-          "publicId": "",
-          "alt": "",
-          "caption": "",
-          "width": null,
-          "height": null
-        },
         "awardTitle": "National recognition",
         "artworkTitle": "Anpadh Ki Dasha",
-        "description": "National recognition for a socially engaged work.",
-        "order": 0
-      },
-      {
         "year": "",
         "organiser": "",
         "location": "",
+        "description": "National recognition for a socially engaged work.",
+        "image": {
+          "url": "",
+          "publicId": "",
+          "alt": "",
+          "caption": "",
+          "width": null,
+          "height": null
+        },
         "visible": true,
+        "order": 0,
         "_id": {
           "buffer": {
             "0": 106,
@@ -420,9 +402,17 @@
             "8": 23,
             "9": 123,
             "10": 83,
-            "11": 221
+            "11": 210
           }
-        },
+        }
+      },
+      {
+        "awardTitle": "National painting recognition",
+        "artworkTitle": "Buddha Ka Shodhan Ke Liye Rajya Tyag",
+        "year": "",
+        "organiser": "",
+        "location": "",
+        "description": "National recognition for the painting.",
         "image": {
           "url": "",
           "publicId": "",
@@ -431,20 +421,37 @@
           "width": null,
           "height": null
         },
-        "awardTitle": "National painting recognition",
-        "artworkTitle": "Buddha Ka Shodhan Ke Liye Rajya Tyag",
-        "description": "National recognition for the painting.",
-        "order": 1
+        "visible": true,
+        "order": 1,
+        "_id": {
+          "buffer": {
+            "0": 106,
+            "1": 111,
+            "2": 16,
+            "3": 228,
+            "4": 222,
+            "5": 119,
+            "6": 169,
+            "7": 39,
+            "8": 23,
+            "9": 123,
+            "10": 83,
+            "11": 211
+          }
+        }
       }
     ],
     "pressArchive": [],
+    "process": [],
+    "studio": {
+      "description": "",
+      "images": [],
+      "visible": true
+    },
     "closingCta": {
       "eyebrow": "The work continues",
       "heading": "Art as memory, witness and shared experience",
       "message": "Across disciplines and public spaces, the artist’s practice remains rooted in culture, social awareness and the enduring human impulse to make meaning.",
-      "showCollectionButton": true,
-      "showContactButton": true,
-      "visible": true,
       "backgroundImage": {
         "url": "",
         "publicId": "",
@@ -452,23 +459,1762 @@
         "caption": "",
         "width": null,
         "height": null
-      }
+      },
+      "showCollectionButton": true,
+      "showContactButton": true,
+      "visible": true
     },
     "seo": {
       "title": "Dr. Gurugovind Namdev Ambe — Indian Visual Artist",
       "description": "Discover the multi-disciplinary practice, public works, honours and archive of Indian artist Dr. Gurugovind Namdev Ambe.",
       "socialImage": {
-        "url": "",
-        "publicId": "",
+        "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040263/artist-portfolio/about/vorqssqx8s7atb5cpiwv.jpg",
+        "publicId": "artist-portfolio/about/vorqssqx8s7atb5cpiwv",
         "alt": "",
         "caption": "",
-        "width": null,
-        "height": null
+        "width": 3120,
+        "height": 4208
       }
     }
   },
   "artworks": [
     {
+      "_id": "6a74d10e2c1584d0de09a223",
+      "title": "Slide152",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040589/artist-portfolio/artworks/0038574c-585d-4282-8174-2a2af2b0f56e.jpg",
+          "publicId": "artist-portfolio/artworks/0038574c-585d-4282-8174-2a2af2b0f56e",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d10e2c1584d0de09a224"
+        }
+      ],
+      "clientUploadId": "0038574c-585d-4282-8174-2a2af2b0f56e",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:23:10.592Z",
+      "updatedAt": "2026-08-06T18:23:10.592Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d10c2c1584d0de09a21d",
+      "title": "Slide151",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040587/artist-portfolio/artworks/3f1e0a93-6451-4eb6-9fd9-6b6c256a8415.jpg",
+          "publicId": "artist-portfolio/artworks/3f1e0a93-6451-4eb6-9fd9-6b6c256a8415",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d10c2c1584d0de09a21e"
+        }
+      ],
+      "clientUploadId": "3f1e0a93-6451-4eb6-9fd9-6b6c256a8415",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:23:08.029Z",
+      "updatedAt": "2026-08-06T18:23:08.029Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d1092c1584d0de09a217",
+      "title": "Slide150",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040584/artist-portfolio/artworks/ab84f870-ab78-4e63-b462-96d5c43f2a13.jpg",
+          "publicId": "artist-portfolio/artworks/ab84f870-ab78-4e63-b462-96d5c43f2a13",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d1092c1584d0de09a218"
+        }
+      ],
+      "clientUploadId": "ab84f870-ab78-4e63-b462-96d5c43f2a13",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:23:05.806Z",
+      "updatedAt": "2026-08-06T18:23:05.806Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d1072c1584d0de09a211",
+      "title": "Slide149",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040582/artist-portfolio/artworks/282be1ff-a7f3-47ad-b9be-dc3ecda3e84b.jpg",
+          "publicId": "artist-portfolio/artworks/282be1ff-a7f3-47ad-b9be-dc3ecda3e84b",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d1072c1584d0de09a212"
+        }
+      ],
+      "clientUploadId": "282be1ff-a7f3-47ad-b9be-dc3ecda3e84b",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:23:03.342Z",
+      "updatedAt": "2026-08-06T18:23:03.342Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d1042c1584d0de09a20b",
+      "title": "Slide148",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040580/artist-portfolio/artworks/a557a029-06ee-44a3-90eb-0bbfebc7d47f.jpg",
+          "publicId": "artist-portfolio/artworks/a557a029-06ee-44a3-90eb-0bbfebc7d47f",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d1042c1584d0de09a20c"
+        }
+      ],
+      "clientUploadId": "a557a029-06ee-44a3-90eb-0bbfebc7d47f",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:23:00.873Z",
+      "updatedAt": "2026-08-06T18:23:00.873Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d1022c1584d0de09a205",
+      "title": "Slide147",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040578/artist-portfolio/artworks/cff1e965-d211-4e05-ac98-2f2d5e316d69.jpg",
+          "publicId": "artist-portfolio/artworks/cff1e965-d211-4e05-ac98-2f2d5e316d69",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d1022c1584d0de09a206"
+        }
+      ],
+      "clientUploadId": "cff1e965-d211-4e05-ac98-2f2d5e316d69",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:58.832Z",
+      "updatedAt": "2026-08-06T18:22:58.832Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d1002c1584d0de09a1ff",
+      "title": "Slide146",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040575/artist-portfolio/artworks/a937271f-e42c-4092-b445-c8c1e5546e3e.jpg",
+          "publicId": "artist-portfolio/artworks/a937271f-e42c-4092-b445-c8c1e5546e3e",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d1002c1584d0de09a200"
+        }
+      ],
+      "clientUploadId": "a937271f-e42c-4092-b445-c8c1e5546e3e",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:56.596Z",
+      "updatedAt": "2026-08-06T18:22:56.596Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0fe2c1584d0de09a1f9",
+      "title": "Slide145",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040573/artist-portfolio/artworks/c979b55f-0b54-4258-a772-62eac76fde1a.jpg",
+          "publicId": "artist-portfolio/artworks/c979b55f-0b54-4258-a772-62eac76fde1a",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0fe2c1584d0de09a1fa"
+        }
+      ],
+      "clientUploadId": "c979b55f-0b54-4258-a772-62eac76fde1a",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:54.078Z",
+      "updatedAt": "2026-08-06T18:22:54.078Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0fb2c1584d0de09a1f3",
+      "title": "Slide144",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040570/artist-portfolio/artworks/ec76e644-5fbf-41f2-aeeb-bfe5c9959bb3.jpg",
+          "publicId": "artist-portfolio/artworks/ec76e644-5fbf-41f2-aeeb-bfe5c9959bb3",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0fb2c1584d0de09a1f4"
+        }
+      ],
+      "clientUploadId": "ec76e644-5fbf-41f2-aeeb-bfe5c9959bb3",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:51.631Z",
+      "updatedAt": "2026-08-06T18:22:51.631Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0f92c1584d0de09a1ed",
+      "title": "Slide143",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040568/artist-portfolio/artworks/48f70a69-27b8-4cb4-b23d-c4137f3f14d1.jpg",
+          "publicId": "artist-portfolio/artworks/48f70a69-27b8-4cb4-b23d-c4137f3f14d1",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0f92c1584d0de09a1ee"
+        }
+      ],
+      "clientUploadId": "48f70a69-27b8-4cb4-b23d-c4137f3f14d1",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:49.216Z",
+      "updatedAt": "2026-08-06T18:22:49.216Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0f62c1584d0de09a1e7",
+      "title": "Slide142",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040565/artist-portfolio/artworks/e7cb9d6c-1e6b-4e93-ab74-e06d49c309bb.jpg",
+          "publicId": "artist-portfolio/artworks/e7cb9d6c-1e6b-4e93-ab74-e06d49c309bb",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0f62c1584d0de09a1e8"
+        }
+      ],
+      "clientUploadId": "e7cb9d6c-1e6b-4e93-ab74-e06d49c309bb",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:46.730Z",
+      "updatedAt": "2026-08-06T18:22:46.730Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0f42c1584d0de09a1e1",
+      "title": "Slide141",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040563/artist-portfolio/artworks/b5f53bce-fa1a-475b-8cc1-abef487876b4.jpg",
+          "publicId": "artist-portfolio/artworks/b5f53bce-fa1a-475b-8cc1-abef487876b4",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0f42c1584d0de09a1e2"
+        }
+      ],
+      "clientUploadId": "b5f53bce-fa1a-475b-8cc1-abef487876b4",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:44.181Z",
+      "updatedAt": "2026-08-06T18:22:44.181Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0f12c1584d0de09a1db",
+      "title": "Slide140",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040560/artist-portfolio/artworks/3903f0f9-4159-451f-8235-a6255e50a3e5.jpg",
+          "publicId": "artist-portfolio/artworks/3903f0f9-4159-451f-8235-a6255e50a3e5",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0f12c1584d0de09a1dc"
+        }
+      ],
+      "clientUploadId": "3903f0f9-4159-451f-8235-a6255e50a3e5",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:41.621Z",
+      "updatedAt": "2026-08-06T18:22:41.621Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0ef2c1584d0de09a1d5",
+      "title": "Slide139",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040558/artist-portfolio/artworks/9bfe24c7-b7fe-46fc-807c-8c3b7a417844.jpg",
+          "publicId": "artist-portfolio/artworks/9bfe24c7-b7fe-46fc-807c-8c3b7a417844",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0ef2c1584d0de09a1d6"
+        }
+      ],
+      "clientUploadId": "9bfe24c7-b7fe-46fc-807c-8c3b7a417844",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:39.117Z",
+      "updatedAt": "2026-08-06T18:22:39.117Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0ec2c1584d0de09a1cf",
+      "title": "Slide138",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040556/artist-portfolio/artworks/57098454-9996-4d1e-bf36-a26ea413c5a3.jpg",
+          "publicId": "artist-portfolio/artworks/57098454-9996-4d1e-bf36-a26ea413c5a3",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0ec2c1584d0de09a1d0"
+        }
+      ],
+      "clientUploadId": "57098454-9996-4d1e-bf36-a26ea413c5a3",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:36.873Z",
+      "updatedAt": "2026-08-06T18:22:36.873Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0ea2c1584d0de09a1c9",
+      "title": "Slide137",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040554/artist-portfolio/artworks/0af9e8e3-c575-48e1-96da-44be85bf8bd0.jpg",
+          "publicId": "artist-portfolio/artworks/0af9e8e3-c575-48e1-96da-44be85bf8bd0",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0ea2c1584d0de09a1ca"
+        }
+      ],
+      "clientUploadId": "0af9e8e3-c575-48e1-96da-44be85bf8bd0",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:34.717Z",
+      "updatedAt": "2026-08-06T18:22:34.717Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0e82c1584d0de09a1c3",
+      "title": "Slide136",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040551/artist-portfolio/artworks/5e7f50a7-60ba-4635-bed4-11d3618f797c.jpg",
+          "publicId": "artist-portfolio/artworks/5e7f50a7-60ba-4635-bed4-11d3618f797c",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0e82c1584d0de09a1c4"
+        }
+      ],
+      "clientUploadId": "5e7f50a7-60ba-4635-bed4-11d3618f797c",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:32.200Z",
+      "updatedAt": "2026-08-06T18:22:32.200Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0e62c1584d0de09a1bd",
+      "title": "Slide135",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040549/artist-portfolio/artworks/ae8cc403-6b84-4de2-9ae5-60756a9b2ad8.jpg",
+          "publicId": "artist-portfolio/artworks/ae8cc403-6b84-4de2-9ae5-60756a9b2ad8",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0e62c1584d0de09a1be"
+        }
+      ],
+      "clientUploadId": "ae8cc403-6b84-4de2-9ae5-60756a9b2ad8",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:30.223Z",
+      "updatedAt": "2026-08-06T18:22:30.223Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0e42c1584d0de09a1b7",
+      "title": "Slide134",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040547/artist-portfolio/artworks/5c735d27-8b14-449a-a2c8-a8df7c72defa.jpg",
+          "publicId": "artist-portfolio/artworks/5c735d27-8b14-449a-a2c8-a8df7c72defa",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0e42c1584d0de09a1b8"
+        }
+      ],
+      "clientUploadId": "5c735d27-8b14-449a-a2c8-a8df7c72defa",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:28.177Z",
+      "updatedAt": "2026-08-06T18:22:28.177Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0e12c1584d0de09a1b1",
+      "title": "Slide133",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040545/artist-portfolio/artworks/f80933ee-09ff-4cb1-80d1-e7b24d2da02c.jpg",
+          "publicId": "artist-portfolio/artworks/f80933ee-09ff-4cb1-80d1-e7b24d2da02c",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0e12c1584d0de09a1b2"
+        }
+      ],
+      "clientUploadId": "f80933ee-09ff-4cb1-80d1-e7b24d2da02c",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:25.781Z",
+      "updatedAt": "2026-08-06T18:22:25.781Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0df2c1584d0de09a1ab",
+      "title": "Slide132",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040543/artist-portfolio/artworks/dc17c935-da8c-4181-a442-848087856834.jpg",
+          "publicId": "artist-portfolio/artworks/dc17c935-da8c-4181-a442-848087856834",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0df2c1584d0de09a1ac"
+        }
+      ],
+      "clientUploadId": "dc17c935-da8c-4181-a442-848087856834",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:23.668Z",
+      "updatedAt": "2026-08-06T18:22:23.668Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0dd2c1584d0de09a1a5",
+      "title": "Slide131",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040540/artist-portfolio/artworks/0be8f83e-3329-452a-8b22-4dc4d8e20622.jpg",
+          "publicId": "artist-portfolio/artworks/0be8f83e-3329-452a-8b22-4dc4d8e20622",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0dd2c1584d0de09a1a6"
+        }
+      ],
+      "clientUploadId": "0be8f83e-3329-452a-8b22-4dc4d8e20622",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:21.532Z",
+      "updatedAt": "2026-08-06T18:22:21.532Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0db2c1584d0de09a19f",
+      "title": "Slide130",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040538/artist-portfolio/artworks/b9ba2a1f-774e-467e-8e02-dca011040473.jpg",
+          "publicId": "artist-portfolio/artworks/b9ba2a1f-774e-467e-8e02-dca011040473",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0db2c1584d0de09a1a0"
+        }
+      ],
+      "clientUploadId": "b9ba2a1f-774e-467e-8e02-dca011040473",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:19.030Z",
+      "updatedAt": "2026-08-06T18:22:19.030Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0d82c1584d0de09a199",
+      "title": "Slide129",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040535/artist-portfolio/artworks/bc8645fe-c913-4d81-91db-6ac679245eb8.jpg",
+          "publicId": "artist-portfolio/artworks/bc8645fe-c913-4d81-91db-6ac679245eb8",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0d82c1584d0de09a19a"
+        }
+      ],
+      "clientUploadId": "bc8645fe-c913-4d81-91db-6ac679245eb8",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:16.655Z",
+      "updatedAt": "2026-08-06T18:22:16.655Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0d62c1584d0de09a193",
+      "title": "Slide128",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040533/artist-portfolio/artworks/07fe1ea8-40ad-4377-9a4e-19a009e4ac9f.jpg",
+          "publicId": "artist-portfolio/artworks/07fe1ea8-40ad-4377-9a4e-19a009e4ac9f",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0d62c1584d0de09a194"
+        }
+      ],
+      "clientUploadId": "07fe1ea8-40ad-4377-9a4e-19a009e4ac9f",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:14.351Z",
+      "updatedAt": "2026-08-06T18:22:14.351Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0d32c1584d0de09a18d",
+      "title": "Slide127",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040531/artist-portfolio/artworks/33403cc8-11b5-4164-b3b2-7975c4f0b8ec.jpg",
+          "publicId": "artist-portfolio/artworks/33403cc8-11b5-4164-b3b2-7975c4f0b8ec",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0d32c1584d0de09a18e"
+        }
+      ],
+      "clientUploadId": "33403cc8-11b5-4164-b3b2-7975c4f0b8ec",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:11.870Z",
+      "updatedAt": "2026-08-06T18:22:11.870Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0d12c1584d0de09a187",
+      "title": "Slide126",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040528/artist-portfolio/artworks/d587a284-3a12-4cb2-a460-742e365c770c.jpg",
+          "publicId": "artist-portfolio/artworks/d587a284-3a12-4cb2-a460-742e365c770c",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0d12c1584d0de09a188"
+        }
+      ],
+      "clientUploadId": "d587a284-3a12-4cb2-a460-742e365c770c",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:09.367Z",
+      "updatedAt": "2026-08-06T18:22:09.367Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0ce2c1584d0de09a181",
+      "title": "Slide125",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040525/artist-portfolio/artworks/f04e958e-9541-49d6-8f8c-16a189880eb9.jpg",
+          "publicId": "artist-portfolio/artworks/f04e958e-9541-49d6-8f8c-16a189880eb9",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0ce2c1584d0de09a182"
+        }
+      ],
+      "clientUploadId": "f04e958e-9541-49d6-8f8c-16a189880eb9",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:06.188Z",
+      "updatedAt": "2026-08-06T18:22:06.188Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0cb2c1584d0de09a17b",
+      "title": "Slide124",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040523/artist-portfolio/artworks/41b949ee-add1-424c-bb79-072bb9068604.jpg",
+          "publicId": "artist-portfolio/artworks/41b949ee-add1-424c-bb79-072bb9068604",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0cb2c1584d0de09a17c"
+        }
+      ],
+      "clientUploadId": "41b949ee-add1-424c-bb79-072bb9068604",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:03.880Z",
+      "updatedAt": "2026-08-06T18:22:03.880Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0c92c1584d0de09a175",
+      "title": "Slide123",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040520/artist-portfolio/artworks/e47359b3-acf7-4ff2-b019-ed230dda919c.jpg",
+          "publicId": "artist-portfolio/artworks/e47359b3-acf7-4ff2-b019-ed230dda919c",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0c92c1584d0de09a176"
+        }
+      ],
+      "clientUploadId": "e47359b3-acf7-4ff2-b019-ed230dda919c",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:22:01.548Z",
+      "updatedAt": "2026-08-06T18:22:01.548Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0c62c1584d0de09a16f",
+      "title": "Slide122",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040518/artist-portfolio/artworks/8cc81cf5-ecb5-4d7b-9bda-8c819dacf7e9.jpg",
+          "publicId": "artist-portfolio/artworks/8cc81cf5-ecb5-4d7b-9bda-8c819dacf7e9",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0c62c1584d0de09a170"
+        }
+      ],
+      "clientUploadId": "8cc81cf5-ecb5-4d7b-9bda-8c819dacf7e9",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:58.878Z",
+      "updatedAt": "2026-08-06T18:21:58.878Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0c42c1584d0de09a169",
+      "title": "Slide121",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040515/artist-portfolio/artworks/9de78cbd-748a-464e-9b61-e6989fc1f8df.jpg",
+          "publicId": "artist-portfolio/artworks/9de78cbd-748a-464e-9b61-e6989fc1f8df",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0c42c1584d0de09a16a"
+        }
+      ],
+      "clientUploadId": "9de78cbd-748a-464e-9b61-e6989fc1f8df",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:56.553Z",
+      "updatedAt": "2026-08-06T18:21:56.553Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0c22c1584d0de09a163",
+      "title": "Slide120",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040513/artist-portfolio/artworks/db1b6fc8-c35c-4852-a042-f8b41570dd66.jpg",
+          "publicId": "artist-portfolio/artworks/db1b6fc8-c35c-4852-a042-f8b41570dd66",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0c22c1584d0de09a164"
+        }
+      ],
+      "clientUploadId": "db1b6fc8-c35c-4852-a042-f8b41570dd66",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:54.195Z",
+      "updatedAt": "2026-08-06T18:21:54.195Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0bf2c1584d0de09a15d",
+      "title": "Slide119",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040510/artist-portfolio/artworks/b00c7b05-6658-4273-a698-e3603bc6b8d3.jpg",
+          "publicId": "artist-portfolio/artworks/b00c7b05-6658-4273-a698-e3603bc6b8d3",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0bf2c1584d0de09a15e"
+        }
+      ],
+      "clientUploadId": "b00c7b05-6658-4273-a698-e3603bc6b8d3",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:51.537Z",
+      "updatedAt": "2026-08-06T18:21:51.537Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0bd2c1584d0de09a157",
+      "title": "Slide118",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040508/artist-portfolio/artworks/ce3360a5-80cd-41ae-9846-c803a74e8be2.jpg",
+          "publicId": "artist-portfolio/artworks/ce3360a5-80cd-41ae-9846-c803a74e8be2",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0bd2c1584d0de09a158"
+        }
+      ],
+      "clientUploadId": "ce3360a5-80cd-41ae-9846-c803a74e8be2",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:49.092Z",
+      "updatedAt": "2026-08-06T18:21:49.092Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0ba2c1584d0de09a151",
+      "title": "Slide117",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040505/artist-portfolio/artworks/e94c4521-74da-4829-82d4-c6dba40da544.jpg",
+          "publicId": "artist-portfolio/artworks/e94c4521-74da-4829-82d4-c6dba40da544",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0ba2c1584d0de09a152"
+        }
+      ],
+      "clientUploadId": "e94c4521-74da-4829-82d4-c6dba40da544",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:46.772Z",
+      "updatedAt": "2026-08-06T18:21:46.772Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0b72c1584d0de09a14b",
+      "title": "Slide116",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040503/artist-portfolio/artworks/3d4c2cde-fb96-45b1-9c13-ab03011e8e64.jpg",
+          "publicId": "artist-portfolio/artworks/3d4c2cde-fb96-45b1-9c13-ab03011e8e64",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0b72c1584d0de09a14c"
+        }
+      ],
+      "clientUploadId": "3d4c2cde-fb96-45b1-9c13-ab03011e8e64",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:43.817Z",
+      "updatedAt": "2026-08-06T18:21:43.817Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0b52c1584d0de09a145",
+      "title": "Slide115",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040501/artist-portfolio/artworks/25698531-a0b6-44d8-b897-18958d2e1bfc.jpg",
+          "publicId": "artist-portfolio/artworks/25698531-a0b6-44d8-b897-18958d2e1bfc",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0b52c1584d0de09a146"
+        }
+      ],
+      "clientUploadId": "25698531-a0b6-44d8-b897-18958d2e1bfc",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:41.633Z",
+      "updatedAt": "2026-08-06T18:21:41.633Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0b32c1584d0de09a13f",
+      "title": "Slide114",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040498/artist-portfolio/artworks/5aa331af-e66d-473e-b523-c71dc2aa384b.jpg",
+          "publicId": "artist-portfolio/artworks/5aa331af-e66d-473e-b523-c71dc2aa384b",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0b32c1584d0de09a140"
+        }
+      ],
+      "clientUploadId": "5aa331af-e66d-473e-b523-c71dc2aa384b",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:39.509Z",
+      "updatedAt": "2026-08-06T18:21:39.509Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0b02c1584d0de09a139",
+      "title": "Slide113",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040496/artist-portfolio/artworks/c1735aa2-e7ce-49f0-8230-484aaf2b95bb.jpg",
+          "publicId": "artist-portfolio/artworks/c1735aa2-e7ce-49f0-8230-484aaf2b95bb",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0b02c1584d0de09a13a"
+        }
+      ],
+      "clientUploadId": "c1735aa2-e7ce-49f0-8230-484aaf2b95bb",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:36.995Z",
+      "updatedAt": "2026-08-06T18:21:36.995Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0ae2c1584d0de09a133",
+      "title": "Slide112",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040494/artist-portfolio/artworks/bdf9c8d3-988e-4d05-b348-b055140e2849.jpg",
+          "publicId": "artist-portfolio/artworks/bdf9c8d3-988e-4d05-b348-b055140e2849",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0ae2c1584d0de09a134"
+        }
+      ],
+      "clientUploadId": "bdf9c8d3-988e-4d05-b348-b055140e2849",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:34.848Z",
+      "updatedAt": "2026-08-06T18:21:34.848Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0ac2c1584d0de09a12d",
+      "title": "Slide111",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040491/artist-portfolio/artworks/49c5ac23-5726-42c7-a412-8b362bbb2bd6.jpg",
+          "publicId": "artist-portfolio/artworks/49c5ac23-5726-42c7-a412-8b362bbb2bd6",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0ac2c1584d0de09a12e"
+        }
+      ],
+      "clientUploadId": "49c5ac23-5726-42c7-a412-8b362bbb2bd6",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:32.553Z",
+      "updatedAt": "2026-08-06T18:21:32.553Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0aa2c1584d0de09a127",
+      "title": "Slide110",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040489/artist-portfolio/artworks/a20d476e-eec7-4143-a85e-6f60329086fa.jpg",
+          "publicId": "artist-portfolio/artworks/a20d476e-eec7-4143-a85e-6f60329086fa",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0aa2c1584d0de09a128"
+        }
+      ],
+      "clientUploadId": "a20d476e-eec7-4143-a85e-6f60329086fa",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:30.066Z",
+      "updatedAt": "2026-08-06T18:21:30.066Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0a72c1584d0de09a121",
+      "title": "Slide109",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040487/artist-portfolio/artworks/b4cfe572-400e-445a-ac77-0142d95f40ba.jpg",
+          "publicId": "artist-portfolio/artworks/b4cfe572-400e-445a-ac77-0142d95f40ba",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0a72c1584d0de09a122"
+        }
+      ],
+      "clientUploadId": "b4cfe572-400e-445a-ac77-0142d95f40ba",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:27.773Z",
+      "updatedAt": "2026-08-06T18:21:27.773Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0a52c1584d0de09a11b",
+      "title": "Slide108",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040484/artist-portfolio/artworks/1954fb4e-111e-401c-a4f7-02cac6b253a5.jpg",
+          "publicId": "artist-portfolio/artworks/1954fb4e-111e-401c-a4f7-02cac6b253a5",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0a52c1584d0de09a11c"
+        }
+      ],
+      "clientUploadId": "1954fb4e-111e-401c-a4f7-02cac6b253a5",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:25.487Z",
+      "updatedAt": "2026-08-06T18:21:25.487Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0a32c1584d0de09a115",
+      "title": "Slide107",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040482/artist-portfolio/artworks/94df0b00-9d0d-4a74-84ca-a8759508d800.jpg",
+          "publicId": "artist-portfolio/artworks/94df0b00-9d0d-4a74-84ca-a8759508d800",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0a32c1584d0de09a116"
+        }
+      ],
+      "clientUploadId": "94df0b00-9d0d-4a74-84ca-a8759508d800",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:23.073Z",
+      "updatedAt": "2026-08-06T18:21:23.073Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d0a02c1584d0de09a10f",
+      "title": "Slide106",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040479/artist-portfolio/artworks/43c5aeb4-ec41-482e-a7cc-aa932566e9e3.jpg",
+          "publicId": "artist-portfolio/artworks/43c5aeb4-ec41-482e-a7cc-aa932566e9e3",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d0a02c1584d0de09a110"
+        }
+      ],
+      "clientUploadId": "43c5aeb4-ec41-482e-a7cc-aa932566e9e3",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:20.487Z",
+      "updatedAt": "2026-08-06T18:21:20.487Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a74d09e2c1584d0de09a109",
+      "title": "Slide105",
+      "description": "",
+      "category": "Uncategorized",
+      "price": null,
+      "medium": "",
+      "dimensions": "",
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
+      "isAvailable": true,
+      "isFeatured": false,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/jx7wfmek/image/upload/v1786040477/artist-portfolio/artworks/0fc7e70c-66f3-4e08-a1c3-9f723e0a351e.jpg",
+          "publicId": "artist-portfolio/artworks/0fc7e70c-66f3-4e08-a1c3-9f723e0a351e",
+          "width": 960,
+          "height": 720,
+          "_id": "6a74d09e2c1584d0de09a10a"
+        }
+      ],
+      "clientUploadId": "0fc7e70c-66f3-4e08-a1c3-9f723e0a351e",
+      "uploadBatchId": "7f9317e2-e57e-4376-bd3c-ec5ee43bc0c5",
+      "uploadStatus": "success",
+      "uploadedBy": "6a69a769416ef8ff9de002d1",
+      "year": null,
+      "createdAt": "2026-08-06T18:21:18.173Z",
+      "updatedAt": "2026-08-06T18:21:18.173Z",
+      "__v": 0
+    },
+    {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dbaad4d344b35a5a6ed",
       "title": "Cover Nava Tambda Futel",
@@ -494,6 +2240,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db9ad4d344b35a5a6ea",
       "title": "2014 02 23 810 1",
@@ -519,6 +2273,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db9ad4d344b35a5a6e7",
       "title": "2014 03 01 844 2",
@@ -544,6 +2306,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db8ad4d344b35a5a6e4",
       "title": "383",
@@ -569,6 +2339,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db8ad4d344b35a5a6e1",
       "title": "384",
@@ -594,6 +2372,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db8ad4d344b35a5a6de",
       "title": "2013 10 17 077 2",
@@ -619,6 +2405,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db7ad4d344b35a5a6db",
       "title": "2013 10 17 076 1",
@@ -644,6 +2438,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db5ad4d344b35a5a6d8",
       "title": "Slide150",
@@ -669,6 +2471,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db5ad4d344b35a5a6d5",
       "title": "Slide152",
@@ -694,6 +2504,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db5ad4d344b35a5a6d2",
       "title": "Slide151",
@@ -719,6 +2537,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db5ad4d344b35a5a6cf",
       "title": "Slide149",
@@ -744,6 +2570,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db4ad4d344b35a5a6cc",
       "title": "Slide148",
@@ -769,6 +2603,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db4ad4d344b35a5a6c9",
       "title": "Slide147",
@@ -794,6 +2636,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db4ad4d344b35a5a6c6",
       "title": "Slide145",
@@ -819,6 +2669,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db4ad4d344b35a5a6c3",
       "title": "Slide146",
@@ -844,6 +2702,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db3ad4d344b35a5a6c0",
       "title": "Satyapitam 8",
@@ -869,6 +2735,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db3ad4d344b35a5a6bd",
       "title": "Slide144",
@@ -894,6 +2768,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db3ad4d344b35a5a6ba",
       "title": "Slide142",
@@ -919,6 +2801,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db3ad4d344b35a5a6b7",
       "title": "Slide143",
@@ -944,6 +2834,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db2ad4d344b35a5a6b4",
       "title": "Painting Mix Media Manshanti 42w. Cm X 52h. Cm",
@@ -969,6 +2867,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db2ad4d344b35a5a6b1",
       "title": "Slide141",
@@ -994,6 +2900,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db2ad4d344b35a5a6ae",
       "title": "Painting Mix Media Sadhu 52w. Cm X 52h. Cm",
@@ -1019,6 +2933,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db1ad4d344b35a5a6ab",
       "title": "Painting Mix Media I And My World 52w. Cm X 52h. Cm",
@@ -1044,6 +2966,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db1ad4d344b35a5a6a8",
       "title": "Painting Mix Media I And All Of My Faces 52w. Cm X 52h. Cm",
@@ -1069,6 +2999,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db0ad4d344b35a5a6a5",
       "title": "Painting Mix Media Bhakti 53w. Cm X 60h. Cm",
@@ -1094,6 +3032,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4db0ad4d344b35a5a6a2",
       "title": "P.M.C.School 14 (B) 004",
@@ -1119,6 +3065,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dafad4d344b35a5a69f",
       "title": "P.M.C.School 14 (B) 002",
@@ -1144,6 +3098,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dafad4d344b35a5a69c",
       "title": "P.M.C.School 14 (B) 001",
@@ -1169,6 +3131,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4daead4d344b35a5a699",
       "title": "IMG 2350",
@@ -1194,6 +3164,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4daead4d344b35a5a696",
       "title": "IMG 2348",
@@ -1219,6 +3197,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4daead4d344b35a5a693",
       "title": "IMG 2271",
@@ -1244,6 +3230,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dadad4d344b35a5a690",
       "title": "IMG 1947",
@@ -1269,6 +3263,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dacad4d344b35a5a68d",
       "title": "IMG 1943",
@@ -1294,6 +3296,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dacad4d344b35a5a68a",
       "title": "IMG 1932",
@@ -1319,6 +3329,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dacad4d344b35a5a687",
       "title": "IMG 1928",
@@ -1344,6 +3362,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4dabad4d344b35a5a684",
       "title": "IMG 1925",
@@ -1369,6 +3395,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4daaad4d344b35a5a681",
       "title": "IMG 1898",
@@ -1394,6 +3428,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4daaad4d344b35a5a67e",
       "title": "IMG 1892",
@@ -1419,6 +3461,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4daaad4d344b35a5a67b",
       "title": "IMG 1888",
@@ -1444,6 +3494,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4da8ad4d344b35a5a678",
       "title": "IMG 1885",
@@ -1469,6 +3527,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4da8ad4d344b35a5a675",
       "title": "IMG 1882",
@@ -1494,6 +3560,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4da8ad4d344b35a5a672",
       "title": "IMG 1878",
@@ -1519,6 +3593,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4da8ad4d344b35a5a66f",
       "title": "IMG 1880",
@@ -1544,6 +3626,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c49ad4d344b35a5a5d4",
       "title": "PicsArt 02 03 11.20.19",
@@ -1569,6 +3659,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c49ad4d344b35a5a5d1",
       "title": "PicsArt 02 03 10.58.06",
@@ -1594,6 +3692,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c48ad4d344b35a5a5ce",
       "title": "PicsArt 02 03 10.21.02",
@@ -1619,6 +3725,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c48ad4d344b35a5a5cb",
       "title": "PicsArt 02 03 02.42.06",
@@ -1644,6 +3758,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c47ad4d344b35a5a5c8",
       "title": "PicsArt 02 03 02.32.06",
@@ -1669,6 +3791,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c47ad4d344b35a5a5c5",
       "title": "PicsArt 02 03 02.06.55",
@@ -1694,6 +3824,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c46ad4d344b35a5a5c2",
       "title": "PicsArt 02 03 01.24.16",
@@ -1719,6 +3857,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c46ad4d344b35a5a5bf",
       "title": "PicsArt 02 03 02.02.24",
@@ -1744,6 +3890,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c46ad4d344b35a5a5bc",
       "title": "PicsArt 02 03 01.51.36",
@@ -1769,6 +3923,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c46ad4d344b35a5a5b9",
       "title": "PicsArt 02 03 01.57.22",
@@ -1794,6 +3956,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c44ad4d344b35a5a5b6",
       "title": "PicsArt 02 02 08.24.16",
@@ -1819,6 +3989,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c44ad4d344b35a5a5b3",
       "title": "PicsArt 02 02 07.52.59",
@@ -1844,6 +4022,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c44ad4d344b35a5a5b0",
       "title": "PicsArt 02 02 07.39.08",
@@ -1869,6 +4055,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c44ad4d344b35a5a5ad",
       "title": "PicsArt 02 02 07.51.24",
@@ -1894,6 +4088,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c43ad4d344b35a5a5aa",
       "title": "PicsArt 01 20 10.29.10",
@@ -1919,6 +4121,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c43ad4d344b35a5a5a7",
       "title": "PicsArt 01 20 09.58.25",
@@ -1944,6 +4154,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c42ad4d344b35a5a5a4",
       "title": "PicsArt 01 20 11.02.23",
@@ -1969,6 +4187,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c42ad4d344b35a5a5a1",
       "title": "PicsArt 01 20 11.04.07",
@@ -1994,6 +4220,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c41ad4d344b35a5a59e",
       "title": "IMG 20160306 135518 HDR",
@@ -2019,6 +4253,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c41ad4d344b35a5a59b",
       "title": "IMG 20160306 135518 HDR BURST2",
@@ -2044,6 +4286,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c41ad4d344b35a5a598",
       "title": "IMG 20160306 135507 HDR",
@@ -2069,6 +4319,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c41ad4d344b35a5a595",
       "title": "IMG 20160306 135452 HDR",
@@ -2094,6 +4352,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c3fad4d344b35a5a592",
       "title": "IMG 20160306 135449 HDR",
@@ -2119,6 +4385,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c3fad4d344b35a5a58f",
       "title": "IMG 20160306 123012 HDR",
@@ -2144,6 +4418,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c3ead4d344b35a5a58c",
       "title": "IMG 20160306 135446 HDR",
@@ -2169,6 +4451,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6e4c3ead4d344b35a5a589",
       "title": "IMG 20160306 123020 HDR",
@@ -2194,6 +4484,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6c523f2d92c5bdd6df3db4",
       "title": "xx",
@@ -2219,6 +4517,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6c51df2d92c5bdd6df3d9d",
       "title": "...",
@@ -2244,6 +4550,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6c51402d92c5bdd6df3d52",
       "title": "ghghghg",
@@ -2269,6 +4583,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6c50d62d92c5bdd6df3d21",
       "title": "jjjjjjjjjjjjjjj",
@@ -2294,6 +4616,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6c504d2d92c5bdd6df3ccf",
       "title": "uuuuuuuu",
@@ -2319,6 +4649,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6c50182d92c5bdd6df3cc6",
       "title": "dfdfdd",
@@ -2344,6 +4682,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6c4fdc2d92c5bdd6df3cbe",
       "title": "dfggdf",
@@ -2369,6 +4715,14 @@
       "__v": 0
     },
     {
+      "collection": "",
+      "series": "",
+      "catalogueNumber": "",
+      "provenance": "",
+      "exhibitionHistory": "",
+      "publications": "",
+      "creationLocation": "",
+      "publicationStatus": "published",
       "uploadStatus": "success",
       "_id": "6a6b13d1e1c23cfef4ef26c1",
       "title": "crimson horizen",

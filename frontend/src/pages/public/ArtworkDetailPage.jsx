@@ -186,7 +186,7 @@ const ArtworkDetailPage = () => {
           </BackButton>
 
           <nav className="mb-8 text-sm text-slate/60 font-label">
-            <Link to="/gallery" className="hover:text-gold transition-colors">Gallery</Link>
+            <Link to="/gallery" state={{ restoreFromArtwork: true }} className="hover:text-gold transition-colors">Gallery</Link>
             <span className="mx-2">/</span>
             <span className="text-charcoal">{displayTitle}</span>
           </nav>
