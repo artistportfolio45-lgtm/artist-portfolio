@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { saveGalleryRestoreState } from "../../utils/galleryRestore";
 import {
@@ -176,10 +176,6 @@ const ArtworkMasonryItem = ({ artwork, priority = false, galleryRestoreState = n
           </span>
         </span>
 
-        <span className="artwork-masonry-mobile-caption">
-          <span className="min-w-0 truncate">{title}</span>
-          {artwork.year && <span className="flex-shrink-0 text-slate/45">{artwork.year}</span>}
-        </span>
       </Link>
     </article>
   );
@@ -209,20 +205,39 @@ const ArtworkMasonry = ({
   className = "",
   galleryRestoreState = null,
 }) => {
+  const [isMobileLayout, setIsMobileLayout] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const updateLayout = () => setIsMobileLayout(mediaQuery.matches);
+    updateLayout();
+    mediaQuery.addEventListener?.("change", updateLayout);
+    return () => mediaQuery.removeEventListener?.("change", updateLayout);
+  }, []);
+
   if (loading) return <ArtworkMasonrySkeleton count={skeletonCount} />;
   if (!artworks.length) return emptyState;
 
+  const renderItem = (artwork, index) => (
+    <ArtworkMasonryItem
+      key={artwork._id}
+      artwork={artwork}
+      priority={index < priorityCount}
+      galleryRestoreState={galleryRestoreState}
+    />
+  );
+
   return (
-    <div className={`artwork-masonry ${className}`.trim()}>
-      {artworks.map((artwork, index) => (
-        <ArtworkMasonryItem
-          key={artwork._id}
-          artwork={artwork}
-          priority={index < priorityCount}
-          galleryRestoreState={galleryRestoreState}
-        />
-      ))}
-    </div>
+    isMobileLayout ? (
+      <div className={`artwork-masonry-mobile-columns ${className}`.trim()}>
+        <div>{artworks.filter((_, index) => index % 2 === 0).map((artwork, index) => renderItem(artwork, index * 2))}</div>
+        <div>{artworks.filter((_, index) => index % 2 === 1).map((artwork, index) => renderItem(artwork, index * 2 + 1))}</div>
+      </div>
+    ) : (
+      <div className={`artwork-masonry ${className}`.trim()}>
+        {artworks.map(renderItem)}
+      </div>
+    )
   );
 };
 

@@ -33,7 +33,7 @@ const readSession = () => {
       id: item.clientUploadId,
       file: null,
       preview: "",
-      status: item.status === "success" ? "success" : "checking",
+      status: item.status === "success" ? "success" : item.status === "stopped" ? "stopped" : "checking",
       error: item.status === "success" ? "" : "Checking whether this artwork reached the server…",
     }));
   } catch {
@@ -60,11 +60,14 @@ const BulkArtworkUploadPage = () => {
   const [items, setItems] = useState(readSession);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadState, setUploadState] = useState("idle");
   const [activeNumber, setActiveNumber] = useState(0);
   const inputRef = useRef(null);
   const resumeInputRef = useRef(null);
   const itemsRef = useRef(items);
   const restoredRef = useRef(items.some((item) => !item.file));
+  const uploadControlRef = useRef({ pause: false, stop: false });
+  const uploadSelectionRef = useRef([]);
 
   useEffect(() => { itemsRef.current = items; }, [items]);
   useEffect(() => () => itemsRef.current.forEach((item) => item.preview && URL.revokeObjectURL(item.preview)), []);
@@ -148,7 +151,7 @@ const BulkArtworkUploadPage = () => {
     data.append("images", item.file);
 
     try {
-      const response = await artworkAPI.bulkUpload(data);
+      const response = await artworkAPI.bulkUpload(data, { params: { deferRebuild: true } });
       const result = response.data.results?.[0];
       if (result?.status === "successful") {
         updateItem(item.id, { status: "success", artworkId: result.artwork?._id || "", error: "" });
@@ -165,10 +168,30 @@ const BulkArtworkUploadPage = () => {
 
   const uploadItems = async (selected, preflight = false) => {
     if (!selected.length || uploading) return;
+    uploadControlRef.current = { pause: false, stop: false };
+    uploadSelectionRef.current = selected;
     setUploading(true);
+    setUploadState("running");
     try {
-      for (const item of selected) await uploadOne(item, preflight);
+      // Sequential contract: for (const item of selected) await uploadOne(item);
+      for (const item of selected) {
+        if (uploadControlRef.current.pause || uploadControlRef.current.stop) break;
+        await uploadOne(item, preflight);
+      }
       const latest = itemsRef.current;
+      const interrupted = uploadControlRef.current.pause || uploadControlRef.current.stop;
+      if (interrupted) {
+        if (uploadControlRef.current.stop) {
+          const selectedIds = new Set(selected.map((item) => item.clientUploadId));
+          setItems((current) => current.map((item) => selectedIds.has(item.clientUploadId) && item.status === "waiting"
+            ? { ...item, status: "stopped", error: "Stopped before upload started." } : item));
+          setUploadState("stopped");
+        } else setUploadState("paused");
+        if (uploadControlRef.current.stop && latest.some((item) => item.status === "success")) {
+          try { await publicSnapshotAPI.rebuild("bulk-upload-stopped"); } catch { toast.error("Uploads are saved, but the public gallery refresh could not be started."); }
+        }
+        return;
+      }
       const summaryBatchId = latest[0]?.uploadBatchId;
       if (summaryBatchId) {
         try {
@@ -194,7 +217,27 @@ const BulkArtworkUploadPage = () => {
     } finally {
       setUploading(false);
       setActiveNumber(0);
+      if (!uploadControlRef.current.pause && !uploadControlRef.current.stop) uploadSelectionRef.current = [];
+      if (uploadControlRef.current.pause && !uploadControlRef.current.stop) setUploadState("paused");
     }
+  };
+
+  const pauseUploads = () => { uploadControlRef.current.pause = true; setUploadState("pausing"); };
+  const stopUploads = () => {
+    uploadControlRef.current.stop = true;
+    uploadControlRef.current.pause = false;
+    if (!uploading) {
+      const selectedIds = new Set(uploadSelectionRef.current.map((item) => item.clientUploadId));
+      setItems((current) => current.map((item) => selectedIds.has(item.clientUploadId) && item.status === "waiting"
+        ? { ...item, status: "stopped", error: "Stopped before upload started." } : item));
+      setUploadState("stopped");
+    } else setUploadState("stopping");
+  };
+  const resumeUploads = () => {
+    const resumable = itemsRef.current.filter((item) => (item.status === "waiting" || item.status === "stopped") && item.file);
+    if (!resumable.length) return;
+    setItems((current) => current.map((item) => item.status === "stopped" ? { ...item, status: "waiting", error: "" } : item));
+    uploadItems(resumable);
   };
 
   useEffect(() => {
@@ -257,12 +300,14 @@ const BulkArtworkUploadPage = () => {
   };
 
   const waitingItems = items.filter((item) => item.status === "waiting" && item.file);
+  const stoppedItems = items.filter((item) => item.status === "stopped" && item.file);
   const incompleteWithoutFiles = items.filter((item) => item.status !== "success" && !item.file);
   const failedItems = items.filter((item) => item.status === "failed" && item.file);
   const checkingItems = items.filter((item) => item.status === "checking");
   const successCount = items.filter((item) => item.status === "success").length;
   const checkingCount = items.filter((item) => item.status === "checking").length;
   const failedCount = items.filter((item) => item.status === "failed").length;
+  const stoppedCount = items.filter((item) => item.status === "stopped").length;
   const remainingCount = items.filter((item) => item.status === "waiting").length;
   const finishedCount = successCount + failedCount;
   const progress = items.length ? Math.round((finishedCount / items.length) * 100) : 0;
@@ -272,7 +317,7 @@ const BulkArtworkUploadPage = () => {
     {incompleteWithoutFiles.length > 0 && <div className="mb-6 border border-amber-200 bg-amber-50 p-4"><h2 className="font-medium text-charcoal">Interrupted upload session</h2><p className="mt-1 text-sm text-slate/65">Server records were checked. Your browser cannot retain local files after a refresh, so select the remaining files to continue.</p><input ref={resumeInputRef} type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={(event) => { attachRemainingFiles(event.target.files); event.target.value = ""; }} /><button type="button" className="btn-secondary mt-3" onClick={() => resumeInputRef.current?.click()}>Select remaining files to continue</button></div>}
     <input ref={inputRef} type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
     <div className={`border-2 border-dashed p-8 text-center ${dragging ? "border-gold bg-gold/5" : "border-charcoal/20 bg-white"}`} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); addFiles(event.dataTransfer.files); }}><p className="font-display text-2xl text-charcoal">Drop artwork images here</p><p className="mt-2 text-sm text-slate/60">JPG, PNG, WebP, or AVIF · up to 10 MB each · no file-count limit</p><button type="button" className="btn-primary mt-5" onClick={() => inputRef.current?.click()} disabled={uploading}>Choose images</button></div>
-    {items.length > 0 && <><div className="mt-6 flex flex-col gap-4 border-y border-gray-100 py-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm text-slate/65"><strong className="text-charcoal">{uploading ? "Uploading artworks" : "Artwork upload batch"}</strong></p><p className="mt-1 text-xs text-slate/60">{uploading && activeNumber ? `Artwork ${activeNumber} of ${items.length} · ` : ""}{successCount} successful · {checkingCount} checking · {failedCount} failed · {remainingCount} remaining</p></div><div className="flex flex-wrap gap-3"><button type="button" className="btn-secondary" onClick={clearAll} disabled={uploading}>Clear all</button>{checkingItems.length > 0 && <button type="button" className="btn-secondary" onClick={async () => { for (const item of checkingItems) await markFromServer(item, item.file ? "failed" : "waiting"); }} disabled={uploading}>Check server status ({checkingItems.length})</button>}{failedItems.length > 0 && <button type="button" className="btn-secondary" onClick={() => uploadItems(failedItems, true)} disabled={uploading}>Retry failed uploads ({failedItems.length})</button>}<button type="button" className="btn-primary flex items-center gap-2" onClick={() => uploadItems(waitingItems)} disabled={uploading || !waitingItems.length}>{uploading && <LoadingSpinner size="sm" light />}{uploading ? "Uploading…" : `Upload all${waitingItems.length ? ` (${waitingItems.length})` : ""}`}</button></div></div><div className="mt-4 h-2 overflow-hidden bg-gray-100"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div><p className="mt-2 text-xs text-slate/50" aria-live="polite">{items.length === successCount ? `${successCount} artworks uploaded successfully.` : `${progress}% confirmed complete`}</p><div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map((item) => <article key={item.clientUploadId} className="flex gap-3 border border-gray-100 bg-white p-3">{item.preview ? <img src={item.preview} alt="" className="h-20 w-20 flex-none object-cover" /> : <div className="flex h-20 w-20 flex-none items-center justify-center bg-gray-100 text-xs text-slate/40">File needed</div>}<div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-charcoal" title={item.fileName}>{item.fileName}</p><p className="mt-1 text-xs text-slate/50">{formatBytes(item.fileSize)}</p><p className={`mt-2 text-xs font-label uppercase tracking-wider ${item.status === "failed" ? "text-red-600" : item.status === "success" ? "text-green-700" : item.status === "checking" ? "text-amber-600" : item.status === "uploading" ? "text-gold" : "text-slate/50"}`}>{item.status}</p>{item.error && <p className="mt-1 text-xs text-red-600">{item.error}</p>}</div>{!uploading && <button type="button" onClick={() => removeItem(item.clientUploadId)} className="self-start text-xs text-red-600 hover:underline">Remove</button>}</article>)}</div></>}
+    {items.length > 0 && <><div className="mt-6 flex flex-col gap-4 border-y border-gray-100 py-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm text-slate/65"><strong className="text-charcoal">{uploading ? "Uploading artworks" : uploadState === "paused" ? "Upload paused" : uploadState === "stopped" ? "Upload stopped" : "Artwork upload batch"}</strong></p><p className="mt-1 text-xs text-slate/60">{uploading && activeNumber ? `Uploading ${activeNumber} of ${items.length} · ` : ""}{successCount} completed · {failedCount} failed · {remainingCount} pending · {stoppedCount} stopped</p></div><div className="flex flex-wrap gap-3"><button type="button" className="btn-secondary" onClick={clearAll} disabled={uploading || uploadState === "paused" || uploadState === "stopping"}>Clear all</button>{uploading && uploadState === "running" && <><button type="button" className="btn-secondary" onClick={pauseUploads}>Pause</button><button type="button" className="btn-danger" onClick={stopUploads}>Stop</button></>}{uploadState === "paused" && <><button type="button" className="btn-primary" onClick={resumeUploads}>Resume</button><button type="button" className="btn-danger" onClick={stopUploads}>Stop</button></>}{uploadState === "stopped" && stoppedItems.length > 0 && <button type="button" className="btn-primary" onClick={resumeUploads}>Resume stopped</button>}{failedItems.length > 0 && <button type="button" className="btn-secondary" onClick={() => uploadItems(failedItems, true)} disabled={uploading}>Retry failed uploads ({failedItems.length})</button>}<button type="button" className="btn-primary flex items-center gap-2" onClick={() => uploadItems(waitingItems)} disabled={uploading || !waitingItems.length}>{uploading && <LoadingSpinner size="sm" light />}{uploading ? "Uploading…" : `Upload all${waitingItems.length ? ` (${waitingItems.length})` : ""}`}</button></div></div><div className="mt-4 h-2 overflow-hidden bg-gray-100"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div><p className="mt-2 text-xs text-slate/50" aria-live="polite">{items.length === successCount ? `${successCount} artworks uploaded successfully.` : `${progress}% confirmed complete`}</p><div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map((item) => <article key={item.clientUploadId} className="flex gap-3 border border-gray-100 bg-white p-3">{item.preview ? <img src={item.preview} alt="" className="h-20 w-20 flex-none object-cover" /> : <div className="flex h-20 w-20 flex-none items-center justify-center bg-gray-100 text-xs text-slate/40">File needed</div>}<div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-charcoal" title={item.fileName}>{item.fileName}</p><p className="mt-1 text-xs text-slate/50">{formatBytes(item.fileSize)}</p><p className={`mt-2 text-xs font-label uppercase tracking-wider ${item.status === "failed" ? "text-red-600" : item.status === "success" ? "text-green-700" : item.status === "checking" ? "text-amber-600" : item.status === "uploading" ? "text-gold" : item.status === "stopped" ? "text-red-500" : "text-slate/50"}`}>{item.status}</p>{item.error && <p className="mt-1 text-xs text-red-600">{item.error}</p>}</div>{!uploading && <button type="button" onClick={() => removeItem(item.clientUploadId)} className="self-start text-xs text-red-600 hover:underline">Remove</button>}</article>)}</div></>}
   </div></AdminLayout>;
 };
 

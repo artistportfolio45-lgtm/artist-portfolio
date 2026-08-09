@@ -123,7 +123,8 @@ export const artworkAPI = {
   addImages: (id, formData) => api.post(`/artworks/${id}/images`, formData, { timeout: 0 }),
   deleteImage: (id, publicId) =>
     api.delete(`/artworks/${id}/images/${encodeURIComponent(publicId)}`),
-  delete: (id) => api.delete(`/artworks/${id}`),
+  delete: (id, config = {}) => api.delete(`/artworks/${id}`, config),
+  bulkDelete: (ids) => api.delete("/artworks/bulk", { data: { ids } }),
 };
 
 export const inquiryAPI = {

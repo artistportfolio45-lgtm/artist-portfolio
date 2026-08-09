@@ -36,6 +36,95 @@ const dateBoundary = (value, endOfDay = false) => {
 };
 const discardUploadedImages = (images) =>
   Promise.allSettled(images.map((image) => cloudinary.uploader.destroy(image.publicId)));
+const imagePublicIdsFor = (artworks) =>
+  artworks.flatMap((artwork) => {
+    if (!Array.isArray(artwork?.images)) return [];
+    return artwork.images
+      .map((image) => image?.publicId)
+      .filter((publicId) => typeof publicId === "string" && publicId.trim())
+      .map((publicId) => publicId.trim());
+  });
+const deleteCloudinaryImages = async (publicIds) => {
+  const uniquePublicIds = [...new Set(publicIds.filter(Boolean))];
+  const results = await Promise.allSettled(
+    uniquePublicIds.map(async (publicId) => {
+      const result = await cloudinary.uploader.destroy(publicId);
+      if (result?.result && !["ok", "not found"].includes(result.result)) {
+        throw new Error(`Cloudinary returned ${result.result}`);
+      }
+      return { publicId, result: result?.result || "ok" };
+    })
+  );
+  const failures = results
+    .map((result, index) =>
+      result.status === "rejected"
+        ? { publicId: uniquePublicIds[index], message: result.reason?.message || "Cloudinary deletion failed" }
+        : null
+    )
+    .filter(Boolean);
+  return { failures, deleted: uniquePublicIds.length - failures.length };
+};
+const safeTriggerStaticRebuild = async (reason) => {
+  try {
+    return await triggerStaticRebuild(reason);
+  } catch (error) {
+    console.error("Static rebuild scheduling failed:", {
+      reason,
+      name: error?.name,
+      message: error?.message,
+    });
+    return { triggered: false, message: "Static rebuild scheduling failed" };
+  }
+};
+const validateBulkDeleteIds = (body) => {
+  if (!body || typeof body !== "object") {
+    return { valid: false, status: 400, message: "Request body is required" };
+  }
+  if (!Object.prototype.hasOwnProperty.call(body, "ids")) {
+    return { valid: false, status: 400, message: "ids is required" };
+  }
+  if (!Array.isArray(body.ids)) {
+    return { valid: false, status: 400, message: "ids must be an array" };
+  }
+  const ids = [...new Set(body.ids.map((id) => (typeof id === "string" ? id.trim() : String(id))))];
+  if (!ids.length) {
+    return { valid: false, status: 400, message: "Select at least one artwork to delete" };
+  }
+  const invalidIds = ids.filter((id) => !mongoose.isValidObjectId(id));
+  if (invalidIds.length) {
+    return { valid: false, status: 400, message: "One or more artwork IDs are invalid", invalidIds };
+  }
+  return { valid: true, ids };
+};
+const logBulkArtworkDeletionPlan = (artworks) => {
+  artworks.forEach((artwork) => {
+    const publicIds = imagePublicIdsFor([artwork]);
+    console.log("Bulk delete artwork:", {
+      id: artwork?._id?.toString(),
+      hasCloudinaryPublicId: publicIds.length > 0,
+      publicIdCount: publicIds.length,
+    });
+  });
+};
+const deleteArtworkDocumentsByIds = async (ids) => {
+  const session = await mongoose.startSession();
+  try {
+    let deleteResult;
+    await session.withTransaction(async () => {
+      deleteResult = await Artwork.deleteMany({ _id: { $in: ids } }).session(session);
+      if (deleteResult.deletedCount !== ids.length) {
+        const error = new Error("Not every selected artwork could be deleted");
+        error.status = 409;
+        error.deletedCount = deleteResult.deletedCount;
+        error.requestedCount = ids.length;
+        throw error;
+      }
+    });
+    return deleteResult;
+  } finally {
+    await session.endSession();
+  }
+};
 
 const adminOnly = (req, res, next) => {
   if (req.user?.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
@@ -359,9 +448,9 @@ router.post(
 
     const successful = results.filter((item) => item.status === "successful").length;
     const failed = results.length - successful;
-    const staticRebuild = successful > 0
+    const staticRebuild = successful > 0 && req.query.deferRebuild !== "true"
       ? await triggerStaticRebuild("artwork-bulk-uploaded")
-      : { triggered: false, message: "No successful artwork changes" };
+      : { triggered: false, message: successful > 0 ? "Static rebuild deferred" : "No successful artwork changes" };
     res.status(failed ? 207 : 201).json({
       success: failed === 0,
       message: failed ? "Some artworks could not be uploaded" : "Artworks uploaded",
@@ -373,6 +462,132 @@ router.post(
     });
   }
 );
+
+// @route   DELETE /api/artworks/bulk
+// @desc    Delete multiple artworks and all associated Cloudinary images
+// @access  Private/Admin
+router.delete("/bulk", protect, adminOnly, async (req, res) => {
+  try {
+    const validation = validateBulkDeleteIds(req.body);
+    const ids = validation.valid ? validation.ids : req.body?.ids;
+    console.log("BULK DELETE START");
+    console.log("Received IDs:", ids);
+    console.log("Number of IDs:", ids?.length);
+    console.log("Bulk delete request received");
+    console.log("IDs:", ids);
+    console.log("Number of IDs:", ids?.length);
+    console.log("[artworks:bulk-delete] request received", {
+      hasBody: Boolean(req.body),
+      idsType: Array.isArray(req.body?.ids) ? "array" : typeof req.body?.ids,
+      receivedCount: Array.isArray(req.body?.ids) ? req.body.ids.length : 0,
+      valid: validation.valid,
+    });
+    if (!validation.valid) {
+      console.warn("[artworks:bulk-delete] validation failed", {
+        message: validation.message,
+        invalidCount: validation.invalidIds?.length || 0,
+      });
+      return res.status(validation.status).json({
+        success: false,
+        message: validation.message,
+        ...(validation.invalidIds ? { invalidIds: validation.invalidIds } : {}),
+      });
+    }
+
+    console.log("[artworks:bulk-delete] finding artworks", { requestedCount: ids.length });
+    const artworks = await Artwork.find({ _id: { $in: ids } });
+    console.log("Found artworks:", artworks.length);
+    logBulkArtworkDeletionPlan(artworks);
+    if (artworks.length !== ids.length) {
+      const foundIds = new Set(artworks.map((artwork) => artwork._id.toString()));
+      console.warn("[artworks:bulk-delete] selected artworks missing", {
+        requestedCount: ids.length,
+        foundCount: artworks.length,
+        missingCount: ids.length - artworks.length,
+      });
+      return res.status(404).json({
+        success: false,
+        message: "One or more selected artworks were not found",
+        missingIds: ids.filter((id) => !foundIds.has(id)),
+      });
+    }
+
+    console.log("[artworks:bulk-delete] deleting Cloudinary images", {
+      artworkCount: artworks.length,
+      publicIdCount: imagePublicIdsFor(artworks).length,
+    });
+    const cloudinaryCleanup = await deleteCloudinaryImages(imagePublicIdsFor(artworks));
+    if (cloudinaryCleanup.failures.length) {
+      console.error("[artworks:bulk-delete] Cloudinary cleanup failed", {
+        failureCount: cloudinaryCleanup.failures.length,
+        deletedCount: cloudinaryCleanup.deleted,
+      });
+      return res.status(502).json({
+        success: false,
+        message: "Could not delete all associated Cloudinary images. No artwork records were deleted.",
+        failures: cloudinaryCleanup.failures,
+      });
+    }
+    console.log("[artworks:bulk-delete] Cloudinary cleanup complete", {
+      deletedCount: cloudinaryCleanup.deleted,
+    });
+
+    const deleteResult = await deleteArtworkDocumentsByIds(ids);
+    console.log("[artworks:bulk-delete] MongoDB delete complete", {
+      requestedCount: ids.length,
+      deletedCount: deleteResult.deletedCount,
+      acknowledged: deleteResult.acknowledged,
+    });
+    if (deleteResult.deletedCount !== ids.length) {
+      return res.status(500).json({
+        success: false,
+        message: "Cloudinary images were removed, but not every artwork record could be deleted. Please check the artwork list.",
+        deletedCount: deleteResult.deletedCount,
+        requestedCount: ids.length,
+      });
+    }
+
+    await safeTriggerStaticRebuild("artwork-bulk-deleted");
+    res.json({
+      success: true,
+      message: `${ids.length} artworks deleted successfully`,
+      deletedCount: ids.length,
+    });
+  } catch (error) {
+    console.error("Bulk artwork deletion failed:", error);
+    console.error("[artworks:bulk-delete] unexpected error", {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack,
+    });
+    res.status(error?.status || 500).json({
+      success: false,
+      message: error?.status === 409 ? error.message : "Server error",
+      ...(error?.deletedCount !== undefined ? { deletedCount: error.deletedCount } : {}),
+      ...(error?.requestedCount !== undefined ? { requestedCount: error.requestedCount } : {}),
+    });
+  }
+});
+
+// @route   POST /api/artworks/rebuild
+// @desc    Manually schedule a public gallery rebuild from admin tools
+// @access  Private/Admin
+router.post("/rebuild", protect, adminOnly, async (req, res) => {
+  const staticRebuild = await safeTriggerStaticRebuild(req.body?.reason || "manual-admin-rebuild");
+  if (!staticRebuild.triggered) {
+    return res.status(202).json({
+      success: true,
+      message: "Public gallery rebuild could not be scheduled.",
+      staticRebuild,
+    });
+  }
+
+  return res.json({
+    success: true,
+    message: "Public gallery rebuild scheduled.",
+    staticRebuild,
+  });
+});
 
 // @route   GET /api/artworks/upload-status/:clientUploadId
 router.get("/upload-status/:clientUploadId", protect, adminOnly, async (req, res) => {
@@ -704,22 +919,28 @@ router.delete("/:id/images/:publicId", protect, async (req, res) => {
 // @route   DELETE /api/artworks/:id
 // @desc    Delete artwork and all its Cloudinary images
 // @access  Private
-router.delete("/:id", protect, async (req, res) => {
+router.delete("/:id", protect, adminOnly, async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid artwork ID" });
     const artwork = await Artwork.findById(req.params.id);
     if (!artwork) {
       return res.status(404).json({ success: false, message: "Artwork not found" });
     }
 
-    // Delete all images from Cloudinary
-    const deletePromises = artwork.images.map((img) =>
-      cloudinary.uploader.destroy(img.publicId)
-    );
-    await Promise.all(deletePromises);
+    const cloudinaryCleanup = await deleteCloudinaryImages(imagePublicIdsFor([artwork]));
+    if (cloudinaryCleanup.failures.length) {
+      return res.status(502).json({
+        success: false,
+        message: "Could not delete all associated Cloudinary images. Artwork record was not deleted.",
+        failures: cloudinaryCleanup.failures,
+      });
+    }
 
     await artwork.deleteOne();
 
-    const staticRebuild = await triggerStaticRebuild("artwork-deleted");
+    const staticRebuild = req.query.deferRebuild === "true"
+      ? { triggered: false, message: "Static rebuild deferred" }
+      : await safeTriggerStaticRebuild("artwork-deleted");
     res.json({ success: true, message: "Artwork deleted", staticRebuild });
   } catch (error) {
     console.error("Delete artwork error:", error);
@@ -738,6 +959,11 @@ router.use((error, req, res, next) => {
   return next(error);
 });
 
-router.__testables = { titleFromFilename };
+router.__testables = {
+  titleFromFilename,
+  imagePublicIdsFor,
+  validateBulkDeleteIds,
+  logBulkArtworkDeletionPlan,
+};
 
 module.exports = router;

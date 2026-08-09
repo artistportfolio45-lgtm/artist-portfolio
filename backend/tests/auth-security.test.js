@@ -12,6 +12,7 @@ const authRouter = require("../routes/auth");
 const securityRouter = require("../routes/security");
 const { protect } = require("../middleware/auth");
 const { invalidateLegacyTwoFactorSecrets } = require("../utils/adminSeed");
+const { isPublicReadRoute } = require("../middleware/rateLimiter");
 const User = require("../models/User");
 
 const routePaths = (router) =>
@@ -155,4 +156,28 @@ test("legacy Authenticator secrets are invalidated without touching versioned en
   } finally {
     User.updateMany = originalUpdateMany;
   }
+});
+
+test("public read routes are not throttled by the general API limiter", () => {
+  for (const pathName of ["/settings", "/profile", "/about", "/public-data", "/artworks", "/artworks/categories", "/artworks/64f0f0f0f0f0f0f0f0f0f0f0", "/artworks/64f0f0f0f0f0f0f0f0f0f0f0/neighbors"]) {
+    assert.equal(isPublicReadRoute({ method: "GET", path: pathName }), true, pathName);
+  }
+
+  for (const request of [
+    { method: "GET", path: "/artworks/manage" },
+    { method: "DELETE", path: "/artworks/64f0f0f0f0f0f0f0f0f0f0f0" },
+    { method: "POST", path: "/artworks/bulk" },
+    { method: "GET", path: "/activity" },
+  ]) {
+    assert.equal(isPublicReadRoute(request), false, `${request.method} ${request.path}`);
+  }
+});
+
+test("startup admin seeding cannot reset 2FA without explicit confirmation", () => {
+  const serverSource = fs.readFileSync(path.resolve(__dirname, "../server.js"), "utf8");
+  assert.match(serverSource, /CONFIRM_RESET_ADMIN_2FA === "RESET_ADMIN_2FA"/);
+  assert.match(serverSource, /CONFIRM_PRODUCTION_ADMIN_SEED === "SEED_ADMIN"/);
+  assert.match(serverSource, /SEED_ADMIN_ON_START was ignored in production/);
+  assert.match(serverSource, /RESET_ADMIN_2FA_ON_START was ignored/);
+  assert.match(serverSource, /resetTwoFactor: resetAdminTwoFactor/);
 });

@@ -207,17 +207,15 @@
 }
 
 .artwork-info-footer {
-  position: fixed;
-  z-index: 20;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  position: static;
+  z-index: auto;
+  margin-top: 1rem;
   display: flex;
   justify-content: center;
   border-top: 1px solid rgb(var(--theme-border-rgb) / 0.9);
   background: rgb(var(--theme-surface-rgb) / 0.96);
   padding: 0.75rem max(1rem, env(safe-area-inset-right)) calc(0.75rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
-  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.06);
+  box-shadow: none;
 }
 
 @media (min-width: 1024px) {
@@ -359,6 +357,10 @@
   column-gap: 12px;
 }
 
+.artwork-masonry-mobile-columns {
+  display: none;
+}
+
 .artwork-masonry-item {
   display: inline-block;
   width: 100%;
@@ -378,23 +380,36 @@
   }
 
   .artwork-masonry {
+    display: none;
+  }
+
+  .artwork-masonry-mobile-columns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
   }
 
-  .artwork-masonry-item {
+  .artwork-masonry-mobile-columns > div {
+    min-width: 0;
+  }
+
+  .artwork-masonry-mobile-columns .artwork-masonry-item {
     display: block;
     width: auto;
     margin-bottom: 0;
+    break-inside: avoid;
   }
 
-  .artwork-masonry-link {
+  .artwork-masonry-mobile-columns .artwork-masonry-item + .artwork-masonry-item {
+    margin-top: 1rem;
+  }
+
+  .artwork-masonry-mobile-columns .artwork-masonry-link {
     border-radius: 1.5rem;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
   }
 
-  .artwork-masonry-image {
+  .artwork-masonry-mobile-columns .artwork-masonry-image {
     border-radius: inherit;
   }
 
@@ -434,15 +449,7 @@
 }
 
 .artwork-masonry-mobile-caption {
-  display: flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 10px;
-  background: var(--theme-surface);
-  color: var(--theme-text);
-  font-size: 0.875rem;
+  display: none;
 }
 
 .gallery-category-nav {
@@ -492,7 +499,7 @@
 
 @media (max-width: 1023px) {
   .artwork-masonry-overlay {
-    display: none;
+    display: flex;
   }
 }
 

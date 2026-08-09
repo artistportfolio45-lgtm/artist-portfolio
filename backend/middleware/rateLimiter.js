@@ -33,6 +33,20 @@ const createJsonLimiter = ({ windowMs, max, message, reason, skip }) =>
     },
   });
 
+const isPublicReadRoute = (req) => {
+  if (req.method !== "GET") return false;
+  if (req.path === "/settings" || req.path === "/profile" || req.path === "/about" || req.path === "/public-data") {
+    return true;
+  }
+  if (req.path === "/artworks" || req.path === "/artworks/categories") {
+    return true;
+  }
+  if (/^\/artworks\/[a-f\d]{24}(?:\/neighbors)?$/i.test(req.path)) {
+    return true;
+  }
+  return false;
+};
+
 // Security: restrict repeated admin login attempts without changing auth behavior.
 const loginRateLimiter = createJsonLimiter({
   windowMs: readNumber("LOGIN_RATE_LIMIT_WINDOW", FIFTEEN_MINUTES),
@@ -50,6 +64,7 @@ const generalRateLimiter = createJsonLimiter({
   // Upload requests are authenticated and intentionally queued by the admin UI;
   // keep the general limiter for every other API request.
   skip: (req) =>
+    isPublicReadRoute(req) ||
     (req.method === "POST" && /^\/artworks(?:\/bulk|\/?$|\/[^/]+\/images)$/.test(req.path)) ||
     (req.method === "GET" && /^\/artworks\/upload-status\/[^/]+$/.test(req.path)),
 });
@@ -81,4 +96,5 @@ module.exports = {
   otpSendRateLimiter,
   otpVerifyRateLimiter,
   totpVerifyRateLimiter,
+  isPublicReadRoute,
 };

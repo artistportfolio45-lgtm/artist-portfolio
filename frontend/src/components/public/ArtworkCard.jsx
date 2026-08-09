@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { cloudinaryThumbnailUrl, galleryThumbnailWidths } from "../../utils/imageDelivery";
 
-const ArtworkCard = ({ artwork, variant, onPreview }) => {
+const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
   const image = artwork.images?.[0];
   const rawTitle = String(artwork.title || "").trim();
   const title = rawTitle || "Artwork";
@@ -44,7 +44,8 @@ const ArtworkCard = ({ artwork, variant, onPreview }) => {
                 height={image.height || undefined}
                 alt={title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 group-focus-within:scale-105"
-                loading="lazy"
+                loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : "auto"}
                 decoding="async"
               />
             ) : (

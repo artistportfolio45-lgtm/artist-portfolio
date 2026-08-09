@@ -63,6 +63,13 @@ const allowedOrigins = [
   "http://localhost:5173",
 ].filter(Boolean);
 
+const shouldResetAdminTwoFactorOnStart = (env = process.env) =>
+  env.RESET_ADMIN_2FA_ON_START === "true" && env.CONFIRM_RESET_ADMIN_2FA === "RESET_ADMIN_2FA";
+
+const shouldSeedAdminOnStart = (env = process.env) =>
+  env.SEED_ADMIN_ON_START === "true" &&
+  (env.NODE_ENV !== "production" || env.CONFIRM_PRODUCTION_ADMIN_SEED === "SEED_ADMIN");
+
 // Security: hide Express and trust Render's proxy before IP-based rate limiting.
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
@@ -174,7 +181,20 @@ const startServer = async () => {
   await ensureUploadIndexes();
   await invalidateLegacyTwoFactorSecrets();
 
-  if (process.env.SEED_ADMIN_ON_START === "true" || process.env.RESET_ADMIN_2FA_ON_START === "true") {
+  const seedAdminOnStartRequested = process.env.SEED_ADMIN_ON_START === "true";
+  const seedAdminOnStart = shouldSeedAdminOnStart();
+  const resetAdminTwoFactorRequested = process.env.RESET_ADMIN_2FA_ON_START === "true";
+  const resetAdminTwoFactor = shouldResetAdminTwoFactorOnStart();
+
+  if (seedAdminOnStartRequested && !seedAdminOnStart) {
+    console.warn("SEED_ADMIN_ON_START was ignored in production because CONFIRM_PRODUCTION_ADMIN_SEED is not set to SEED_ADMIN.");
+  }
+
+  if (resetAdminTwoFactorRequested && !resetAdminTwoFactor) {
+    console.warn("RESET_ADMIN_2FA_ON_START was ignored because CONFIRM_RESET_ADMIN_2FA is not set to RESET_ADMIN_2FA.");
+  }
+
+  if (seedAdminOnStart || resetAdminTwoFactor) {
     assertAdminSeedConfig({
       mongoUri: getMongoUri(),
       email: process.env.ADMIN_EMAIL,
@@ -184,7 +204,7 @@ const startServer = async () => {
     await ensureAdminUser({
       email: process.env.ADMIN_EMAIL,
       password: process.env.ADMIN_PASSWORD,
-      resetTwoFactor: process.env.RESET_ADMIN_2FA_ON_START === "true",
+      resetTwoFactor: resetAdminTwoFactor,
     });
     console.log("Startup admin seed completed. Remove SEED_ADMIN_ON_START after confirming access.");
   }

@@ -10,6 +10,7 @@ import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
 import { publicDataAPI } from "../../services/publicData";
 import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import { useSettings } from "../../hooks/useSettings";
+import { cloudinaryThumbnailUrl } from "../../utils/imageDelivery";
 
 const HomePage = () => {
   const { settings } = useSettings();
@@ -20,6 +21,7 @@ const HomePage = () => {
   const [dataSource, setDataSource] = useState("loading");
   const [profile, setProfile] = useState(null);
   const heroImage = featured?.[0]?.images?.[0]?.url;
+  const optimizedHeroImage = heroImage ? cloudinaryThumbnailUrl(heroImage, 960) : "";
   const heroArtistName = profile?.name?.trim() || settings?.websiteTitle || "Artist Portfolio";
   const [featuredPreview, setFeaturedPreview] = useState(null);
   const requestIdRef = useRef(0);
@@ -88,13 +90,14 @@ const HomePage = () => {
     <PublicLayout>
       {/* ── Mobile Hero ─────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-charcoal text-white lg:hidden" aria-label="Hero">
-        {heroImage && (
+        {optimizedHeroImage && (
           <div className="absolute inset-0 opacity-40">
             <img
-              src={heroImage}
+              src={optimizedHeroImage}
               alt="Featured artwork hero"
               className="h-full w-full object-cover"
-              loading="lazy"
+              loading="eager"
+              fetchPriority="high"
               decoding="async"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent" />
@@ -179,11 +182,12 @@ const HomePage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-              {featured.map((artwork) => (
+              {featured.map((artwork, index) => (
                 <ArtworkCard
                   key={artwork._id}
                   artwork={artwork}
                   variant="featured"
+                  priority={index < 3}
                   onPreview={setFeaturedPreview}
                 />
               ))}

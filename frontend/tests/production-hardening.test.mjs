@@ -7,11 +7,14 @@ const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8"
 test("public artwork recovery is bounded, deduplicated, cancellable and stale-aware", async () => {
   const data = await source("src/services/publicDataService.js");
   assert.match(data, /liveArtworkRequests\.has/);
+  assert.match(data, /cachedFallbackPortfolio/);
+  assert.match(data, /requestLiveData/);
   assert.match(data, /new AbortController/);
   assert.match(data, /scheduleArtworkRetry/);
   assert.match(data, /isStale: true/);
   assert.match(data, /isStale: false/);
-  assert.match(data, /await getLiveArtworks\(params\)/);
+  assert.match(data, /const staticData = await getFallbackArtworks\(params\)/);
+  assert.match(data, /getLiveArtworks\(params\)\s*\n\s*\.then/);
   assert.match(data, /12000/);
 });
 

@@ -13,14 +13,17 @@ const emptyPortfolio = {
 };
 
 let fallbackPortfolioPromise = null;
+let cachedFallbackPortfolio = null;
+let forceNextFallbackRefresh = false;
 const liveArtworkRequests = new Map();
+const liveDataRequests = new Map();
 let retryTimer = null;
 let retryAttempt = 0;
 let refreshQueued = false;
 
 const buildFallbackUrl = (forceRefresh = false) => {
-  const version = forceRefresh ? Date.now() : Date.now();
-  return `${STATIC_FALLBACK_URL}?v=${version}`;
+  if (!forceRefresh) return STATIC_FALLBACK_URL;
+  return `${STATIC_FALLBACK_URL}?v=${Date.now()}`;
 };
 
 const artworkRequestKey = (params = {}) => JSON.stringify(
@@ -55,6 +58,9 @@ const scheduleArtworkRetry = () => {
 };
 
 export const notifyArtworksChanged = () => {
+  cachedFallbackPortfolio = null;
+  fallbackPortfolioPromise = null;
+  forceNextFallbackRefresh = true;
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(ARTWORKS_CHANGED_EVENT));
   }
@@ -206,17 +212,23 @@ const normalizePortfolio = (data) => {
 };
 
 const loadFallbackPortfolio = async ({ forceRefresh = false } = {}) => {
-  if (!forceRefresh && fallbackPortfolioPromise) {
+  const shouldForceRefresh = forceRefresh || forceNextFallbackRefresh;
+
+  if (!shouldForceRefresh && cachedFallbackPortfolio) {
+    return cachedFallbackPortfolio;
+  }
+
+  if (!shouldForceRefresh && fallbackPortfolioPromise) {
     return fallbackPortfolioPromise;
   }
 
-  const requestPromise = fetch(buildFallbackUrl(forceRefresh), {
-    cache: "no-store",
-    headers: {
+  const requestPromise = fetch(buildFallbackUrl(shouldForceRefresh), {
+    cache: shouldForceRefresh ? "no-store" : "default",
+    headers: shouldForceRefresh ? {
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
-    },
+    } : undefined,
   })
     .then((response) => {
       if (!response.ok) {
@@ -225,6 +237,11 @@ const loadFallbackPortfolio = async ({ forceRefresh = false } = {}) => {
       return response.json();
     })
     .then(normalizePortfolio)
+    .then((portfolio) => {
+      cachedFallbackPortfolio = portfolio;
+      forceNextFallbackRefresh = false;
+      return portfolio;
+    })
     .catch((error) => {
       if (fallbackPortfolioPromise === requestPromise) {
         fallbackPortfolioPromise = null;
@@ -243,17 +260,23 @@ const loadFallbackPortfolio = async ({ forceRefresh = false } = {}) => {
   }
 };
 
-const preferStaticData = async ({ loadStatic, loadLive, hasStaticData, onLiveData, label }) => {
-  const livePromise = loadLive();
-  // Attach a handler immediately so a fast live failure cannot become an
-  // unhandled rejection while the static snapshot is being read.
-  livePromise.catch(() => {});
+const requestLiveData = (key, loadLive) => {
+  if (liveDataRequests.has(key)) return liveDataRequests.get(key);
 
+  const request = loadLive()
+    .finally(() => {
+      liveDataRequests.delete(key);
+    });
+  liveDataRequests.set(key, request);
+  return request;
+};
+
+const preferStaticData = async ({ loadStatic, loadLive, hasStaticData, onLiveData, label }) => {
   try {
     const staticData = await loadStatic();
 
     if (hasStaticData(staticData)) {
-      livePromise
+      requestLiveData(label, loadLive)
         .then((liveData) => onLiveData?.(liveData))
         .catch((error) => console.warn(`Live public ${label} refresh failed.`, error));
       return staticData;
@@ -262,7 +285,7 @@ const preferStaticData = async ({ loadStatic, loadLive, hasStaticData, onLiveDat
     console.warn(`Static public ${label} could not be loaded.`, error);
   }
 
-  const liveData = await livePromise;
+  const liveData = await requestLiveData(label, loadLive);
   onLiveData?.(liveData);
   return liveData;
 };
@@ -387,29 +410,34 @@ const getLiveArtworks = async (params = {}) => {
 
 export const publicDataAPI = {
   getPortfolio: async ({ onLiveData } = {}) => {
-    try {
-      const live = await Promise.all([
-        api.get("/settings", { params: withNoStoreParam() }).then((res) => unwrap(res.data)?.settings),
-        api.get("/profile", { params: withNoStoreParam() }).then((res) => unwrap(res.data)?.profile),
-        getLiveArtworks({ limit: 500 }).then((res) => res.items),
-        api
-          .get("/artworks/categories", { params: withNoStoreParam() })
-          .then((res) => unwrap(res.data)?.categories || []),
-      ]).then(([settings, profile, artworks, categories]) =>
-        normalizePortfolio({
-          generatedAt: new Date().toISOString(),
-          settings,
-          profile,
-          artworks,
-          categories,
-        })
-      );
+    const loadLivePortfolio = () => Promise.all([
+      requestLiveData("settings", () => api.get("/settings", { params: withNoStoreParam() }).then((res) => unwrap(res.data)?.settings)),
+      requestLiveData("profile", () => api.get("/profile", { params: withNoStoreParam() }).then((res) => unwrap(res.data)?.profile)),
+      getLiveArtworks({ limit: 500 }).then((res) => res.items),
+      requestLiveData("categories", () => api
+        .get("/artworks/categories", { params: withNoStoreParam() })
+        .then((res) => unwrap(res.data)?.categories || [])),
+    ]).then(([settings, profile, artworks, categories]) =>
+      normalizePortfolio({
+        generatedAt: new Date().toISOString(),
+        settings,
+        profile,
+        artworks,
+        categories,
+      })
+    );
 
+    try {
+      const staticPortfolio = await loadFallbackPortfolio();
+      requestLiveData("portfolio", loadLivePortfolio)
+        .then((live) => onLiveData?.(live))
+        .catch((error) => console.warn("Live public portfolio refresh failed.", error));
+      return staticPortfolio;
+    } catch (error) {
+      console.warn("Static public portfolio failed; using live fallback.", error);
+      const live = await requestLiveData("portfolio", loadLivePortfolio);
       onLiveData?.(live);
       return live;
-    } catch (error) {
-      console.warn("Live public portfolio failed; using static fallback.", error);
-      return loadFallbackPortfolio();
     }
   },
 
@@ -417,13 +445,13 @@ export const publicDataAPI = {
     try {
       return await preferStaticData({
         loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.settings),
-        loadLive: () => api
+        loadLive: () => requestLiveData("settings", () => api
           .get("/settings", { params: withNoStoreParam() })
           .then((res) => unwrap(res.data)?.settings)
           .then((settings) => {
             if (!settings) throw new Error("Live settings response was invalid");
             return settings;
-          }),
+          })),
         hasStaticData: Boolean,
         onLiveData,
         label: "settings",
@@ -439,13 +467,13 @@ export const publicDataAPI = {
     try {
       return await preferStaticData({
         loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.profile),
-        loadLive: () => api
+        loadLive: () => requestLiveData("profile", () => api
           .get("/profile", { params: withNoStoreParam() })
           .then((res) => unwrap(res.data)?.profile)
           .then((profile) => {
             if (!profile) throw new Error("Live profile response was invalid");
             return profile;
-          }),
+          })),
         hasStaticData: Boolean,
         onLiveData,
         label: "profile",
@@ -481,17 +509,20 @@ export const publicDataAPI = {
 
   getArtworks: async (params = {}, { onLiveData } = {}) => {
     try {
-      const liveData = await getLiveArtworks(params);
-      onLiveData?.(liveData);
-      return liveData;
+      const staticData = await getFallbackArtworks(params);
+      getLiveArtworks(params)
+        .then((liveData) => onLiveData?.(liveData))
+        .catch((error) => {
+          console.warn("Live public artworks refresh failed; keeping static data.", error);
+        });
+      return staticData;
     } catch (error) {
       try {
-        const staticData = await getFallbackArtworks(params);
-        console.warn("Live public artworks failed; using static fallback.", error);
-        if (staticData.items.length > 0) return staticData;
-        throw error;
-      } catch (fallbackError) {
-        console.warn("Both live and static public artworks failed.", fallbackError);
+        const liveData = await getLiveArtworks(params);
+        onLiveData?.(liveData);
+        return liveData;
+      } catch (liveError) {
+        console.warn("Both static and live public artworks failed.", liveError);
         throw error;
       }
     }
@@ -505,13 +536,13 @@ export const publicDataAPI = {
             (artwork) => artwork._id === id || artwork.slug === id
           ) || null
         ),
-        loadLive: () => api
+        loadLive: () => requestLiveData(`artwork:${id}`, () => api
           .get(`/artworks/${id}`, { params: withNoStoreParam() })
           .then((res) => normalizeArtwork(unwrap(res.data)?.artwork))
           .then((item) => {
             if (!item) throw new Error("Live artwork response was invalid");
             return item;
-          }),
+          })),
         hasStaticData: Boolean,
         onLiveData,
         label: "artwork detail",
@@ -535,10 +566,10 @@ export const publicDataAPI = {
     try {
       return await preferStaticData({
         loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.categories),
-        loadLive: () => api
+        loadLive: () => requestLiveData("categories", () => api
           .get("/artworks/categories", { params: withNoStoreParam() })
           .then((res) => unwrap(res.data)?.categories || [])
-          .then((items) => items.filter(Boolean).sort()),
+          .then((items) => items.filter(Boolean).sort())),
         hasStaticData: (categories) => categories.length > 0,
         onLiveData,
         label: "categories",

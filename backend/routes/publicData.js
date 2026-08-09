@@ -30,6 +30,9 @@ router.get("/", async (req, res) => {
 
 router.post("/rebuild", protect, async (req, res) => {
   try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Admin access required" });
+    }
     const result = await flushStaticRebuild(req.body?.reason || "manual-public-data-rebuild");
     if (!result.triggered) {
       return res.status(400).json({
