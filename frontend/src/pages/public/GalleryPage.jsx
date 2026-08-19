@@ -58,20 +58,25 @@ const GalleryPage = () => {
   const restorePendingRef = useRef(false);
   const restoreFrameRef = useRef(null);
   const activeArtworkIdRef = useRef("");
+  const appendPageRef = useRef(null);
+  const filterDialogRef = useRef(null);
+  const filterTriggerRef = useRef(null);
 
-  const applyResult = useCallback((result, requestedPage) => {
+  const applyResult = useCallback((result, append = false) => {
     if (!mountedRef.current) return;
     const incoming = result.items || [];
-    setArtworks(incoming);
+    setArtworks((current) => {
+      if (!append) return incoming;
+      const incomingIds = new Set(incoming.map((artwork) => artwork._id));
+      return [...current.filter((artwork) => !incomingIds.has(artwork._id)), ...incoming];
+    });
     setPagination(result.pagination || {});
     setDataSource(result.isStale ? "static" : "live");
-    if (requestedPage > 1 && incoming.length === 0) {
-      setPage((current) => Math.max(1, current - 1));
-    }
   }, []);
 
   const fetchArtworks = useCallback(async (requestedPage = page) => {
     const requestId = ++requestIdRef.current;
+    const append = appendPageRef.current === requestedPage;
     let liveApplied = false;
     requestedPage === 1 ? setLoading(true) : setLoadingPage(true);
     setError("");
@@ -90,16 +95,22 @@ const GalleryPage = () => {
       const result = await publicDataAPI.getArtworks(params, {
         onLiveData: (liveResult) => {
           liveApplied = true;
-          if (requestId === requestIdRef.current) applyResult(liveResult, requestedPage);
+          if (requestId === requestIdRef.current) applyResult(liveResult, append);
         },
       });
       if (requestId !== requestIdRef.current) return;
-      if (!liveApplied || result.source === "live") applyResult(result, requestedPage);
+      if (!liveApplied || result.source === "live") applyResult(result, append);
     } catch {
+      if (requestId !== requestIdRef.current) return;
       setError("The gallery could not be loaded. Please try again.");
     } finally {
-      setLoading(false);
-      setLoadingPage(false);
+      // A slower request for a previous page must not settle the state of the
+      // page the visitor is currently viewing.
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+        setLoadingPage(false);
+        if (appendPageRef.current === requestedPage) appendPageRef.current = null;
+      }
     }
   }, [applyResult, availability, category, collection, decade, medium, page, search, sortValue, year]);
 
@@ -134,10 +145,21 @@ const GalleryPage = () => {
 
   useEffect(() => {
     if (!filtersOpen) return undefined;
+    filterTriggerRef.current = document.activeElement;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const focusFrame = window.requestAnimationFrame(() => {
+      filterDialogRef.current?.querySelector("[data-filter-dialog-close]")?.focus();
+    });
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setFiltersOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
+      filterTriggerRef.current?.focus?.();
     };
   }, [filtersOpen]);
 
@@ -146,9 +168,12 @@ const GalleryPage = () => {
     return subscribeToArtworkRefresh(() => fetchArtworks(page));
   }, [fetchArtworks, page]);
 
-  useEffect(() => () => {
-    mountedRef.current = false;
-    requestIdRef.current += 1;
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      requestIdRef.current += 1;
+    };
   }, []);
 
   const galleryCategories = useMemo(() => {
@@ -162,6 +187,7 @@ const GalleryPage = () => {
   }, [categories]);
 
   const updateCollection = (changes = {}, nextPage = 1) => {
+    appendPageRef.current = null;
     const nextCategory = changes.category ?? category;
     const nextAvailability = changes.availability ?? availability;
     const nextSort = changes.sortValue ?? sortValue;
@@ -221,11 +247,13 @@ const GalleryPage = () => {
   }, [prefersReducedMotion]);
 
   const goToPage = useCallback((nextPage) => {
+    // Read the URL page as the source of truth. React state can still contain
+    // the previous page for one render while the search params are updating.
+    const currentPage = normalizeGalleryPage(searchParams.get("page"), page);
     const safePage = Math.min(Math.max(1, Number(nextPage) || 1), totalPages);
-    if (safePage === page || loadingPage) return;
+    if (safePage === currentPage || loadingPage) return;
 
     setLoadingPage(true);
-    setPage(safePage);
     const nextParams = new URLSearchParams(searchParams);
     if (safePage > 1) nextParams.set("page", String(safePage)); else nextParams.delete("page");
     if (category !== "all") nextParams.set("category", category);
@@ -239,6 +267,17 @@ const GalleryPage = () => {
     setSearchParams(nextParams, { replace: false });
     requestAnimationFrame(() => scrollGalleryToStart());
   }, [availability, category, collection, decade, loadingPage, medium, page, prefersReducedMotion, search, searchParams, setSearchParams, sortValue, totalPages, year, scrollGalleryToStart]);
+
+  const loadMore = useCallback(() => {
+    const currentPage = normalizeGalleryPage(searchParams.get("page"), page);
+    const nextPage = Math.min(currentPage + 1, totalPages);
+    if (nextPage === currentPage || loadingPage) return;
+    appendPageRef.current = nextPage;
+    setLoadingPage(true);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("page", String(nextPage));
+    setSearchParams(nextParams, { replace: false });
+  }, [loadingPage, page, searchParams, setSearchParams, totalPages]);
 
   useEffect(() => {
     const restoreState = readGalleryRestoreState();
@@ -318,14 +357,15 @@ const GalleryPage = () => {
   }, [artworks, page]);
 
   useEffect(() => {
-    if (pagination.pages && page > pagination.pages) {
+    const resultPage = normalizeGalleryPage(pagination.page, 0);
+    if (resultPage === page && pagination.pages && page > pagination.pages) {
       const safePage = Math.max(1, Number(pagination.pages) || 1);
       setPage(safePage);
       const nextParams = new URLSearchParams(searchParams);
       if (safePage > 1) nextParams.set("page", String(safePage)); else nextParams.delete("page");
       setSearchParams(nextParams, { replace: true });
     }
-  }, [page, pagination.pages, searchParams, setSearchParams]);
+  }, [page, pagination.page, pagination.pages, searchParams, setSearchParams]);
 
   const availabilitySelect = (
     <label className="block">
@@ -465,12 +505,19 @@ const GalleryPage = () => {
                   className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                   aria-label="Close filters"
                 />
-                <section className="absolute inset-x-0 bottom-0 rounded-t-[2rem] bg-white p-5 pb-6 shadow-2xl">
+                <section
+                  ref={filterDialogRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="gallery-filter-dialog-title"
+                  className="absolute inset-x-0 bottom-0 rounded-t-[2rem] bg-white p-5 pb-6 shadow-2xl"
+                >
                   <div className="mb-6 flex items-center justify-between gap-4">
-                    <p className="text-xs font-label uppercase tracking-[0.25em] text-slate/70">Filter artworks</p>
+                    <p id="gallery-filter-dialog-title" className="text-xs font-label uppercase tracking-[0.25em] text-slate/70">Filter artworks</p>
                     <button
                       type="button"
                       onClick={() => setFiltersOpen(false)}
+                      data-filter-dialog-close
                       className="text-sm uppercase tracking-[0.2em] text-charcoal/80"
                     >
                       Close
@@ -595,7 +642,7 @@ const GalleryPage = () => {
               <div className="lg:hidden mt-6">
                 <button
                   type="button"
-                  onClick={() => goToPage(page + 1)}
+                  onClick={loadMore}
                   disabled={page >= totalPages || loadingPage}
                   className="btn-gold w-full py-4 text-sm font-medium"
                 >
@@ -610,7 +657,7 @@ const GalleryPage = () => {
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => goToPage(page - 1)}
+                    onClick={() => goToPage(normalizeGalleryPage(searchParams.get("page"), page) - 1)}
                     disabled={page <= 1 || loadingPage}
                     aria-label="Go to previous Gallery page"
                     className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
@@ -619,7 +666,7 @@ const GalleryPage = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => goToPage(page + 1)}
+                    onClick={() => goToPage(normalizeGalleryPage(searchParams.get("page"), page) + 1)}
                     disabled={page >= totalPages || loadingPage}
                     aria-label="Go to next Gallery page"
                     className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"

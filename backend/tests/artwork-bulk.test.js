@@ -93,15 +93,21 @@ test("bulk titles are cleanly derived from filenames", () => {
   assert.equal(titleFromFilename("  .png"), "Untitled");
 });
 
-test("bulk upload implementation is strictly sequential and has no file-count cap", () => {
+test("bulk upload implementation bounds frontend concurrency and has no file-count cap", () => {
   const source = fs.readFileSync(path.resolve(__dirname, "../routes/artworks.js"), "utf8");
   const config = fs.readFileSync(path.resolve(__dirname, "../config/cloudinary.js"), "utf8");
   const frontend = fs.readFileSync(path.resolve(__dirname, "../../frontend/src/pages/admin/BulkArtworkUploadPage.jsx"), "utf8");
+  const bulkArtworkConfig = config.slice(
+    config.indexOf("const uploadBulkArtwork = multer({"),
+    config.indexOf("const uploadProfile = multer")
+  );
   assert.match(source, /for \(let index = 0; index < files\.length; index \+= 1\)/);
   assert.doesNotMatch(source, /runWithConcurrency|BULK_UPLOAD_CONCURRENCY/);
-  assert.doesNotMatch(config, /MAX_BULK_ARTWORKS|files:\s*\d+/);
-  assert.match(frontend, /for \(const item of selected\) await uploadOne/);
-  assert.doesNotMatch(frontend, /MAX_ARTWORKS|Promise\.all/);
+  assert.doesNotMatch(config, /MAX_BULK_ARTWORKS|MAX_ARTWORK_FILE_SIZE|files:\s*\d+/);
+  assert.doesNotMatch(bulkArtworkConfig, /limits:/);
+  assert.match(frontend, /const UPLOAD_CONCURRENCY = 5/);
+  assert.match(frontend, /Promise\.all\(Array\.from\(\{ length: Math\.min\(UPLOAD_CONCURRENCY, selected\.length\) \}, worker\)\)/);
+  assert.doesNotMatch(frontend, /MAX_ARTWORKS|MAX_FILE_SIZE|under 10 MB|up to 10 MB/);
 });
 
 test("clientUploadId has a sparse unique MongoDB index and duplicate-key recovery", () => {
