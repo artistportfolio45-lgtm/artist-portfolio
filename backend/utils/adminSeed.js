@@ -36,7 +36,7 @@ const ensureAdminUser = async ({
   const securityFields =
     "+twoFactorSecret +pendingTwoFactorSecret +pendingTwoFactorExpiresAt +twoFactorSecretVersion " +
     "+backupRecoveryCodes +emailOtpHash +emailOtpPurpose +emailOtpExpiresAt +emailOtpAttempts +emailOtpLastSentAt " +
-    "+loginChallengeHash +loginChallengePurpose +loginChallengeAttempts";
+    "+loginChallengeHash +loginChallengePurpose +loginChallengeAttempts +sessionVersion";
   let admin = await User.findOne({ email: normalizedEmail }).select(securityFields);
 
   if (!admin) {
@@ -49,6 +49,7 @@ const ensureAdminUser = async ({
     admin = new User({ email: normalizedEmail, role: "admin" });
   }
 
+  if (!wasCreated) admin.sessionVersion = (admin.sessionVersion || 0) + 1;
   admin.email = normalizedEmail;
   admin.password = password;
   admin.role = "admin";

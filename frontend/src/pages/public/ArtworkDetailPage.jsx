@@ -6,6 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import PublicLayout from "../../components/public/PublicLayout";
 import BackButton from "../../components/shared/BackButton";
 import { publicDataAPI } from "../../services/publicData";
+import { inquiryAPI } from "../../services/api";
 import { submitNetlifyForm } from "../../services/netlifyForms";
 import { validateInquiryForm } from "../../services/inquiryValidation";
 import { PageLoader } from "../../components/shared/LoadingSpinner";
@@ -109,25 +110,36 @@ const ArtworkDetailPage = () => {
 
     setSubmitting(true);
     try {
-      await submitNetlifyForm("artwork-inquiry", {
+      const payload = {
         name: data.name,
         email: data.email,
         phone: data.phone,
         message: data.message,
         inquiryType: "artwork",
         sourcePage: window.location.href,
-        artworkId: artwork._id,
+        artwork: artwork._id,
         artworkTitle: artwork.title?.trim() || "Artwork",
         artworkUrl: window.location.href,
+      };
+
+      await inquiryAPI.create(payload);
+      submitNetlifyForm("artwork-inquiry", {
+        ...payload,
+        artworkId: artwork._id,
         artworkImage: artwork.images?.[0]?.url,
+      }).catch((error) => {
+        console.warn("Netlify backup artwork inquiry failed after backend save.", error);
       });
 
       toast.success("Thank you. Your inquiry has been sent successfully.");
       setSent(true);
       setErrors({});
       setForm(emptyInquiryForm);
-    } catch {
-      const message = "We could not send your inquiry. Please try again.";
+    } catch (error) {
+      const message = error.response?.data?.message ||
+        (error.request
+          ? "We could not reach the enquiry service. Please try again."
+          : "We could not send your inquiry. Please try again.");
       setErrors({ form: message });
       toast.error(message);
     } finally {

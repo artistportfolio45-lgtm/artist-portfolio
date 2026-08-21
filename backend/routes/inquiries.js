@@ -7,8 +7,13 @@ const mongoose = require("mongoose");
 const Inquiry = require("../models/Inquiry");
 const Artwork = require("../models/Artwork");
 const { protect } = require("../middleware/auth");
+const adminOnly = (req, res, next) => req.user?.role === "admin"
+  ? next()
+  : res.status(403).json({ success: false, message: "Admin access required" });
 
 const trimOptional = (value) => (typeof value === "string" ? value.trim() : "");
+const escapeRegex = (value) => trimOptional(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const validInquiryId = (value) => mongoose.isValidObjectId(value);
 
 // @route   POST /api/inquiries
 // @desc    Submit an inquiry (public)
@@ -30,8 +35,13 @@ router.post("/", async (req, res) => {
       sourcePage,
     } = req.body;
 
-    if (!name || !email || !message) {
+    if ([name, email, message].some((value) => typeof value !== "string") || !name.trim() || !email.trim() || !message.trim()) {
       return res.status(400).json({ success: false, message: "Name, email, and message are required" });
+    }
+
+    if (name.length > 120 || email.length > 254 || String(phone || "").length > 40 ||
+        String(subject || "").length > 200 || message.length > 5000 || String(sourcePage || "").length > 500) {
+      return res.status(400).json({ success: false, message: "Inquiry content is too long" });
     }
 
     // Email format check
@@ -70,7 +80,7 @@ router.post("/", async (req, res) => {
       sourcePage: trimOptional(sourcePage),
     });
 
-    res.status(201).json({ success: true, message: "Inquiry submitted successfully", inquiry });
+    res.status(201).json({ success: true, message: "Inquiry submitted successfully" });
   } catch (error) {
     console.error("Submit inquiry error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -80,32 +90,36 @@ router.post("/", async (req, res) => {
 // @route   GET /api/inquiries
 // @desc    Get all inquiries with optional search (admin)
 // @access  Private
-router.get("/", protect, async (req, res) => {
+router.get("/", protect, adminOnly, async (req, res) => {
   try {
     const { search, isRead, page = 1, limit = 20 } = req.query;
 
     const query = {};
+    const searchTerm = trimOptional(search).slice(0, 120);
 
-    if (search) {
+    if (searchTerm) {
+      const safeSearch = escapeRegex(searchTerm);
       query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { artworkTitle: { $regex: search, $options: "i" } },
-        { message: { $regex: search, $options: "i" } },
+        { name: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
+        { artworkTitle: { $regex: safeSearch, $options: "i" } },
+        { message: { $regex: safeSearch, $options: "i" } },
       ];
     }
 
     if (isRead === "true") query.isRead = true;
     if (isRead === "false") query.isRead = false;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const currentPage = Math.max(1, Number.parseInt(page, 10) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number.parseInt(limit, 10) || 20));
+    const skip = (currentPage - 1) * pageSize;
 
     const [inquiries, total, unreadCount] = await Promise.all([
       Inquiry.find(query)
         .populate("artworkInterested", "title images")
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(pageSize),
       Inquiry.countDocuments(query),
       Inquiry.countDocuments({ isRead: false }),
     ]);
@@ -116,9 +130,9 @@ router.get("/", protect, async (req, res) => {
       unreadCount,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit)),
+        page: currentPage,
+        limit: pageSize,
+        pages: Math.ceil(total / pageSize),
       },
     });
   } catch (error) {
@@ -130,8 +144,9 @@ router.get("/", protect, async (req, res) => {
 // @route   GET /api/inquiries/:id
 // @desc    Get single inquiry (admin)
 // @access  Private
-router.get("/:id", protect, async (req, res) => {
+router.get("/:id", protect, adminOnly, async (req, res) => {
   try {
+    if (!validInquiryId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid inquiry ID" });
     const inquiry = await Inquiry.findById(req.params.id).populate("artworkInterested", "title images");
     if (!inquiry) {
       return res.status(404).json({ success: false, message: "Inquiry not found" });
@@ -145,8 +160,9 @@ router.get("/:id", protect, async (req, res) => {
 // @route   PATCH /api/inquiries/:id/read
 // @desc    Toggle read/unread status (admin)
 // @access  Private
-router.patch("/:id/read", protect, async (req, res) => {
+router.patch("/:id/read", protect, adminOnly, async (req, res) => {
   try {
+    if (!validInquiryId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid inquiry ID" });
     const inquiry = await Inquiry.findById(req.params.id);
     if (!inquiry) {
       return res.status(404).json({ success: false, message: "Inquiry not found" });
@@ -164,8 +180,9 @@ router.patch("/:id/read", protect, async (req, res) => {
 // @route   DELETE /api/inquiries/:id
 // @desc    Delete inquiry (admin)
 // @access  Private
-router.delete("/:id", protect, async (req, res) => {
+router.delete("/:id", protect, adminOnly, async (req, res) => {
   try {
+    if (!validInquiryId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid inquiry ID" });
     const inquiry = await Inquiry.findByIdAndDelete(req.params.id);
     if (!inquiry) {
       return res.status(404).json({ success: false, message: "Inquiry not found" });

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = resolve(root, "dist");
-const siteUrl = (process.env.PUBLIC_SITE_URL || process.env.VITE_SITE_URL || "https://artistportfolio45.netlify.app").replace(/\/$/, "");
+const siteUrl = (process.env.PUBLIC_SITE_URL || process.env.VITE_SITE_URL || "https://artistportfolio46.netlify.app").replace(/\/$/, "");
 const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 const stripHtml = (value = "") => String(value).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
@@ -15,6 +15,7 @@ try { snapshot = JSON.parse(await readFile(resolve(root, "public/data/portfolio.
 const settings = snapshot.settings || {};
 const siteTitle = settings.seoTitle || settings.websiteTitle || "Artist Portfolio";
 const defaultDescription = settings.seoDescription || settings.websiteDescription || "Original artworks and selected works from the artist's studio.";
+const keywords = stripHtml(settings.seoKeywords || "");
 const published = (snapshot.artworks || []).filter((art) => !["draft", "unpublished", "archived"].includes(art.publicationStatus));
 const breadcrumb = (items) => ({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: items.map(([name, path], index) => ({ "@type": "ListItem", position: index + 1, name, item: `${siteUrl}${path}` })) });
 
@@ -24,6 +25,7 @@ const render = ({ title, description, path, image, type = "website", schema }) =
   const safeDescription = escapeHtml(stripHtml(description).slice(0, 300));
   const tags = [
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
+    keywords ? `<meta name="keywords" content="${escapeHtml(keywords)}" />` : "",
     `<meta property="og:type" content="${type}" />`,
     `<meta property="og:title" content="${safeTitle}" />`,
     `<meta property="og:description" content="${safeDescription}" />`,

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { saveGalleryRestoreState } from "../../utils/galleryRestore";
 import {
@@ -7,11 +7,24 @@ import {
   galleryThumbnailWidths,
   imageAspectRatio,
 } from "../../utils/imageDelivery";
+import { distributeByShortestColumn } from "../../utils/masonryLayout";
 
 const SKELETON_RATIOS = ["4 / 5", "1 / 1", "3 / 4", "5 / 4", "2 / 3", "4 / 3"];
 
 const GALLERY_IMAGE_SIZES =
   "(min-width: 2240px) 615px, (min-width: 1883px) calc(33.333vw - 132px), (min-width: 1471px) calc(27.667vw - 25.333px), (min-width: 1024px) calc(33.333vw - 108.667px), (min-width: 640px) calc(50vw - 30px), calc(100vw - 32px)";
+const IMAGE_RETRY_DELAYS = [800, 2000];
+
+const withRetryToken = (url, attempt) => {
+  if (!attempt) return url;
+  try {
+    const retryUrl = new URL(url);
+    retryUrl.searchParams.set("portfolio_retry", String(attempt));
+    return retryUrl.toString();
+  } catch {
+    return url;
+  }
+};
 
 const ArtworkMasonryImage = ({ image, title, priority }) => {
   const originalUrl = image.url;
@@ -27,11 +40,13 @@ const ArtworkMasonryImage = ({ image, title, priority }) => {
   const hasIntrinsicDimensions = Number(image.width) > 0 && Number(image.height) > 0;
   const [status, setStatus] = useState("loading");
   const [useOriginal, setUseOriginal] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [loadMode, setLoadMode] = useState(priority ? "eager" : null);
   const loadImmediately = loadMode === "eager";
   const frameRef = useRef(null);
   const imageRef = useRef(null);
-  const sourceUrl = useOriginal ? originalUrl : optimizedUrl;
+  const retryTimerRef = useRef(null);
+  const sourceUrl = withRetryToken(useOriginal ? originalUrl : optimizedUrl, retryAttempt);
 
   const handleFailure = useCallback(() => {
     if (!useOriginal && hasOptimizedSource) {
@@ -40,19 +55,41 @@ const ArtworkMasonryImage = ({ image, title, priority }) => {
       return;
     }
 
+    if (retryAttempt < IMAGE_RETRY_DELAYS.length) {
+      if (retryTimerRef.current) return;
+      setStatus("loading");
+      retryTimerRef.current = window.setTimeout(() => {
+        retryTimerRef.current = null;
+        setRetryAttempt((attempt) => attempt + 1);
+      }, IMAGE_RETRY_DELAYS[retryAttempt]);
+      return;
+    }
+
     setStatus("error");
-  }, [hasOptimizedSource, useOriginal]);
+  }, [hasOptimizedSource, retryAttempt, useOriginal]);
+
+  const handleLoaded = useCallback(() => {
+    if (retryTimerRef.current) {
+      window.clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    setStatus("loaded");
+  }, []);
 
   const syncCompletedImage = useCallback(() => {
     const node = imageRef.current;
     if (!node?.complete) return;
 
     if (node.naturalWidth > 0) {
-      setStatus("loaded");
+      handleLoaded();
     } else {
       handleFailure();
     }
-  }, [handleFailure]);
+  }, [handleFailure, handleLoaded]);
+
+  useEffect(() => () => {
+    if (retryTimerRef.current) window.clearTimeout(retryTimerRef.current);
+  }, []);
 
   const setImageRef = useCallback((node) => {
     imageRef.current = node;
@@ -108,7 +145,7 @@ const ArtworkMasonryImage = ({ image, title, priority }) => {
         decoding="async"
         onLoad={(event) => {
           if (event.currentTarget.naturalWidth > 0) {
-            setStatus("loaded");
+            handleLoaded();
           } else {
             handleFailure();
           }
@@ -215,6 +252,11 @@ const ArtworkMasonry = ({
     return () => mediaQuery.removeEventListener?.("change", updateLayout);
   }, []);
 
+  const balancedColumns = useMemo(
+    () => distributeByShortestColumn(artworks, isMobileLayout ? 2 : 3),
+    [artworks, isMobileLayout]
+  );
+
   if (loading) return <ArtworkMasonrySkeleton count={skeletonCount} />;
   if (!artworks.length) return emptyState;
 
@@ -230,12 +272,19 @@ const ArtworkMasonry = ({
   return (
     isMobileLayout ? (
       <div className={`artwork-masonry-mobile-columns ${className}`.trim()}>
-        <div>{artworks.filter((_, index) => index % 2 === 0).map((artwork, index) => renderItem(artwork, index * 2))}</div>
-        <div>{artworks.filter((_, index) => index % 2 === 1).map((artwork, index) => renderItem(artwork, index * 2 + 1))}</div>
+        {balancedColumns.map((column, columnIndex) => (
+          <div key={columnIndex}>
+            {column.map(({ artwork, index }) => renderItem(artwork, index))}
+          </div>
+        ))}
       </div>
     ) : (
-      <div className={`artwork-masonry ${className}`.trim()}>
-        {artworks.map(renderItem)}
+      <div className={`artwork-masonry-balanced ${className}`.trim()}>
+        {balancedColumns.map((column, columnIndex) => (
+          <div className="artwork-masonry-balanced-column" key={columnIndex}>
+            {column.map(({ artwork, index }) => renderItem(artwork, index))}
+          </div>
+        ))}
       </div>
     )
   );

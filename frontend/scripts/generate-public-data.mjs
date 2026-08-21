@@ -7,11 +7,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const frontendRoot = resolve(__dirname, "..");
 const outputPath = resolve(__dirname, "../public/data/portfolio.json");
 const localEnv = loadEnv(process.env.NODE_ENV || "production", frontendRoot, "");
+const DEFAULT_PRODUCTION_API_URL = "https://artist-portfolio-0kkz.onrender.com/api";
 const apiUrl =
   process.env.PUBLIC_DATA_API_URL ||
   process.env.VITE_API_URL ||
   localEnv.PUBLIC_DATA_API_URL ||
-  localEnv.VITE_API_URL;
+  localEnv.VITE_API_URL ||
+  DEFAULT_PRODUCTION_API_URL;
 const exportKey = process.env.PUBLIC_DATA_EXPORT_KEY || localEnv.PUBLIC_DATA_EXPORT_KEY;
 
 const fetchJson = async (url, options) => {
@@ -59,10 +61,6 @@ const fetchPublicSnapshot = async (baseUrl) => {
 };
 
 const fetchSnapshot = async () => {
-  if (!apiUrl) {
-    return null;
-  }
-
   const configuredUrl = apiUrl.replace(/\/+$/, "");
   const baseUrl = configuredUrl.replace(/\/public-data$/, "");
   const url = configuredUrl.endsWith("/public-data")
@@ -114,12 +112,6 @@ try {
   }
 
   const snapshot = await fetchSnapshot();
-
-  if (!snapshot) {
-    if (!existingSnapshot) await readExistingSnapshot();
-    console.log("No PUBLIC_DATA_API_URL or VITE_API_URL set. Existing public data snapshot retained.");
-    process.exit(0);
-  }
 
   validateSnapshot(snapshot, "Live public data snapshot", {
     allowEmpty: !existingSnapshot || existingSnapshot.artworks.length === 0,

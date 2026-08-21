@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cloudinaryThumbnailUrl, galleryThumbnailWidths } from "../../utils/imageDelivery";
 
@@ -5,6 +6,17 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
   const image = artwork.images?.[0];
   const rawTitle = String(artwork.title || "").trim();
   const title = rawTitle || "Artwork";
+  const [failedUrls, setFailedUrls] = useState(() => new Set());
+  const [useOriginal, setUseOriginal] = useState(false);
+  const imageUrl = image?.url && !failedUrls.has(image.url) ? image.url : "";
+  const handleImageError = (event) => {
+    const failed = event.currentTarget.src;
+    if (!useOriginal && imageUrl && failed !== imageUrl) {
+      setUseOriginal(true);
+      return;
+    }
+    setFailedUrls((current) => new Set([...current, failed]));
+  };
 
   if (variant === "featured") {
     const numericPrice = Number(artwork.price);
@@ -35,10 +47,10 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
             aria-label={`View ${title}`}
             className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"
           >
-            {image?.url ? (
+            {imageUrl ? (
               <img
-                src={cloudinaryThumbnailUrl(image.url, 960)}
-                srcSet={galleryThumbnailWidths(image.width).map((width) => `${cloudinaryThumbnailUrl(image.url, width)} ${width}w`).join(", ")}
+                src={useOriginal ? imageUrl : cloudinaryThumbnailUrl(imageUrl, 960)}
+                srcSet={!useOriginal ? galleryThumbnailWidths(image.width).map((width) => `${cloudinaryThumbnailUrl(imageUrl, width)} ${width}w`).join(", ") : undefined}
                 sizes="(max-width: 639px) 92vw, (max-width: 1023px) 45vw, 30vw"
                 width={image.width || undefined}
                 height={image.height || undefined}
@@ -47,6 +59,7 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
                 loading={priority ? "eager" : "lazy"}
                 fetchPriority={priority ? "high" : "auto"}
                 decoding="async"
+                onError={handleImageError}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gray-100 text-slate/35">
@@ -100,15 +113,16 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
         aria-label={`View ${title}`}
         className="relative block overflow-hidden bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
       >
-        {image?.url ? (
+        {imageUrl ? (
           <img
-            src={image.url}
+            src={imageUrl}
             width={image.width || undefined}
             height={image.height || undefined}
             alt={title}
             className="block h-auto w-full transition duration-500 group-hover:scale-[1.015] group-hover:brightness-[0.9]"
             loading="lazy"
             decoding="async"
+            onError={handleImageError}
           />
         ) : (
           <div className="flex aspect-[4/5] items-center justify-center text-sm text-slate/40">Image unavailable</div>

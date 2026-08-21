@@ -108,6 +108,14 @@ const normalizeImage = (image) => {
   const url = image.url || image.secure_url || image.secureUrl || image.imageUrl || image.src;
   if (!url) return null;
 
+  // Animated placeholder GIFs are not artwork sources. Ignore them so a valid
+  // original image later in the payload can be selected instead.
+  try {
+    if (/\.gif(?:$|[?#])/i.test(new URL(url, "https://artist-portfolio.invalid").pathname)) return null;
+  } catch {
+    return null;
+  }
+
   return {
     ...image,
     url,

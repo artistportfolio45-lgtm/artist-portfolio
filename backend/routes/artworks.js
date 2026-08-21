@@ -801,7 +801,7 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
 // @route   PUT /api/artworks/:id
 // @desc    Update artwork metadata
 // @access  Private
-router.put("/:id", protect, async (req, res) => {
+router.put("/:id", protect, adminOnly, async (req, res) => {
   try {
     const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, publicationStatus, allowLongDescription, isAvailable, isFeatured, year } = req.body;
 
@@ -891,7 +891,7 @@ router.post("/:id/images", protect, adminOnly, uploadArtwork.array("images", 10)
 // @route   DELETE /api/artworks/:id/images/:publicId
 // @desc    Remove a specific image from artwork
 // @access  Private
-router.delete("/:id/images/:publicId", protect, async (req, res) => {
+router.delete("/:id/images/:publicId", protect, adminOnly, async (req, res) => {
   try {
     const artwork = await Artwork.findById(req.params.id);
     if (!artwork) {
@@ -952,7 +952,7 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
 router.use((error, req, res, next) => {
   if (error?.name === "MulterError") {
     const message = error.code === "LIMIT_FILE_SIZE"
-      ? "Each artwork image must be 10 MB or smaller"
+      ? "Artwork image is too large to upload"
       : error.message || "Invalid artwork image upload";
     return res.status(400).json({ success: false, message });
   }

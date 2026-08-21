@@ -4,6 +4,7 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import LoadingSpinner, { PageLoader } from "../../components/shared/LoadingSpinner";
 import { aboutAdminAPI } from "../../services/api";
 import { cloudinaryThumbnailUrl } from "../../utils/imageDelivery";
+import { buildAboutPreviewUrl } from "../../utils/aboutPreview";
 
 const TABS = [
   ["hero", "Hero"], ["artistStatement", "Artist Statement"], ["biography", "Biography"],
@@ -102,6 +103,7 @@ const AboutPageEditor = () => {
   const [saving, setSaving] = useState(false);
   const [previewWidth, setPreviewWidth] = useState("100%");
   const [previewVersion, setPreviewVersion] = useState(0);
+  const previewUrl = useMemo(() => buildAboutPreviewUrl(), []);
   const originalRef = useRef("");
 
   useEffect(() => {
@@ -130,6 +132,7 @@ const AboutPageEditor = () => {
       setContent(draft);
       setMeta(response.data.aboutPage);
       originalRef.current = JSON.stringify(draft);
+      setPreviewVersion((version) => version + 1);
       toast.success("About page draft saved");
       return true;
     } catch (error) {
@@ -158,7 +161,7 @@ const AboutPageEditor = () => {
 
     <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)]"><aside className="bg-white p-2 shadow-sm xl:sticky xl:top-4 xl:self-start">{TABS.map(([key, label], index) => <button type="button" key={key} onClick={() => setActiveTab(key)} className={`flex min-h-11 w-full items-center gap-3 px-3 text-left text-sm ${activeTab === key ? "bg-charcoal text-white" : "text-slate/65 hover:bg-gray-50"}`}><span className="w-5 text-xs opacity-50">{String(index + 1).padStart(2, "0")}</span>{label}</button>)}</aside><div className="min-w-0 space-y-6"><section className="bg-white p-5 shadow-sm md:p-7">{activeTab === "hero" && singleton("hero", "Hero", [["eyebrow", "Eyebrow"], ["name", "Public artist name"], ["roles", "Role line"], ["introduction", "Short introduction", "textarea"], ["showCollectionButton", "Show Explore the Collection button", "toggle"]], [["backgroundImage", "Cinematic hero portrait or artwork"]])}{activeTab === "artistStatement" && singleton("artistStatement", "Artist Statement", [["quote", "Artist quote"], ["statement", "Supporting statement", "textarea"], ["signatureText", "Signature text"]], [["supportingImage", "Portrait or artwork"], ["signatureImage", "Signature image"]])}{activeTab === "biography" && singleton("biography", "Biography", [["heading", "Heading"], ["body", "Professional biography", "textarea"], ["archiveNote", "Public archive note", "textarea"]], [["image", "Biography portrait or artwork"]])}{REPEATABLE[activeTab] && <RepeatableEditor section={activeTab} items={content[activeTab] || []} onChange={(items) => setContent((current) => ({ ...current, [activeTab]: items }))} />}{activeTab === "closingCta" && singleton("closingCta", "Closing CTA", [["eyebrow", "Eyebrow"], ["heading", "Heading"], ["message", "Final message", "textarea"], ["showCollectionButton", "Show collection button", "toggle"], ["showContactButton", "Show contact button", "toggle"]], [["backgroundImage", "Closing artwork or portrait"]])}{activeTab === "seo" && <div><h2 className="font-display text-2xl font-light">Page Settings</h2><p className="mt-1 text-sm text-slate/55">Search metadata and draft preview. Contact details stay in Profile settings.</p><div className="mt-5 grid gap-4"><Field label="SEO title" value={content.seo?.title} onChange={(title) => updateBlock("seo", { title })} /><Field label="SEO description" type="textarea" value={content.seo?.description} onChange={(description) => updateBlock("seo", { description })} /><MediaField label="Social sharing image" value={content.seo?.socialImage} onChange={(socialImage) => updateBlock("seo", { socialImage })} /></div></div>}</section>
 
-      <section className="bg-white p-5 shadow-sm md:p-7"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-display text-2xl font-light">Draft preview</h2><p className="text-xs text-slate/50">Save the draft to refresh this protected preview.</p></div><div className="flex flex-wrap gap-2"><button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setPreviewWidth("390px")}>Mobile</button><button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setPreviewWidth("768px")}>Tablet</button><button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setPreviewWidth("100%")}>Desktop</button><a href="/about?preview=draft" target="_blank" rel="noreferrer" className="btn-secondary px-3 py-2 text-xs">Open preview</a></div></div><div className="mt-5 overflow-auto bg-gray-100 p-2"><iframe key={`${previewWidth}-${previewVersion}`} title="About page draft preview" src="/about?preview=draft" className="mx-auto block h-[720px] max-w-full border-0 bg-white shadow" style={{ width: previewWidth }} /></div></section></div></div>
+      <section className="bg-white p-5 shadow-sm md:p-7"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-display text-2xl font-light">Draft preview</h2><p className="text-xs text-slate/50">Save the draft to refresh this protected preview.</p></div><div className="flex flex-wrap gap-2"><button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setPreviewWidth("390px")}>Mobile</button><button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setPreviewWidth("768px")}>Tablet</button><button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setPreviewWidth("100%")}>Desktop</button><a href={previewUrl} target="_blank" rel="noreferrer" className="btn-secondary px-3 py-2 text-xs">Open preview</a></div></div><div className="mt-5 overflow-auto bg-gray-100 p-2"><iframe key={`${previewWidth}-${previewVersion}`} title="About page draft preview" src={previewUrl} className="mx-auto block h-[720px] max-w-full border-0 bg-white shadow" style={{ width: previewWidth }} /></div></section></div></div>
   </div></AdminLayout>;
 };
 

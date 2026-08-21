@@ -7,9 +7,28 @@ import { artworkAPI, publicSnapshotAPI } from "../../services/api";
 import { notifyArtworksChanged } from "../../services/artworkRefresh";
 
 const SESSION_KEY = "artworkUploadSession.v1";
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 const delay = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+const UPLOAD_CONCURRENCY = 5;
+
+const optimizeImage = async (file) => {
+  if (!file.type.startsWith("image/") || file.size < 2 * 1024 * 1024 || typeof createImageBitmap !== "function") return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxDimension = 3000;
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: file.lastModified });
+  } catch {
+    return file;
+  }
+};
 
 const newItem = (file, uploadBatchId) => ({
   id: crypto.randomUUID(),
@@ -148,7 +167,7 @@ const BulkArtworkUploadPage = () => {
     data.append("clientIds", item.clientUploadId);
     data.append("uploadBatchId", item.uploadBatchId);
     data.append("batchSize", String(itemsRef.current.length));
-    data.append("images", item.file);
+    data.append("images", await optimizeImage(item.file));
 
     try {
       const response = await artworkAPI.bulkUpload(data, { params: { deferRebuild: true } });
@@ -173,11 +192,15 @@ const BulkArtworkUploadPage = () => {
     setUploading(true);
     setUploadState("running");
     try {
-      // Sequential contract: for (const item of selected) await uploadOne(item);
-      for (const item of selected) {
-        if (uploadControlRef.current.pause || uploadControlRef.current.stop) break;
-        await uploadOne(item, preflight);
-      }
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < selected.length) {
+          if (uploadControlRef.current.pause || uploadControlRef.current.stop) return;
+          const item = selected[cursor++];
+          await uploadOne(item, preflight);
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(UPLOAD_CONCURRENCY, selected.length) }, worker));
       const latest = itemsRef.current;
       const interrupted = uploadControlRef.current.pause || uploadControlRef.current.stop;
       if (interrupted) {
@@ -253,9 +276,9 @@ const BulkArtworkUploadPage = () => {
 
   const validateFiles = (fileList) => {
     const picked = Array.from(fileList || []);
-    const invalid = picked.find((file) => !ACCEPTED_TYPES.has(file.type) || file.size > MAX_FILE_SIZE);
+    const invalid = picked.find((file) => !ACCEPTED_TYPES.has(file.type));
     if (invalid) {
-      toast.error(`${invalid.name}: use JPG, PNG, WebP, or AVIF under 10 MB.`);
+      toast.error(`${invalid.name}: use JPG, PNG, WebP, or AVIF.`);
       return [];
     }
     return picked;
@@ -316,7 +339,7 @@ const BulkArtworkUploadPage = () => {
     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><Link to="/admin/artworks" className="text-sm text-slate/55 hover:text-charcoal">← Artworks</Link><h1 className="mt-3 font-display text-3xl font-light text-charcoal">Bulk upload artworks</h1><p className="mt-2 text-sm text-slate/60">Choose any number of images. They upload strictly one at a time.</p></div><Link to="/admin/artworks/new" className="btn-secondary self-start">Single artwork upload</Link></div>
     {incompleteWithoutFiles.length > 0 && <div className="mb-6 border border-amber-200 bg-amber-50 p-4"><h2 className="font-medium text-charcoal">Interrupted upload session</h2><p className="mt-1 text-sm text-slate/65">Server records were checked. Your browser cannot retain local files after a refresh, so select the remaining files to continue.</p><input ref={resumeInputRef} type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={(event) => { attachRemainingFiles(event.target.files); event.target.value = ""; }} /><button type="button" className="btn-secondary mt-3" onClick={() => resumeInputRef.current?.click()}>Select remaining files to continue</button></div>}
     <input ref={inputRef} type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
-    <div className={`border-2 border-dashed p-8 text-center ${dragging ? "border-gold bg-gold/5" : "border-charcoal/20 bg-white"}`} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); addFiles(event.dataTransfer.files); }}><p className="font-display text-2xl text-charcoal">Drop artwork images here</p><p className="mt-2 text-sm text-slate/60">JPG, PNG, WebP, or AVIF · up to 10 MB each · no file-count limit</p><button type="button" className="btn-primary mt-5" onClick={() => inputRef.current?.click()} disabled={uploading}>Choose images</button></div>
+    <div className={`border-2 border-dashed p-8 text-center ${dragging ? "border-gold bg-gold/5" : "border-charcoal/20 bg-white"}`} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); addFiles(event.dataTransfer.files); }}><p className="font-display text-2xl text-charcoal">Drop artwork images here</p><p className="mt-2 text-sm text-slate/60">JPG, PNG, WebP, or AVIF · no file-count limit</p><button type="button" className="btn-primary mt-5" onClick={() => inputRef.current?.click()} disabled={uploading}>Choose images</button></div>
     {items.length > 0 && <><div className="mt-6 flex flex-col gap-4 border-y border-gray-100 py-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm text-slate/65"><strong className="text-charcoal">{uploading ? "Uploading artworks" : uploadState === "paused" ? "Upload paused" : uploadState === "stopped" ? "Upload stopped" : "Artwork upload batch"}</strong></p><p className="mt-1 text-xs text-slate/60">{uploading && activeNumber ? `Uploading ${activeNumber} of ${items.length} · ` : ""}{successCount} completed · {failedCount} failed · {remainingCount} pending · {stoppedCount} stopped</p></div><div className="flex flex-wrap gap-3"><button type="button" className="btn-secondary" onClick={clearAll} disabled={uploading || uploadState === "paused" || uploadState === "stopping"}>Clear all</button>{uploading && uploadState === "running" && <><button type="button" className="btn-secondary" onClick={pauseUploads}>Pause</button><button type="button" className="btn-danger" onClick={stopUploads}>Stop</button></>}{uploadState === "paused" && <><button type="button" className="btn-primary" onClick={resumeUploads}>Resume</button><button type="button" className="btn-danger" onClick={stopUploads}>Stop</button></>}{uploadState === "stopped" && stoppedItems.length > 0 && <button type="button" className="btn-primary" onClick={resumeUploads}>Resume stopped</button>}{failedItems.length > 0 && <button type="button" className="btn-secondary" onClick={() => uploadItems(failedItems, true)} disabled={uploading}>Retry failed uploads ({failedItems.length})</button>}<button type="button" className="btn-primary flex items-center gap-2" onClick={() => uploadItems(waitingItems)} disabled={uploading || !waitingItems.length}>{uploading && <LoadingSpinner size="sm" light />}{uploading ? "Uploading…" : `Upload all${waitingItems.length ? ` (${waitingItems.length})` : ""}`}</button></div></div><div className="mt-4 h-2 overflow-hidden bg-gray-100"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div><p className="mt-2 text-xs text-slate/50" aria-live="polite">{items.length === successCount ? `${successCount} artworks uploaded successfully.` : `${progress}% confirmed complete`}</p><div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map((item) => <article key={item.clientUploadId} className="flex gap-3 border border-gray-100 bg-white p-3">{item.preview ? <img src={item.preview} alt="" className="h-20 w-20 flex-none object-cover" /> : <div className="flex h-20 w-20 flex-none items-center justify-center bg-gray-100 text-xs text-slate/40">File needed</div>}<div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-charcoal" title={item.fileName}>{item.fileName}</p><p className="mt-1 text-xs text-slate/50">{formatBytes(item.fileSize)}</p><p className={`mt-2 text-xs font-label uppercase tracking-wider ${item.status === "failed" ? "text-red-600" : item.status === "success" ? "text-green-700" : item.status === "checking" ? "text-amber-600" : item.status === "uploading" ? "text-gold" : item.status === "stopped" ? "text-red-500" : "text-slate/50"}`}>{item.status}</p>{item.error && <p className="mt-1 text-xs text-red-600">{item.error}</p>}</div>{!uploading && <button type="button" onClick={() => removeItem(item.clientUploadId)} className="self-start text-xs text-red-600 hover:underline">Remove</button>}</article>)}</div></>}
   </div></AdminLayout>;
 };

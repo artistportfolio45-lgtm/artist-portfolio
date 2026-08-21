@@ -24,7 +24,7 @@ const errorResponse = (res, statusCode, message, errors = []) => {
 
 const getUserWithSecurityFields = (id) => {
   return User.findById(id).select(
-    "+twoFactorSecret +pendingTwoFactorSecret +pendingTwoFactorExpiresAt +twoFactorSecretVersion +backupRecoveryCodes"
+    "+twoFactorSecret +pendingTwoFactorSecret +pendingTwoFactorExpiresAt +twoFactorSecretVersion +backupRecoveryCodes +sessionVersion"
   );
 };
 
@@ -175,6 +175,7 @@ const enableTwoFactor = async (req, res) => {
     user.pendingTwoFactorExpiresAt = null;
     user.twoFactorSecretVersion = CURRENT_TOTP_SECRET_VERSION;
     user.twoFactorEnabled = true;
+    user.sessionVersion = (user.sessionVersion || 0) + 1;
     await user.save();
     await logActivity(req, {
       action: "Two-factor authentication enabled",
@@ -229,6 +230,7 @@ router.post("/2fa/disable", protect, async (req, res) => {
     user.pendingTwoFactorExpiresAt = null;
     user.twoFactorSecretVersion = 0;
     user.backupRecoveryCodes = [];
+    user.sessionVersion = (user.sessionVersion || 0) + 1;
     await user.save();
     await logActivity(req, {
       action: "Two-factor authentication disabled",
@@ -270,6 +272,7 @@ router.post("/recovery-codes/regenerate", protect, async (req, res) => {
     }
 
     const recoveryCodes = await user.generateBackupRecoveryCodes();
+    user.sessionVersion = (user.sessionVersion || 0) + 1;
     await user.save();
     await logActivity(req, {
       action: "Recovery codes regenerated",

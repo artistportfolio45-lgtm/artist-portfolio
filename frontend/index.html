@@ -11,6 +11,9 @@
     <meta property="og:description" content="Original artworks and selected works from the artist's studio." />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Artist Portfolio</title>
+    <!-- Start the image CDN connection before React discovers artwork images. -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <!-- Cormorant Garamond (display) + Inter (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

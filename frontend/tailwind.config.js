@@ -7,12 +7,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Luxury art gallery palette
-        charcoal:  { DEFAULT: '#1C1C1E', 50: '#F5F5F5', 100: '#E8E8E8', 200: '#D0D0D0', 900: '#1C1C1E' },
-        ivory:     { DEFAULT: '#F8F5F0', dark: '#EDE9E1' },
-        gold:      { DEFAULT: '#C9A84C', light: '#DEC06E', dark: '#A07A28' },
+        // Public palette driven by the theme selected in Admin Settings.
+        charcoal:  { DEFAULT: 'rgb(var(--theme-primary-rgb) / <alpha-value>)', 50: 'rgb(var(--theme-surface-rgb) / <alpha-value>)', 100: 'rgb(var(--theme-border-rgb) / <alpha-value>)', 200: 'rgb(var(--theme-border-rgb) / <alpha-value>)', 900: 'rgb(var(--theme-primary-rgb) / <alpha-value>)' },
+        ivory:     { DEFAULT: 'rgb(var(--theme-bg-rgb) / <alpha-value>)', dark: 'rgb(var(--theme-secondary-rgb) / <alpha-value>)' },
+        gold:      { DEFAULT: 'rgb(var(--theme-accent-rgb) / <alpha-value>)', light: 'rgb(var(--theme-accent-light-rgb) / <alpha-value>)', dark: 'rgb(var(--theme-accent-dark-rgb) / <alpha-value>)' },
         sage:      { DEFAULT: '#7C8C72', light: '#9BAD90' },
-        slate:     { DEFAULT: '#4A4A5A', light: '#6B6B80' },
+        slate:     { DEFAULT: 'rgb(var(--theme-muted-rgb) / <alpha-value>)', light: 'rgb(var(--theme-muted-rgb) / <alpha-value>)' },
       },
       fontFamily: {
         // Display: Cormorant for editorial elegance

@@ -361,6 +361,26 @@
   display: none;
 }
 
+.artwork-masonry-balanced {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.artwork-masonry-balanced-column {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.artwork-masonry-balanced .artwork-masonry-item {
+  display: block;
+  width: auto;
+  margin-bottom: 0;
+}
+
 .artwork-masonry-item {
   display: inline-block;
   width: 100%;
@@ -480,7 +500,7 @@
     column-gap: 14px;
   }
 
-  .artwork-masonry-item {
+  .artwork-masonry > .artwork-masonry-item {
     margin-bottom: 14px;
   }
 

@@ -29,6 +29,7 @@ const LOGIN_SECURITY_FIELDS = [
   "+loginChallengeHash",
   "+loginChallengePurpose",
   "+loginChallengeAttempts",
+  "+sessionVersion",
 ].join(" ");
 
 const successResponse = (res, statusCode, message, data = {}) =>
@@ -37,8 +38,12 @@ const successResponse = (res, statusCode, message, data = {}) =>
 const errorResponse = (res, statusCode, message, errors = []) =>
   res.status(statusCode).json({ success: false, message, errors });
 
-const generateAccessToken = (id) =>
-  jwt.sign({ id, type: "access" }, process.env.JWT_SECRET, {
+const JWT_OPTIONS = { algorithms: ["HS256"], issuer: "artist-portfolio-api", audience: "artist-portfolio-admin" };
+const generateAccessToken = (user) =>
+  jwt.sign({ id: user._id, type: "access", sessionVersion: user.sessionVersion || 0 }, process.env.JWT_SECRET, {
+    algorithm: "HS256",
+    issuer: JWT_OPTIONS.issuer,
+    audience: JWT_OPTIONS.audience,
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
 
@@ -107,7 +112,7 @@ const createChallenge = (user, stage) => {
       jti: challengeId,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "10m" }
+    { expiresIn: "10m", algorithm: "HS256", issuer: JWT_OPTIONS.issuer, audience: JWT_OPTIONS.audience }
   );
 
   return { challengeId, challengeToken };
@@ -118,7 +123,7 @@ const resolveChallenge = async (token, expectedStage) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
+    decoded = jwt.verify(token, process.env.JWT_SECRET, JWT_OPTIONS);
   } catch {
     throw new Error("INVALID_CHALLENGE");
   }
@@ -201,7 +206,7 @@ const completeLogin = async (req, user) => {
   });
 
   return {
-    token: generateAccessToken(user._id),
+    token: generateAccessToken(user),
     user: {
       id: user._id,
       email: user.email,
@@ -424,6 +429,7 @@ router.put("/change-password", protect, async (req, res) => {
     }
 
     user.password = newPassword;
+    user.sessionVersion = (user.sessionVersion || 0) + 1;
     user.failedLoginAttempts = 0;
     user.accountLockedUntil = null;
     clearEmailOtp(user);

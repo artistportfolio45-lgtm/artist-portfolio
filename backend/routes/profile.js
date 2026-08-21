@@ -7,6 +7,9 @@ const ArtistProfile = require("../models/ArtistProfile");
 const { protect } = require("../middleware/auth");
 const { uploadProfile, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
 const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const adminOnly = (req, res, next) => req.user?.role === "admin"
+  ? next()
+  : res.status(403).json({ success: false, message: "Admin access required" });
 
 // Helper: get or create the single profile document
 const getOrCreateProfile = async () => {
@@ -33,7 +36,7 @@ router.get("/", async (req, res) => {
 // @route   PUT /api/profile
 // @desc    Update artist profile text fields (admin)
 // @access  Private
-router.put("/", protect, async (req, res) => {
+router.put("/", protect, adminOnly, async (req, res) => {
   try {
     const { name, about, email, phone, whatsapp, instagram, facebook, youtube, address } = req.body;
 
@@ -62,7 +65,7 @@ router.put("/", protect, async (req, res) => {
 // @route   PUT /api/profile/photo
 // @desc    Upload/update profile photo (admin)
 // @access  Private
-router.put("/photo", protect, uploadProfile.single("photo"), async (req, res) => {
+router.put("/photo", protect, adminOnly, uploadProfile.single("photo"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No image uploaded" });

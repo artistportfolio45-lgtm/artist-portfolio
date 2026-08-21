@@ -45,7 +45,7 @@ const HomePage = () => {
         } }
       ),
       publicDataAPI.getArtworks(
-        { limit: 8 },
+        { limit: 9 },
         { onLiveData: (res) => {
           latestLive = true;
           if (requestId === requestIdRef.current) {
@@ -172,8 +172,8 @@ const HomePage = () => {
           </div>
 
           {featuredLoading ? (
-            <div role="status" aria-label="Loading featured artworks" className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {[0, 1, 2].map((item) => <div key={item} className="aspect-[4/3] animate-pulse bg-charcoal/5" />)}
+            <div role="status" aria-label="Loading featured artworks" className="flex gap-6 overflow-hidden md:gap-8">
+              {[0, 1, 2].map((item) => <div key={item} className="aspect-[4/3] w-[86%] flex-none animate-pulse bg-charcoal/5 sm:w-[47%] lg:w-[calc((100%_-_4rem)/3)]" />)}
             </div>
           ) : featured.length === 0 ? (
             <div className="text-center py-16 text-slate/50">
@@ -181,15 +181,19 @@ const HomePage = () => {
               <p className="text-sm">Check back soon for new additions</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            <div
+              className="flex snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain pb-4 md:gap-8"
+              aria-label="Featured artwork carousel"
+            >
               {featured.map((artwork, index) => (
-                <ArtworkCard
-                  key={artwork._id}
-                  artwork={artwork}
-                  variant="featured"
-                  priority={index < 3}
-                  onPreview={setFeaturedPreview}
-                />
+                <div key={artwork._id} className="w-[86%] flex-none snap-start sm:w-[47%] lg:w-[calc((100%_-_4rem)/3)]">
+                  <ArtworkCard
+                    artwork={artwork}
+                    variant="featured"
+                    priority={index < 3}
+                    onPreview={setFeaturedPreview}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -222,7 +226,7 @@ const HomePage = () => {
           <ArtworkMasonry
             artworks={latestArtworks}
             loading={latestLoading}
-            skeletonCount={8}
+            skeletonCount={9}
             priorityCount={3}
             emptyState={
               <div className="py-16 text-center text-slate/50">

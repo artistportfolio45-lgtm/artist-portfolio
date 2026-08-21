@@ -3,9 +3,9 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
 const getEncryptionKey = () => {
-  const secret = process.env.TOTP_ENCRYPTION_KEY || process.env.JWT_SECRET;
+  const secret = process.env.TOTP_ENCRYPTION_KEY;
   if (!secret) {
-    throw new Error("TOTP_ENCRYPTION_KEY or JWT_SECRET must be configured");
+    throw new Error("TOTP_ENCRYPTION_KEY must be configured");
   }
 
   return crypto.createHash("sha256").update(secret).digest();
@@ -168,6 +168,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    sessionVersion: { type: Number, default: 0, min: 0, select: false },
   },
   { timestamps: true }
 );

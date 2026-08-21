@@ -7,6 +7,9 @@ const Settings = require("../models/Settings");
 const { protect } = require("../middleware/auth");
 const { uploadLogo, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
 const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const adminOnly = (req, res, next) => req.user?.role === "admin"
+  ? next()
+  : res.status(403).json({ success: false, message: "Admin access required" });
 
 const normalizePhone = (value = "") => {
   const raw = String(value).trim();
@@ -50,7 +53,7 @@ router.get("/", async (req, res) => {
 // @route   PUT /api/settings
 // @desc    Update website settings (admin)
 // @access  Private
-router.put("/", protect, async (req, res) => {
+router.put("/", protect, adminOnly, async (req, res) => {
   try {
     const {
       websiteTitle,
@@ -150,7 +153,7 @@ router.put("/", protect, async (req, res) => {
 // @route   PUT /api/settings/logo
 // @desc    Upload/update website logo (admin)
 // @access  Private
-router.put("/logo", protect, uploadLogo.single("logo"), async (req, res) => {
+router.put("/logo", protect, adminOnly, uploadLogo.single("logo"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No logo uploaded" });

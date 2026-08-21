@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { buildAboutPreviewUrl, LOCAL_SITE_ORIGIN, PRODUCTION_SITE_ORIGIN } from "../src/utils/aboutPreview.js";
 
 const publicPage = await readFile(new URL("../src/pages/public/AboutPage.jsx", import.meta.url), "utf8");
 const editor = await readFile(new URL("../src/pages/admin/AboutPageEditor.jsx", import.meta.url), "utf8");
 const profile = await readFile(new URL("../src/pages/admin/ProfilePage.jsx", import.meta.url), "utf8");
 const app = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+const headers = await readFile(new URL("../public/_headers", import.meta.url), "utf8");
 
 test("public About page contains the retrospective sections and accessible archive dialog", () => {
   for (const label of ["Artist statement", "Career timeline", "Selected public works", "Awards & honours", "Press & archive", "The work continues"]) {
@@ -31,4 +33,15 @@ test("editor supports draft publishing, duplication, reordering and responsive p
   }
   assert.match(editor, /aboutAdminAPI\.uploadMedia/);
   assert.match(editor, /beforeunload/);
+  assert.match(editor, /setPreviewVersion\(\(version\) => version \+ 1\)/);
+  assert.match(headers, /frame-ancestors 'self'/);
+  assert.match(headers, /X-Frame-Options: SAMEORIGIN/);
+  assert.doesNotMatch(headers, /frame-ancestors\s+(?:\*|https?:)/);
+  assert.match(editor, /href=\{previewUrl\}/);
+  assert.match(editor, /src=\{previewUrl\}/);
+});
+
+test("About draft preview URL remains same-origin in production and local development", () => {
+  assert.equal(buildAboutPreviewUrl(PRODUCTION_SITE_ORIGIN), "https://artistportfolio46.netlify.app/about?preview=draft");
+  assert.equal(buildAboutPreviewUrl(LOCAL_SITE_ORIGIN), "http://localhost:5173/about?preview=draft");
 });

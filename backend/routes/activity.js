@@ -1,10 +1,13 @@
 const express = require("express");
 const ActivityLog = require("../models/ActivityLog");
 const { protect } = require("../middleware/auth");
+const adminOnly = (req, res, next) => req.user?.role === "admin"
+  ? next()
+  : res.status(403).json({ success: false, message: "Admin access required" });
 
 const router = express.Router();
 
-router.get("/", protect, async (req, res) => {
+router.get("/", protect, adminOnly, async (req, res) => {
   try {
     const { module, page = 1, limit = 20 } = req.query;
     const query = {};

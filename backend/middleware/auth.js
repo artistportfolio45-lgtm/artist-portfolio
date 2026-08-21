@@ -17,7 +17,11 @@ const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ["HS256"],
+      issuer: "artist-portfolio-api",
+      audience: "artist-portfolio-admin",
+    });
 
     if (decoded.type === "login_challenge" || !decoded.id) {
       return res.status(401).json({
@@ -27,7 +31,7 @@ const protect = async (req, res, next) => {
       });
     }
 
-    req.user = await User.findById(decoded.id).select("-password");
+    req.user = await User.findById(decoded.id).select("-password +sessionVersion");
 
     if (!req.user) {
       return res.status(401).json({ success: false, message: "User not found", errors: [] });
@@ -35,6 +39,9 @@ const protect = async (req, res, next) => {
 
     if (req.user.isActive === false) {
       return res.status(401).json({ success: false, message: "User inactive", errors: [] });
+    }
+    if (decoded.sessionVersion !== req.user.sessionVersion) {
+      return res.status(401).json({ success: false, message: "Not authorized - session expired", errors: [] });
     }
 
     next();

@@ -98,6 +98,17 @@ test("temporary login challenges are short-lived and scoped away from admin acce
   assert.equal(response.statusCode, 401);
 });
 
+test("login and security queries retain the session version used to revoke old tokens", () => {
+  const authSource = fs.readFileSync(path.resolve(__dirname, "../routes/auth.js"), "utf8");
+  const securitySource = fs.readFileSync(path.resolve(__dirname, "../routes/security.js"), "utf8");
+  const seedSource = fs.readFileSync(path.resolve(__dirname, "../utils/adminSeed.js"), "utf8");
+
+  assert.match(authSource, /LOGIN_SECURITY_FIELDS[\s\S]*\+sessionVersion/);
+  assert.match(securitySource, /getUserWithSecurityFields[\s\S]*\+sessionVersion/);
+  assert.match(seedSource, /securityFields[\s\S]*\+sessionVersion/);
+  assert.match(seedSource, /!wasCreated[\s\S]*sessionVersion/);
+});
+
 test("TOTP verification accepts only a current six-digit code", () => {
   const secret = speakeasy.generateSecret({ length: 20 }).base32;
   const code = speakeasy.totp({ secret, encoding: "base32" });

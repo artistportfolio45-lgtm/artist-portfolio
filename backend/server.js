@@ -7,6 +7,7 @@ const helmet = require("helmet");
 const connectDB = require("./config/db");
 const { ensureUploadIndexes } = require("./utils/ensureUploadIndexes");
 const { validateGmailConfig } = require("./services/emailService");
+const { validateEnvironment } = require("./config/env");
 const {
   assertAdminSeedConfig,
   ensureAdminUser,
@@ -59,7 +60,7 @@ const connectSrc = [
 
 const allowedOrigins = [
   getCorsOrigin(process.env.FRONTEND_URL),
-  "https://artistportfolio45.netlify.app",
+  "https://artistportfolio46.netlify.app",
   "http://localhost:5173",
 ].filter(Boolean);
 
@@ -75,8 +76,8 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "256kb" }));
+app.use(express.urlencoded({ extended: false, limit: "64kb", parameterLimit: 100 }));
 
 // Security: apply Helmet headers with an explicit production CSP.
 app.use(
@@ -90,7 +91,7 @@ app.use(
         fontSrc: ["'self'", "data:"],
         connectSrc,
         objectSrc: ["'none'"],
-        frameAncestors: ["'none'"],
+        frameAncestors: ["'self'"],
         baseUri: ["'self'"],
         formAction: ["'self'"],
         upgradeInsecureRequests: [],
@@ -101,7 +102,7 @@ app.use(
     crossOriginOpenerPolicy: { policy: "same-origin" },
     referrerPolicy: { policy: "no-referrer" },
     dnsPrefetchControl: { allow: false },
-    frameguard: { action: "deny" },
+    frameguard: { action: "sameorigin" },
     hidePoweredBy: true,
     hsts: true,
     ieNoOpen: true,
@@ -153,7 +154,6 @@ app.get("/api/health", (req, res) => {
   res.json({
     success: true,
     message: "Artist Portfolio API is running",
-    env: process.env.NODE_ENV,
   });
 });
 
@@ -176,6 +176,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
+  validateEnvironment();
   validateGmailConfig();
   await connectDB();
   await ensureUploadIndexes();
