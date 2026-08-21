@@ -2,6 +2,8 @@ const Artwork = require("../models/Artwork");
 const Settings = require("../models/Settings");
 const ArtistProfile = require("../models/ArtistProfile");
 const { getOrCreateAboutPage, publicAboutContent } = require("./aboutPage");
+const { serializeSettingsWithHero } = require("./homeHero");
+const { sanitizePublicArtwork } = require("./publicArtwork");
 
 const getOrCreateSettings = async () => {
   let settings = await Settings.findOne();
@@ -24,20 +26,6 @@ const toPlainObject = (document) => {
   return document.toObject ? document.toObject({ versionKey: false }) : document;
 };
 
-const normalizeArtwork = (artwork) => ({
-  ...artwork,
-  title: artwork.title?.trim() || "Untitled",
-  description: artwork.description?.trim() || "",
-  category: artwork.category?.trim() || "Uncategorized",
-  price: Number.isFinite(artwork.price) && artwork.price >= 0 ? artwork.price : null,
-  medium: artwork.medium?.trim() || "",
-  dimensions: artwork.dimensions?.trim() || "",
-  year: Number.isFinite(artwork.year) ? artwork.year : null,
-  isAvailable: artwork.isAvailable !== false,
-  isFeatured: artwork.isFeatured === true,
-  images: Array.isArray(artwork.images) ? artwork.images.filter((image) => image?.url) : [],
-});
-
 const buildPublicSnapshot = async () => {
   const [settings, profile, aboutPage, artworks, categories] = await Promise.all([
     getOrCreateSettings(),
@@ -48,6 +36,9 @@ const buildPublicSnapshot = async () => {
       .lean({ versionKey: false }),
     Artwork.distinct("category"),
   ]);
+  const heroArtwork = settings.heroBackgroundSource === "artwork"
+    ? artworks.find((artwork) => String(artwork._id) === String(settings.heroBackgroundArtworkId))
+    : null;
 
   return {
     schemaVersion: 2,
@@ -58,10 +49,10 @@ const buildPublicSnapshot = async () => {
       0
     ),
     generatedAt: new Date().toISOString(),
-    settings: toPlainObject(settings),
+    settings: serializeSettingsWithHero(settings, heroArtwork),
     profile: toPlainObject(profile),
     about: publicAboutContent(aboutPage),
-    artworks: artworks.map(normalizeArtwork),
+    artworks: artworks.map(sanitizePublicArtwork),
     categories: [...new Set([
       ...categories.filter(Boolean),
       ...artworks.map((artwork) => artwork.category?.trim() || "Uncategorized"),

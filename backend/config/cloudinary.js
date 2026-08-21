@@ -82,6 +82,14 @@ const aboutMediaStorage = createStorage({
   },
 });
 
+const homeHeroStorage = createStorage({
+  params: {
+    folder: "artist-portfolio/home",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "avif"],
+    transformation: [{ width: 2400, crop: "limit", quality: "auto", fetch_format: "auto" }],
+  },
+});
+
 const uploadArtwork = multer({ storage: artworkStorage });
 const uploadBulkArtwork = multer({
   storage: multer.memoryStorage(),
@@ -104,6 +112,20 @@ const uploadAboutMedia = multer({
   storage: aboutMediaStorage,
   limits: { fileSize: 20 * 1024 * 1024 },
 });
+const uploadHomeHero = multer({
+  storage: homeHeroStorage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (req, file, callback) => {
+    const extension = file.originalname.slice(file.originalname.lastIndexOf(".")).toLowerCase();
+    if (ARTWORK_IMAGE_MIME_TYPES.has(file.mimetype) && ARTWORK_IMAGE_EXTENSIONS.has(extension)) {
+      callback(null, true);
+      return;
+    }
+    const error = new multer.MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname);
+    error.message = "Hero backgrounds must be JPG, PNG, WebP, or AVIF images";
+    callback(error);
+  },
+});
 
 const getCloudinaryFileInfo = (file) => ({
   url: file?.path || file?.secure_url || file?.url,
@@ -120,6 +142,7 @@ module.exports = {
   uploadProfile,
   uploadLogo,
   uploadAboutMedia,
+  uploadHomeHero,
   ARTWORK_IMAGE_MIME_TYPES,
   ARTWORK_IMAGE_EXTENSIONS,
 };

@@ -133,12 +133,26 @@ export const inquiryAPI = {
   getAll: (params) => api.get("/inquiries", { params }),
   getById: (id) => api.get(`/inquiries/${id}`),
   toggleRead: (id) => api.patch(`/inquiries/${id}/read`),
-  delete: (id) => api.delete(`/inquiries/${id}`),
+  toggleResolved: (id) => api.patch(`/inquiries/${id}/resolved`),
+  moveToTrash: (id) => api.patch(`/inquiries/${id}/trash`),
+  restore: (id) => api.patch(`/inquiries/${id}/restore`),
+  permanentDelete: (id) => api.delete(`/inquiries/${id}/permanent`, { data: { confirm: true } }),
+  bulkTrash: (ids) => api.post("/inquiries/bulk/trash", { ids }),
+  filteredTrash: (filters, excludedIds = []) => api.post("/inquiries/filtered/trash", { filters, excludedIds }),
+  bulkRestore: (ids) => api.post("/inquiries/bulk/restore", { ids }),
+  filteredRestore: (filters, excludedIds = []) => api.post("/inquiries/filtered/restore", { filters, excludedIds }),
+  bulkPermanentDelete: (ids) => api.delete("/inquiries/bulk/permanent", { data: { ids, confirm: true } }),
+  filteredPermanentDelete: (filters, excludedIds = []) => api.delete("/inquiries/filtered/permanent", { data: { filters, excludedIds, confirm: true } }),
+  emptyTrash: (confirmation) => api.delete("/inquiries/trash/empty", { data: { confirmation } }),
+  delete: (id) => api.patch(`/inquiries/${id}/trash`),
 };
 
 export const settingsAPI = {
   get: () => api.get("/settings"),
+  getHome: () => api.get("/settings/home"),
   update: (data) => api.put("/settings", data),
+  updateHome: (data) => api.put("/settings/home", data),
+  uploadHomeBackground: (formData) => api.put("/settings/home/background", formData, { timeout: 0 }),
   uploadLogo: (formData) => api.put("/settings/logo", formData),
 };
 

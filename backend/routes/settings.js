@@ -2,11 +2,26 @@
 // Website settings — public read, admin update
 
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const Settings = require("../models/Settings");
+const Artwork = require("../models/Artwork");
 const { protect } = require("../middleware/auth");
-const { uploadLogo, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
+const {
+  uploadLogo,
+  uploadHomeHero,
+  cloudinary,
+  getCloudinaryFileInfo,
+} = require("../config/cloudinary");
 const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const {
+  HomeHeroValidationError,
+  getArtworkHeroImage,
+  getOwnedHeroUpload,
+  isOwnedHeroUpload,
+  normalizeHomeHeroPayload,
+  serializeSettingsWithHero,
+} = require("../utils/homeHero");
 const adminOnly = (req, res, next) => req.user?.role === "admin"
   ? next()
   : res.status(403).json({ success: false, message: "Admin access required" });
@@ -37,16 +52,184 @@ const getOrCreateSettings = async () => {
   return settings;
 };
 
+const findPublicHeroArtwork = async (artworkId) => {
+  if (!mongoose.isValidObjectId(artworkId)) return null;
+  return Artwork.findOne({
+    _id: artworkId,
+    publicationStatus: { $nin: ["draft", "unpublished", "archived"] },
+    "images.0.url": { $exists: true, $ne: "" },
+  }).select("_id title images publicationStatus updatedAt");
+};
+
+const settingsResponse = async (settings) => {
+  const artwork = settings.heroBackgroundSource === "artwork"
+    ? await findPublicHeroArtwork(settings.heroBackgroundArtworkId)
+    : null;
+  return serializeSettingsWithHero(settings, artwork);
+};
+
+const applyHomeHeroContent = (settings, values) => {
+  for (const field of [
+    "heroEyebrow",
+    "heroHeading",
+    "heroHeadingAccent",
+    "heroSubtitle",
+    "heroPrimaryButtonText",
+    "heroSecondaryButtonText",
+  ]) {
+    if (values[field] !== undefined) settings[field] = values[field];
+  }
+  settings.heroBackgroundAltText = values.heroBackgroundAltText;
+  settings.heroBackgroundPosition = values.heroBackgroundPosition;
+  settings.heroOverlayOpacity = values.heroOverlayOpacity;
+};
+
+const clearUploadedHeroFields = (settings) => {
+  settings.heroBackgroundUrl = "";
+  settings.heroBackgroundPublicId = "";
+  settings.heroBackgroundWidth = null;
+  settings.heroBackgroundHeight = null;
+};
+
+const destroyOwnedHeroUpload = async (upload) => {
+  if (!upload?.publicId || !isOwnedHeroUpload(upload.publicId)) return false;
+  try {
+    await cloudinary.uploader.destroy(upload.publicId);
+    return true;
+  } catch (error) {
+    console.error("Hero background cleanup error:", error);
+    return false;
+  }
+};
+
 // @route   GET /api/settings
 // @desc    Get website settings (public)
 // @access  Public
 router.get("/", async (req, res) => {
   try {
     const settings = await getOrCreateSettings();
-    res.json({ success: true, settings });
+    res.json({ success: true, settings: await settingsResponse(settings) });
   } catch (error) {
     console.error("Get settings error:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// @route   GET /api/settings/home
+// @desc    Get Home page settings for the admin editor
+// @access  Private
+router.get("/home", protect, adminOnly, async (req, res) => {
+  try {
+    const settings = await getOrCreateSettings();
+    res.json({ success: true, settings: await settingsResponse(settings) });
+  } catch (error) {
+    console.error("Get Home page settings error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// @route   PUT /api/settings/home
+// @desc    Save Home Hero content and select/remove an existing background
+// @access  Private
+router.put("/home", protect, adminOnly, async (req, res) => {
+  try {
+    const values = normalizeHomeHeroPayload(req.body);
+    const settings = await getOrCreateSettings();
+    const previousUpload = getOwnedHeroUpload(settings);
+
+    applyHomeHeroContent(settings, values);
+
+    if (values.heroBackgroundSource === "artwork") {
+      const artwork = await findPublicHeroArtwork(values.heroBackgroundArtworkId);
+      if (!getArtworkHeroImage(artwork)) {
+        throw new HomeHeroValidationError("Select a published artwork that has an image");
+      }
+      settings.heroBackgroundSource = "artwork";
+      settings.heroBackgroundArtworkId = artwork._id;
+      clearUploadedHeroFields(settings);
+    } else if (values.heroBackgroundSource === "upload") {
+      if (!getOwnedHeroUpload(settings)) {
+        throw new HomeHeroValidationError("Upload a dedicated Hero photo first");
+      }
+      settings.heroBackgroundSource = "upload";
+      settings.heroBackgroundArtworkId = null;
+    } else {
+      settings.heroBackgroundSource = "none";
+      settings.heroBackgroundArtworkId = null;
+      clearUploadedHeroFields(settings);
+    }
+
+    await settings.save();
+    if (previousUpload && settings.heroBackgroundSource !== "upload") {
+      await destroyOwnedHeroUpload(previousUpload);
+    }
+
+    const staticRebuild = await triggerStaticRebuild("home-hero-updated");
+    res.json({
+      success: true,
+      message: values.heroBackgroundSource === "none"
+        ? "Home Hero background removed"
+        : "Home Hero updated",
+      settings: await settingsResponse(settings),
+      staticRebuild,
+    });
+  } catch (error) {
+    console.error("Update Home Hero error:", error);
+    res.status(error instanceof HomeHeroValidationError || error?.name === "ValidationError" ? 400 : 500)
+      .json({ success: false, message: error.message || "Server error" });
+  }
+});
+
+// @route   PUT /api/settings/home/background
+// @desc    Upload/replace a dedicated Home Hero photo and save Hero content
+// @access  Private
+router.put("/home/background", protect, adminOnly, uploadHomeHero.single("image"), async (req, res) => {
+  let newUpload = null;
+  let newUploadSaved = false;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Select a Hero background image" });
+    }
+
+    newUpload = getCloudinaryFileInfo(req.file);
+    if (!newUpload.url || !newUpload.publicId || !isOwnedHeroUpload(newUpload.publicId)) {
+      await destroyOwnedHeroUpload(newUpload);
+      return res.status(500).json({ success: false, message: "Hero background upload failed" });
+    }
+
+    const values = normalizeHomeHeroPayload({
+      ...req.body,
+      heroBackgroundSource: "upload",
+    });
+    const settings = await getOrCreateSettings();
+    const previousUpload = getOwnedHeroUpload(settings);
+
+    applyHomeHeroContent(settings, values);
+    settings.heroBackgroundSource = "upload";
+    settings.heroBackgroundUrl = newUpload.url;
+    settings.heroBackgroundPublicId = newUpload.publicId;
+    settings.heroBackgroundWidth = newUpload.width || null;
+    settings.heroBackgroundHeight = newUpload.height || null;
+    settings.heroBackgroundArtworkId = null;
+    await settings.save();
+    newUploadSaved = true;
+
+    if (previousUpload?.publicId && previousUpload.publicId !== newUpload.publicId) {
+      await destroyOwnedHeroUpload(previousUpload);
+    }
+
+    const staticRebuild = await triggerStaticRebuild("home-hero-image-updated");
+    res.json({
+      success: true,
+      message: previousUpload ? "Home Hero photo replaced" : "Home Hero photo uploaded",
+      settings: await settingsResponse(settings),
+      staticRebuild,
+    });
+  } catch (error) {
+    if (!newUploadSaved && newUpload?.publicId) await destroyOwnedHeroUpload(newUpload);
+    console.error("Upload Home Hero error:", error);
+    res.status(error instanceof HomeHeroValidationError || error?.name === "ValidationError" ? 400 : 500)
+      .json({ success: false, message: error.message || "Server error" });
   }
 });
 
@@ -143,7 +326,7 @@ router.put("/", protect, adminOnly, async (req, res) => {
     await settings.save();
 
     const staticRebuild = await triggerStaticRebuild("settings-updated");
-    res.json({ success: true, message: "Settings updated", settings, staticRebuild });
+    res.json({ success: true, message: "Settings updated", settings: await settingsResponse(settings), staticRebuild });
   } catch (error) {
     console.error("Update settings error:", error);
     res.status(error?.name === "TypeError" || /valid|Social links/.test(error.message) ? 400 : 500).json({ success: false, message: error.message || "Server error" });
@@ -176,11 +359,23 @@ router.put("/logo", protect, adminOnly, uploadLogo.single("logo"), async (req, r
     await settings.save();
 
     const staticRebuild = await triggerStaticRebuild("logo-updated");
-    res.json({ success: true, message: "Logo updated", settings, staticRebuild });
+    res.json({ success: true, message: "Logo updated", settings: await settingsResponse(settings), staticRebuild });
   } catch (error) {
     console.error("Logo upload error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
+});
+
+router.use((error, req, res, next) => {
+  if (error?.name === "MulterError") {
+    return res.status(400).json({
+      success: false,
+      message: error.code === "LIMIT_FILE_SIZE"
+        ? "Hero background images must be 12 MB or smaller"
+        : error.message,
+    });
+  }
+  next(error);
 });
 
 module.exports = router;

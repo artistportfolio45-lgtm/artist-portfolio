@@ -2,6 +2,7 @@
 // Edit global website settings: title, logo, footer, contact info, social links
 
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { settingsAPI } from "../../services/api";
 import { setCachedSettings } from "../../hooks/useSettings";
@@ -225,87 +226,11 @@ const SettingsPage = () => {
           </div>
 
           <div className="bg-white p-6 shadow-sm">
-            <h2 className="font-display text-xl font-light mb-4">Homepage Text</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                  Hero Eyebrow
-                </label>
-                <input
-                  type="text"
-                  value={settings?.heroEyebrow || ""}
-                  onChange={(e) => set("heroEyebrow", e.target.value)}
-                  className="input-field"
-                  placeholder="Original Fine Art"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                    Hero Heading
-                  </label>
-                  <input
-                    type="text"
-                    value={settings?.heroHeading || ""}
-                    onChange={(e) => set("heroHeading", e.target.value)}
-                    className="input-field"
-                    placeholder="Art That"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                    Hero Emphasized Text
-                  </label>
-                  <input
-                    type="text"
-                    value={settings?.heroHeadingAccent || ""}
-                    onChange={(e) => set("heroHeadingAccent", e.target.value)}
-                    className="input-field"
-                    placeholder="Speaks"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                  Hero Subtitle
-                </label>
-                <textarea
-                  value={settings?.heroSubtitle || ""}
-                  onChange={(e) => set("heroSubtitle", e.target.value)}
-                  className="input-field min-h-[96px] resize-y"
-                  placeholder="Explore a collection of original paintings — each a singular expression of light, form, and feeling."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                    Primary Button Label
-                  </label>
-                  <input
-                    type="text"
-                    value={settings?.heroPrimaryButtonText || ""}
-                    onChange={(e) => set("heroPrimaryButtonText", e.target.value)}
-                    className="input-field"
-                    placeholder="Explore Gallery"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-label tracking-widest uppercase text-slate/60 block mb-1">
-                    Secondary Button Label
-                  </label>
-                  <input
-                    type="text"
-                    value={settings?.heroSecondaryButtonText || ""}
-                    onChange={(e) => set("heroSecondaryButtonText", e.target.value)}
-                    className="input-field"
-                    placeholder="Get in Touch"
-                  />
-                </div>
-              </div>
-            </div>
+            <h2 className="font-display text-xl font-light mb-2">Home Page</h2>
+            <p className="mb-4 text-sm text-slate/60">
+              Hero content, background selection, overlay, positioning, and responsive previews now have a dedicated editor.
+            </p>
+            <Link to="/admin/home-page" className="btn-secondary inline-block text-xs">Open Home Page Editor</Link>
           </div>
 
           {/* Theme */}

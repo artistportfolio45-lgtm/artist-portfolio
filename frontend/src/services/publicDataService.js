@@ -1,4 +1,8 @@
 import api from "./api";
+import {
+  buildArtworkSearchSuggestions,
+} from "../utils/artworkSearch";
+import { queryPublicArtworks } from "../utils/artworkCollection";
 
 const STATIC_FALLBACK_URL = "/data/portfolio.json";
 export const ARTWORKS_CHANGED_EVENT = "artist-portfolio:artworks-changed";
@@ -103,7 +107,7 @@ const unwrap = (payload) => {
 
 const normalizeImage = (image) => {
   if (!image) return null;
-  if (typeof image === "string") return { url: image, publicId: "" };
+  if (typeof image === "string") return { url: image, width: null, height: null };
 
   const url = image.url || image.secure_url || image.secureUrl || image.imageUrl || image.src;
   if (!url) return null;
@@ -117,12 +121,15 @@ const normalizeImage = (image) => {
   }
 
   return {
-    ...image,
     url,
-    publicId: image.publicId || image.public_id || image.cloudinaryPublicId || "",
     width: Number(image.width) > 0 ? Number(image.width) : null,
     height: Number(image.height) > 0 ? Number(image.height) : null,
   };
+};
+
+const normalizeTextList = (value) => {
+  const items = Array.isArray(value) ? value : String(value || "").split(/[,;\n]/);
+  return [...new Set(items.map((item) => String(item || "").trim()).filter(Boolean))];
 };
 
 export const normalizeArtwork = (artwork) => {
@@ -153,18 +160,30 @@ export const normalizeArtwork = (artwork) => {
       : Number(artwork.year);
 
   return {
-    ...artwork,
     _id: String(id || ""),
+    ...(artwork.slug ? { slug: String(artwork.slug) } : {}),
     title: String(artwork.title || "").trim() || "Untitled",
     description: String(artwork.description || "").trim(),
     category: String(artwork.category || "").trim() || "Uncategorized",
     price: Number.isFinite(rawPrice) && rawPrice >= 0 ? rawPrice : null,
     medium: String(artwork.medium || "").trim(),
     dimensions: String(artwork.dimensions || "").trim(),
+    collection: String(artwork.collection || "").trim(),
+    series: String(artwork.series || "").trim(),
+    catalogueNumber: String(artwork.catalogueNumber || "").trim(),
+    provenance: String(artwork.provenance || "").trim(),
+    exhibitionHistory: String(artwork.exhibitionHistory || "").trim(),
+    publications: String(artwork.publications || "").trim(),
+    creationLocation: String(artwork.creationLocation || "").trim(),
+    tags: normalizeTextList(artwork.tags),
+    keywords: normalizeTextList(artwork.keywords),
+    publicationStatus: String(artwork.publicationStatus || "published"),
     year: Number.isFinite(rawYear) ? rawYear : null,
     images,
     isAvailable: isAvailable !== false,
     isFeatured: artwork.isFeatured ?? artwork.featured ?? false,
+    createdAt: artwork.createdAt || null,
+    updatedAt: artwork.updatedAt || null,
   };
 };
 
@@ -298,84 +317,10 @@ const preferStaticData = async ({ loadStatic, loadLive, hasStaticData, onLiveDat
   return liveData;
 };
 
-const matchesSearch = (artwork, search) => {
-  if (!search) return true;
-  const term = search.trim().toLowerCase();
-  return [artwork.title, artwork.description, artwork.category, artwork.medium, artwork.collection, artwork.series, artwork.catalogueNumber]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(term));
-};
-
-const filterArtworks = (artworks, params = {}) =>
-  artworks.filter((artwork) => {
-    if (["draft", "unpublished", "archived"].includes(artwork.publicationStatus)) return false;
-    if (!matchesSearch(artwork, params.search)) return false;
-    if (
-      params.category &&
-      params.category !== "all" &&
-      artwork.category?.toLowerCase() !== params.category.toLowerCase()
-    ) {
-      return false;
-    }
-    if (params.available === "true" && !artwork.isAvailable) return false;
-    if (params.available === "false" && artwork.isAvailable) return false;
-    if (params.featured === "true" && !artwork.isFeatured) return false;
-    if (params.collection && !String(artwork.collection || "").toLowerCase().includes(String(params.collection).toLowerCase())) return false;
-    if (params.medium && !String(artwork.medium || "").toLowerCase().includes(String(params.medium).toLowerCase())) return false;
-    if (params.year && Number(artwork.year) !== Number(params.year)) return false;
-    if (params.decade && (Number(artwork.year) < Number(params.decade) || Number(artwork.year) > Number(params.decade) + 9)) return false;
-    return true;
-  });
-
-const sortArtworks = (artworks, sort = "createdAt", order = "desc") => {
-  const direction = order === "asc" ? 1 : -1;
-  const sortKey = sort || "createdAt";
-
-  return [...artworks].sort((a, b) => {
-    const first = a?.[sortKey];
-    const second = b?.[sortKey];
-
-    if (sortKey === "price" || sortKey === "year") {
-      const firstMissing = first === null || first === undefined || first === "";
-      const secondMissing = second === null || second === undefined || second === "";
-      if (firstMissing !== secondMissing) return firstMissing ? 1 : -1;
-      if (firstMissing) return 0;
-      return (Number(first) - Number(second)) * direction;
-    }
-
-    if (sortKey === "isAvailable" || sortKey === "isFeatured") {
-      return (Number(Boolean(first)) - Number(Boolean(second))) * direction;
-    }
-
-    if (sortKey === "createdAt" || sortKey === "updatedAt") {
-      return (new Date(first || 0) - new Date(second || 0)) * direction;
-    }
-
-    return String(first || "").localeCompare(String(second || "")) * direction;
-  });
-};
-
-const paginate = (items, page = 1, limit = 12) => {
-  const currentPage = Number.parseInt(page, 10) || 1;
-  const pageSize = Number.parseInt(limit, 10) || 12;
-  const start = (currentPage - 1) * pageSize;
-
-  return {
-    items: items.slice(start, start + pageSize),
-    pagination: {
-      total: items.length,
-      page: currentPage,
-      limit: pageSize,
-      pages: Math.ceil(items.length / pageSize),
-    },
-  };
-};
-
 const getFallbackArtworks = async (params = {}) => {
   const portfolio = await loadFallbackPortfolio();
-  const filtered = filterArtworks(portfolio.artworks, params);
   return {
-    ...paginate(sortArtworks(filtered, params.sort, params.order), params.page, params.limit),
+    ...queryPublicArtworks(portfolio.artworks, params),
     source: "static",
     isStale: true,
     generatedAt: portfolio.generatedAt || null,
@@ -533,6 +478,16 @@ export const publicDataAPI = {
         console.warn("Both static and live public artworks failed.", liveError);
         throw error;
       }
+    }
+  },
+
+  getSearchSuggestions: async (query, limit = 8) => {
+    try {
+      const portfolio = await loadFallbackPortfolio();
+      return buildArtworkSearchSuggestions(portfolio.artworks, query, limit);
+    } catch {
+      const liveData = await getLiveArtworks({ search: query, page: 1, limit: Math.max(12, limit) });
+      return buildArtworkSearchSuggestions(liveData.items, query, limit);
     }
   },
 

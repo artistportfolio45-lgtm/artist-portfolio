@@ -11,6 +11,8 @@ test("state-changing admin routes require the admin authorization middleware", (
     ["artworks.js", 'router.delete("/:id/images/:publicId", protect, adminOnly'],
     ["profile.js", 'router.put("/", protect, adminOnly'],
     ["settings.js", 'router.put("/", protect, adminOnly'],
+    ["settings.js", 'router.put("/home", protect, adminOnly'],
+    ["settings.js", 'router.put("/home/background", protect, adminOnly'],
     ["inquiries.js", 'router.delete("/:id", protect, adminOnly'],
     ["activity.js", 'router.get("/", protect, adminOnly'],
   ];

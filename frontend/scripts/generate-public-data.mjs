@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEnv } from "vite";
+import { sanitizePublicSnapshot } from "../src/utils/publicArtwork.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const frontendRoot = resolve(__dirname, "..");
@@ -111,7 +112,7 @@ try {
     existingSnapshot = null;
   }
 
-  const snapshot = await fetchSnapshot();
+  const snapshot = sanitizePublicSnapshot(await fetchSnapshot());
 
   validateSnapshot(snapshot, "Live public data snapshot", {
     allowEmpty: !existingSnapshot || existingSnapshot.artworks.length === 0,

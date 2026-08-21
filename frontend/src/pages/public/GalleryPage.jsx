@@ -6,10 +6,17 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { publicDataAPI } from "../../services/publicData";
 import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import { clearGalleryRestoreState, galleryRestoreTargetY, normalizeGalleryPage, readGalleryRestoreState, shouldRestoreGalleryFromDetail } from "../../utils/galleryRestore";
+import { MAX_SEARCH_QUERY_LENGTH, prepareSearchQuery } from "../../utils/artworkSearch";
 
 const DEFAULT_SORT = "createdAt-desc";
 const GALLERY_PAGE_SIZE = 50;
 const GALLERY_RESTORE_ANCHOR_SELECTOR = "[data-gallery-artwork-id]";
+const SEARCH_DEBOUNCE_MS = 250;
+const getSearchParam = (params) => params.get("search") || params.get("q") || "";
+const getActiveSearchParam = (params) => {
+  const prepared = prepareSearchQuery(getSearchParam(params));
+  return prepared.valid ? prepared.raw : "";
+};
 
 const GalleryPage = () => {
   const location = useLocation();
@@ -26,8 +33,11 @@ const GalleryPage = () => {
     () => searchParams.get("availability") || "all"
   );
   const [sortValue, setSortValue] = useState(() => searchParams.get("sort") || DEFAULT_SORT);
-  const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
-  const [search, setSearch] = useState(() => searchParams.get("q") || "");
+  const [searchInput, setSearchInput] = useState(() => getSearchParam(searchParams));
+  const [search, setSearch] = useState(() => getActiveSearchParam(searchParams));
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [collection, setCollection] = useState(() => searchParams.get("collection") || "");
   const [medium, setMedium] = useState(() => searchParams.get("medium") || "");
   const [year, setYear] = useState(() => searchParams.get("year") || "");
@@ -61,6 +71,7 @@ const GalleryPage = () => {
   const appendPageRef = useRef(null);
   const filterDialogRef = useRef(null);
   const filterTriggerRef = useRef(null);
+  const suggestionRequestIdRef = useRef(0);
 
   const applyResult = useCallback((result, append = false) => {
     if (!mountedRef.current) return;
@@ -125,7 +136,8 @@ const GalleryPage = () => {
     const nextCategory = searchParams.get("category") || "all";
     const nextAvailability = searchParams.get("availability") || "all";
     const nextSort = searchParams.get("sort") || DEFAULT_SORT;
-    const nextSearch = searchParams.get("q") || "";
+    const nextRawSearch = getSearchParam(searchParams);
+    const nextSearch = getActiveSearchParam(searchParams);
     const nextCollection = searchParams.get("collection") || "";
     const nextMedium = searchParams.get("medium") || "";
     const nextYear = searchParams.get("year") || "";
@@ -136,7 +148,7 @@ const GalleryPage = () => {
     setAvailability(nextAvailability);
     setSortValue(nextSort);
     setSearch(nextSearch);
-    setSearchInput(nextSearch);
+    setSearchInput(nextRawSearch);
     setCollection(nextCollection);
     setMedium(nextMedium);
     setYear(nextYear);
@@ -198,7 +210,6 @@ const GalleryPage = () => {
     const nextDecade = changes.decade ?? decade;
 
     setPage(nextPage);
-    setArtworks([]);
     setCategory(nextCategory);
     setAvailability(nextAvailability);
     setSortValue(nextSort);
@@ -213,7 +224,7 @@ const GalleryPage = () => {
     if (nextCategory !== "all") nextParams.set("category", nextCategory);
     if (nextAvailability !== "all") nextParams.set("availability", nextAvailability);
     if (nextSort !== DEFAULT_SORT) nextParams.set("sort", nextSort);
-    if (nextSearch) nextParams.set("q", nextSearch);
+    if (nextSearch) nextParams.set("search", nextSearch);
     if (nextCollection) nextParams.set("collection", nextCollection);
     if (nextMedium) nextParams.set("medium", nextMedium);
     if (nextYear) nextParams.set("year", nextYear);
@@ -222,17 +233,82 @@ const GalleryPage = () => {
   };
 
   useEffect(() => {
-    const normalized = searchInput.trim();
-    if (normalized === search) return undefined;
-    const timeout = window.setTimeout(() => updateCollection({ search: normalized }), 350);
+    const prepared = prepareSearchQuery(searchInput);
+    const nextSearch = prepared.valid ? prepared.raw : "";
+    if (nextSearch === search) return undefined;
+    const timeout = window.setTimeout(() => updateCollection({ search: nextSearch }), SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timeout);
   // updateCollection intentionally reads the latest controlled filter state.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput, search]);
 
+  useEffect(() => {
+    const prepared = prepareSearchQuery(searchInput);
+    const requestId = ++suggestionRequestIdRef.current;
+    if (!prepared.valid) {
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+      setActiveSuggestionIndex(-1);
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => {
+      publicDataAPI.getSearchSuggestions(prepared.raw, 7)
+        .then((items) => {
+          if (requestId !== suggestionRequestIdRef.current) return;
+          setSuggestions(items);
+          setSuggestionsOpen(items.length > 0);
+          setActiveSuggestionIndex(-1);
+        })
+        .catch(() => {
+          if (requestId === suggestionRequestIdRef.current) setSuggestions([]);
+        });
+    }, 120);
+    return () => window.clearTimeout(timeout);
+  }, [searchInput]);
+
+  const commitSearch = (value) => {
+    const prepared = prepareSearchQuery(value);
+    const nextSearch = prepared.valid ? prepared.raw : "";
+    setSearchInput(prepared.raw);
+    setSuggestionsOpen(false);
+    setActiveSuggestionIndex(-1);
+    updateCollection({ search: nextSearch });
+  };
+
+  const chooseSuggestion = (suggestion) => {
+    if (!suggestion?.label) return;
+    commitSearch(suggestion.label);
+  };
+
+  const handleSearchKeyDown = (event) => {
+    if (event.key === "ArrowDown" && suggestions.length) {
+      event.preventDefault();
+      setSuggestionsOpen(true);
+      setActiveSuggestionIndex((index) => (index + 1) % suggestions.length);
+    } else if (event.key === "ArrowUp" && suggestions.length) {
+      event.preventDefault();
+      setSuggestionsOpen(true);
+      setActiveSuggestionIndex((index) => (index <= 0 ? suggestions.length - 1 : index - 1));
+    } else if (event.key === "Enter" && suggestionsOpen && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      chooseSuggestion(suggestions[activeSuggestionIndex]);
+    } else if (event.key === "Escape") {
+      setSuggestionsOpen(false);
+      setActiveSuggestionIndex(-1);
+    }
+  };
+
   const clearFilters = () => {
     setSearchInput("");
     updateCollection({ category: "all", availability: "all", search: "", collection: "", medium: "", year: "", decade: "" }, 1);
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    setSuggestions([]);
+    setSuggestionsOpen(false);
+    updateCollection({ search: "" }, 1);
   };
 
   const hasActiveFilters =
@@ -259,7 +335,7 @@ const GalleryPage = () => {
     if (category !== "all") nextParams.set("category", category);
     if (availability !== "all") nextParams.set("availability", availability);
     if (sortValue !== DEFAULT_SORT) nextParams.set("sort", sortValue);
-    if (search) nextParams.set("q", search);
+    if (search) nextParams.set("search", search);
     if (collection) nextParams.set("collection", collection);
     if (medium) nextParams.set("medium", medium);
     if (year) nextParams.set("year", year);
@@ -312,7 +388,8 @@ const GalleryPage = () => {
       if (restoreCategory !== "all") next.set("category", restoreCategory); else next.delete("category");
       if (restoreAvailability !== "all") next.set("availability", restoreAvailability); else next.delete("availability");
       if (restoreSort !== DEFAULT_SORT) next.set("sort", restoreSort); else next.delete("sort");
-      if (restoreSearch) next.set("q", restoreSearch); else next.delete("q");
+      if (restoreSearch) next.set("search", restoreSearch); else next.delete("search");
+      next.delete("q");
       if (restoreCollection) next.set("collection", restoreCollection); else next.delete("collection");
       if (restoreMedium) next.set("medium", restoreMedium); else next.delete("medium");
       if (restoreYear) next.set("year", restoreYear); else next.delete("year");
@@ -436,20 +513,72 @@ const GalleryPage = () => {
                 role="search"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  const nextSearch = searchInput.trim();
-                  setSearchInput(nextSearch);
-                  updateCollection({ search: nextSearch });
+                  if (suggestionsOpen && activeSuggestionIndex >= 0) {
+                    chooseSuggestion(suggestions[activeSuggestionIndex]);
+                  } else {
+                    commitSearch(searchInput);
+                  }
                 }}
               >
                 <label htmlFor="gallery-search" className="sr-only">Search artworks</label>
-                <input
-                  id="gallery-search"
-                  type="search"
-                  value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
-                  className="h-11 min-w-0 flex-1 border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal placeholder:text-slate/35 focus:border-gold focus:outline-none"
-                  placeholder="Search artworks"
-                />
+                <div className="relative min-w-0 flex-1">
+                  <input
+                    id="gallery-search"
+                    type="search"
+                    value={searchInput}
+                    maxLength={MAX_SEARCH_QUERY_LENGTH}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    onFocus={() => suggestions.length && setSuggestionsOpen(true)}
+                    onBlur={() => window.setTimeout(() => setSuggestionsOpen(false), 120)}
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-controls="gallery-search-suggestions"
+                    aria-expanded={suggestionsOpen}
+                    aria-activedescendant={activeSuggestionIndex >= 0 ? `gallery-search-option-${activeSuggestionIndex}` : undefined}
+                    className="h-11 w-full min-w-0 border border-charcoal/15 bg-transparent py-2 pl-3 pr-10 text-sm text-charcoal placeholder:text-slate/35 focus:border-gold focus:outline-none"
+                    placeholder="Search title, medium, year..."
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      aria-label="Clear Gallery search"
+                      className="absolute right-1 top-1 inline-flex h-9 w-9 items-center justify-center text-lg text-slate/55 hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                    >
+                      &times;
+                    </button>
+                  )}
+                  {suggestionsOpen && suggestions.length > 0 && (
+                    <ul
+                      id="gallery-search-suggestions"
+                      role="listbox"
+                      aria-label="Artwork search suggestions"
+                      className="absolute inset-x-0 top-full z-40 max-h-72 overflow-y-auto border border-t-0 border-charcoal/15 bg-white shadow-xl"
+                    >
+                      {suggestions.map((suggestion, index) => (
+                        <li
+                          id={`gallery-search-option-${index}`}
+                          key={`${suggestion.type}:${suggestion.label}`}
+                          role="option"
+                          aria-selected={index === activeSuggestionIndex}
+                        >
+                          <button
+                            type="button"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => chooseSuggestion(suggestion)}
+                            className={`flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm ${
+                              index === activeSuggestionIndex ? "bg-charcoal text-white" : "text-charcoal hover:bg-cream"
+                            }`}
+                          >
+                            <span className="truncate">{suggestion.label}</span>
+                            <span className="flex-shrink-0 text-[9px] font-label uppercase tracking-widest opacity-55">{suggestion.type}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <button
                   type="submit"
                   className="h-11 flex-shrink-0 border border-l-0 border-charcoal/15 px-2 text-[10px] font-label uppercase tracking-[0.08em] text-charcoal transition-colors hover:bg-charcoal hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold sm:px-3 sm:tracking-[0.12em]"
@@ -587,9 +716,12 @@ const GalleryPage = () => {
 
             <div className="mt-2 flex min-h-7 items-center justify-between gap-4 text-xs text-slate/50">
               <p aria-live="polite">
-                {loading
+                {loading && artworks.length === 0
                   ? "Loading collection..."
-                  : `${resultCount} ${resultCount === 1 ? "artwork" : "artworks"}`}
+                  : loading
+                    ? search ? "Searching..." : "Updating collection..."
+                    : `${resultCount} ${resultCount === 1 ? "artwork" : "artworks"}${search ? ` for “${search}”` : ""}`}
+                {searchInput.trim().length === 1 && !search && " — enter at least 2 characters to search"}
               </p>
               {hasActiveFilters && (
                 <button
@@ -609,18 +741,21 @@ const GalleryPage = () => {
           aria-live="polite"
           ref={gridRef}
         >
-          {error && !loading ? (
-            <div className="mx-auto my-16 max-w-xl px-6 py-12 text-center">
-              <p className="font-display text-3xl">Gallery unavailable</p>
-              <p className="mt-3 text-sm text-slate/60">{error}</p>
-              <button type="button" onClick={fetchArtworks} className="btn-secondary mt-6">
+          {error && !loading && (
+            <div role="alert" className={`mx-auto max-w-xl px-6 text-center ${artworks.length ? "mb-6 border border-red-200 bg-red-50 py-4" : "my-16 py-12"}`}>
+              <p className={artworks.length ? "text-sm font-medium" : "font-display text-3xl"}>
+                {artworks.length ? "Gallery refresh failed" : "Gallery unavailable"}
+              </p>
+              <p className="mt-2 text-sm text-slate/60">{error}</p>
+              <button type="button" onClick={() => fetchArtworks(page)} className="btn-secondary mt-4">
                 Retry
               </button>
             </div>
-          ) : (
+          )}
+          {(!error || artworks.length > 0) && (
             <ArtworkMasonry
               artworks={artworks}
-              loading={loading}
+              loading={loading && artworks.length === 0}
               priorityCount={6}
               galleryRestoreState={restoreState}
               emptyState={

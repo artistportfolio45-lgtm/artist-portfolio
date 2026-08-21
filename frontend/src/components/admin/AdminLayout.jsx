@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 const NAV_ITEMS = [
   { to: "/admin/dashboard", label: "Dashboard" },
   { to: "/admin/profile", label: "Profile" },
+  { to: "/admin/home-page", label: "Home Page" },
   { to: "/admin/about-page", label: "About Page" },
   { to: "/admin/artworks", label: "Artworks" },
   { to: "/admin/upload-history", label: "Upload History" },

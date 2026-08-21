@@ -7,10 +7,10 @@ import PublicLayout from "../../components/public/PublicLayout";
 import ArtworkCard from "../../components/public/ArtworkCard";
 import ArtworkMasonry from "../../components/public/ArtworkMasonry";
 import ArtworkPreviewModal from "../../components/public/ArtworkPreviewModal";
+import HomeHero from "../../components/public/HomeHero";
 import { publicDataAPI } from "../../services/publicData";
 import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import { useSettings } from "../../hooks/useSettings";
-import { cloudinaryThumbnailUrl } from "../../utils/imageDelivery";
 
 const HomePage = () => {
   const { settings } = useSettings();
@@ -20,9 +20,6 @@ const HomePage = () => {
   const [featuredLoading, setFeaturedLoading] = useState(true);
   const [dataSource, setDataSource] = useState("loading");
   const [profile, setProfile] = useState(null);
-  const heroImage = featured?.[0]?.images?.[0]?.url;
-  const optimizedHeroImage = heroImage ? cloudinaryThumbnailUrl(heroImage, 960) : "";
-  const heroArtistName = profile?.name?.trim() || settings?.websiteTitle || "Artist Portfolio";
   const [featuredPreview, setFeaturedPreview] = useState(null);
   const requestIdRef = useRef(0);
 
@@ -88,78 +85,8 @@ const HomePage = () => {
 
   return (
     <PublicLayout>
-      {/* ── Mobile Hero ─────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-charcoal text-white lg:hidden" aria-label="Hero">
-        {optimizedHeroImage && (
-          <div className="absolute inset-0 opacity-40">
-            <img
-              src={optimizedHeroImage}
-              alt="Featured artwork hero"
-              className="h-full w-full object-cover"
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent" />
-          </div>
-        )}
-        <div className="relative px-5 py-16">
-          <div className="mx-auto max-w-xl">
-            <p className="eyebrow text-gold mb-3">National-Level Artist</p>
-            <h1 className="font-display text-4xl font-light leading-tight mb-4">
-              {heroArtistName}
-            </h1>
-            <p className="text-sm text-white/70 mb-8 leading-relaxed">
-              {settings?.heroSubtitle || "Explore a collection of original paintings — each a singular expression of light, form, and feeling."}
-            </p>
-            <div className="flex flex-col gap-3">
-              <Link to="/gallery" className="btn-gold w-full text-center">
-                {settings?.heroPrimaryButtonText || "Explore Gallery"}
-              </Link>
-              <Link to="/contact" className="btn-secondary w-full border-white/30 text-white hover:bg-white hover:text-charcoal text-center">
-                {settings?.heroSecondaryButtonText || "Get in Touch"}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
- 
-      {/* ── Desktop Hero ────────────────────────────────────── */}
-      <section
-        className="hidden lg:flex relative min-h-screen items-center justify-center bg-charcoal overflow-hidden"
-        aria-label="Hero"
-      >
-        {/* Background texture */}
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: "radial-gradient(circle at 30% 70%, #C9A84C 0%, transparent 60%)" }}
-        />
- 
-        <div className="container-site text-center relative z-10 py-32 animate-fade-in">
-          <p className="eyebrow text-gold mb-6">{settings?.heroEyebrow || "Original Fine Art"}</p>
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-white leading-tight mb-8">
-            {settings?.heroHeading || "Art That"}
-            <br />
-            <em className="italic">{settings?.heroHeadingAccent || "Speaks"}</em>
-          </h1>
-          <p className="text-white/50 text-lg md:text-xl font-light max-w-lg mx-auto mb-12 leading-relaxed">
-            {settings?.heroSubtitle || "Explore a collection of original paintings — each a singular expression of light, form, and feeling."}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/gallery" className="btn-gold">
-              {settings?.heroPrimaryButtonText || "Explore Gallery"}
-            </Link>
-            <Link to="/contact" className="btn-secondary border-white/30 text-white hover:bg-white hover:text-charcoal">
-              {settings?.heroSecondaryButtonText || "Get in Touch"}
-            </Link>
-          </div>
-        </div>
- 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30">
-          <span className="text-xs font-label tracking-widest uppercase">Scroll</span>
-          <div className="w-px h-12 bg-gradient-to-b from-white/30 to-transparent" />
-        </div>
-      </section>
+      {/* Shared responsive Hero: configured independently from artwork lists */}
+      <HomeHero settings={settings} />
 
       {/* ── Featured Artworks ─────────────────────────────────── */}
       <section className="featured-artworks section bg-ivory" aria-label="Featured Artworks">

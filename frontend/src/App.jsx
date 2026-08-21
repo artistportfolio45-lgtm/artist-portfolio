@@ -19,6 +19,7 @@ const ContactPage = lazy(() => import("./pages/public/ContactPage"));
 const LoginPage = lazy(() => import("./pages/admin/LoginPage"));
 const DashboardPage = lazy(() => import("./pages/admin/DashboardPage"));
 const ProfilePage = lazy(() => import("./pages/admin/ProfilePage"));
+const HomePageEditor = lazy(() => import("./pages/admin/HomePageEditor"));
 const AboutPageEditor = lazy(() => import("./pages/admin/AboutPageEditor"));
 const ArtworksPage = lazy(() => import("./pages/admin/ArtworksPage"));
 const ArtworkFormPage = lazy(() => import("./pages/admin/ArtworkFormPage"));
@@ -75,6 +76,7 @@ const App = () => (
         path="/admin/profile"
         element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
       />
+      <Route path="/admin/home-page" element={<ProtectedRoute><HomePageEditor /></ProtectedRoute>} />
       <Route path="/admin/about-page" element={<ProtectedRoute><AboutPageEditor /></ProtectedRoute>} />
       <Route
         path="/admin/artworks"

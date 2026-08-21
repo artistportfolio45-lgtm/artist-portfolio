@@ -26,6 +26,8 @@ const EMPTY_FORM = {
   exhibitionHistory: "",
   publications: "",
   creationLocation: "",
+  tags: "",
+  keywords: "",
   publicationStatus: "published",
   allowLongDescription: false,
   year: "",
@@ -76,6 +78,8 @@ const ArtworkFormPage = () => {
           exhibitionHistory: a.exhibitionHistory || "",
           publications: a.publications || "",
           creationLocation: a.creationLocation || "",
+          tags: Array.isArray(a.tags) ? a.tags.join(", ") : a.tags || "",
+          keywords: Array.isArray(a.keywords) ? a.keywords.join(", ") : a.keywords || "",
           publicationStatus: a.publicationStatus || "published",
           allowLongDescription: false,
           year: a.year ?? "",
@@ -214,6 +218,8 @@ const ArtworkFormPage = () => {
           exhibitionHistory: form.exhibitionHistory,
           publications: form.publications,
           creationLocation: form.creationLocation,
+          tags: form.tags,
+          keywords: form.keywords,
           publicationStatus: form.publicationStatus,
           allowLongDescription: form.allowLongDescription,
           year: form.year,
@@ -417,6 +423,18 @@ const ArtworkFormPage = () => {
               {[["collection", "Collection"], ["series", "Series"], ["catalogueNumber", "Catalogue number"], ["creationLocation", "Creation location"]].map(([key, label]) => (
                 <label key={key} className="text-xs font-label tracking-widest uppercase text-slate/60">
                   {label}<input className="input-field mt-1" value={form[key]} onChange={(e) => set(key, e.target.value)} />
+                </label>
+              ))}
+              {[["tags", "Tags"], ["keywords", "Search keywords"]].map(([key, label]) => (
+                <label key={key} className="sm:col-span-2 text-xs font-label tracking-widest uppercase text-slate/60">
+                  {label}
+                  <input
+                    className="input-field mt-1"
+                    value={form[key]}
+                    onChange={(e) => set(key, e.target.value)}
+                    placeholder="Comma-separated words or phrases"
+                    maxLength={1000}
+                  />
                 </label>
               ))}
               {[["provenance", "Provenance"], ["exhibitionHistory", "Exhibition history"], ["publications", "Publications"]].map(([key, label]) => (

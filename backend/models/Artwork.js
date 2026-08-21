@@ -37,6 +37,8 @@ const artworkSchema = new mongoose.Schema(
     exhibitionHistory: { type: String, default: "" },
     publications: { type: String, default: "" },
     creationLocation: { type: String, trim: true, default: "" },
+    tags: { type: [{ type: String, trim: true, maxlength: 80 }], default: [] },
+    keywords: { type: [{ type: String, trim: true, maxlength: 80 }], default: [] },
     publicationStatus: {
       type: String,
       enum: ["draft", "published", "unpublished", "archived"],
@@ -62,8 +64,9 @@ const artworkSchema = new mongoose.Schema(
   { timestamps: true, suppressReservedKeysWarning: true }
 );
 
-// Text index for search
-artworkSchema.index({ title: "text", description: "text", category: "text", medium: "text", collection: "text", series: "text", catalogueNumber: "text" });
+// Search relevance is calculated from the bounded public metadata projection.
+// Existing deployments may retain their legacy MongoDB text index; it is no
+// longer used by the public Gallery search.
 artworkSchema.index({ publicationStatus: 1, createdAt: -1, _id: -1 });
 artworkSchema.index({ publicationStatus: 1, category: 1, year: -1, _id: -1 });
 artworkSchema.index({ catalogueNumber: 1 }, { unique: true, partialFilterExpression: { catalogueNumber: { $type: "string", $gt: "" } } });

@@ -59,8 +59,26 @@ const inquirySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isResolved: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   { timestamps: true }
 );
+
+inquirySchema.index({ deletedAt: 1, createdAt: -1, _id: -1 });
+inquirySchema.index({ deletedAt: 1, isRead: 1, createdAt: -1 });
+inquirySchema.index({ deletedAt: 1, isResolved: 1, createdAt: -1 });
+inquirySchema.index({ deletedAt: 1, inquiryType: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Inquiry", inquirySchema);

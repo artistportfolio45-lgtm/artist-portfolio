@@ -14,9 +14,16 @@ const {
   getCloudinaryFileInfo,
 } = require("../config/cloudinary");
 const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const { cleanTextList, sanitizePublicArtwork } = require("../utils/publicArtwork");
+const {
+  MAX_SEARCH_QUERY_LENGTH,
+  prepareSearchQuery,
+  searchAndRankArtworks,
+} = require("../utils/artworkSearch");
 
 const optionalText = (value) => (typeof value === "string" ? value.trim() : "");
 const escapeRegex = (value) => optionalText(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const boundedFilterText = (value) => optionalText(value).slice(0, MAX_SEARCH_QUERY_LENGTH);
 const normalizePrice = (value) => {
   if (value === undefined || value === null || String(value).trim() === "") return null;
   return Number(value);
@@ -27,6 +34,28 @@ const normalizeYear = (value) => {
 };
 const invalidPrice = (value) => value !== null && (!Number.isFinite(value) || value < 0);
 const invalidYear = (value) => value !== null && (!Number.isInteger(value) || value < 0);
+const compareArtworkValues = (first, second, sortField, sortDirection) => {
+  const firstValue = first?.[sortField];
+  const secondValue = second?.[sortField];
+  if (["price", "year"].includes(sortField)) {
+    const firstMissing = firstValue === null || firstValue === undefined || firstValue === "";
+    const secondMissing = secondValue === null || secondValue === undefined || secondValue === "";
+    if (firstMissing !== secondMissing) return firstMissing ? 1 : -1;
+    if (!firstMissing && Number(firstValue) !== Number(secondValue)) {
+      return (Number(firstValue) - Number(secondValue)) * sortDirection;
+    }
+  } else if (["isAvailable", "isFeatured"].includes(sortField)) {
+    const difference = Number(Boolean(firstValue)) - Number(Boolean(secondValue));
+    if (difference) return difference * sortDirection;
+  } else if (["createdAt", "updatedAt"].includes(sortField)) {
+    const difference = new Date(firstValue || 0) - new Date(secondValue || 0);
+    if (difference) return difference * sortDirection;
+  } else {
+    const difference = String(firstValue || "").localeCompare(String(secondValue || ""));
+    if (difference) return difference * sortDirection;
+  }
+  return String(first?._id || "").localeCompare(String(second?._id || "")) * sortDirection;
+};
 const dateBoundary = (value, endOfDay = false) => {
   if (!value) return null;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
@@ -205,15 +234,12 @@ router.get("/", async (req, res) => {
     } = req.query;
 
     const query = { publicationStatus: { $nin: ["draft", "unpublished", "archived"] } };
-
-    // Text search
-    if (search) {
-      query.$text = { $search: search };
-    }
+    const preparedSearch = prepareSearchQuery(search);
 
     // Category filter
     if (category && category !== "all") {
-      if (category.trim().toLowerCase() === "uncategorized") {
+      const safeCategory = boundedFilterText(category);
+      if (safeCategory.toLowerCase() === "uncategorized") {
         query.$or = [
           { category: { $regex: /^uncategorized$/i } },
           { category: { $exists: false } },
@@ -221,7 +247,7 @@ router.get("/", async (req, res) => {
           { category: "" },
         ];
       } else {
-        query.category = { $regex: escapeRegex(category), $options: "i" };
+        query.category = { $regex: `^${escapeRegex(safeCategory)}$`, $options: "i" };
       }
     }
 
@@ -232,8 +258,8 @@ router.get("/", async (req, res) => {
     // Featured filter
     if (featured === "true") query.isFeatured = true;
 
-    if (collection) query.collection = { $regex: escapeRegex(collection), $options: "i" };
-    if (medium) query.medium = { $regex: escapeRegex(medium), $options: "i" };
+    if (collection) query.collection = { $regex: escapeRegex(boundedFilterText(collection)), $options: "i" };
+    if (medium) query.medium = { $regex: escapeRegex(boundedFilterText(medium)), $options: "i" };
     if (year && Number.isInteger(Number(year))) query.year = Number(year);
     if (decade && Number.isInteger(Number(decade))) {
       query.year = { $gte: Number(decade), $lte: Number(decade) + 9 };
@@ -254,18 +280,32 @@ router.get("/", async (req, res) => {
     const pageNumber = Math.max(1, parseInt(page, 10) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
     const skip = (pageNumber - 1) * pageSize;
+    let artworks;
+    let total;
 
-    const [artworks, total] = await Promise.all([
-      Artwork.find(query)
-        .sort({ [sortField]: sortDirection, _id: sortDirection })
-        .skip(skip)
-        .limit(pageSize),
-      Artwork.countDocuments(query),
-    ]);
+    if (preparedSearch.raw) {
+      const candidates = await Artwork.find(query).lean({ versionKey: false });
+      const ranked = searchAndRankArtworks(
+        candidates,
+        preparedSearch.raw,
+        (first, second) => compareArtworkValues(first, second, sortField, sortDirection)
+      );
+      total = ranked.length;
+      artworks = ranked.slice(skip, skip + pageSize);
+    } else {
+      [artworks, total] = await Promise.all([
+        Artwork.find(query)
+          .sort({ [sortField]: sortDirection, _id: sortDirection })
+          .skip(skip)
+          .limit(pageSize)
+          .lean({ versionKey: false }),
+        Artwork.countDocuments(query),
+      ]);
+    }
 
     res.json({
       success: true,
-      artworks,
+      artworks: artworks.map(sanitizePublicArtwork),
       pagination: {
         total,
         page: pageNumber,
@@ -691,11 +731,11 @@ router.get("/:id", async (req, res) => {
     const artwork = await Artwork.findOne({
       _id: req.params.id,
       publicationStatus: { $nin: ["draft", "unpublished", "archived"] },
-    });
+    }).lean({ versionKey: false });
     if (!artwork) {
       return res.status(404).json({ success: false, message: "Artwork not found" });
     }
-    res.json({ success: true, artwork });
+    res.json({ success: true, artwork: sanitizePublicArtwork(artwork) });
   } catch (error) {
     console.error("Get artwork error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -710,7 +750,7 @@ router.get("/:id", async (req, res) => {
 router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (req, res) => {
   let images = [];
   try {
-    const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, publicationStatus, allowLongDescription, isAvailable, isFeatured, year, clientUploadId, uploadBatchId } = req.body;
+    const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, tags, keywords, publicationStatus, allowLongDescription, isAvailable, isFeatured, year, clientUploadId, uploadBatchId } = req.body;
 
     images = (req.files || []).map(getCloudinaryFileInfo).filter((img) => img.url && img.publicId);
     if (!optionalText(clientUploadId)) {
@@ -762,6 +802,8 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
       exhibitionHistory: optionalText(exhibitionHistory),
       publications: optionalText(publications),
       creationLocation: optionalText(creationLocation),
+      tags: cleanTextList(tags),
+      keywords: cleanTextList(keywords),
       publicationStatus: ["draft", "published", "unpublished", "archived"].includes(publicationStatus) ? publicationStatus : "published",
       allowLongDescription,
       isAvailable: isAvailable === "false" ? false : true,
@@ -803,7 +845,7 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
 // @access  Private
 router.put("/:id", protect, adminOnly, async (req, res) => {
   try {
-    const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, publicationStatus, allowLongDescription, isAvailable, isFeatured, year } = req.body;
+    const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, tags, keywords, publicationStatus, allowLongDescription, isAvailable, isFeatured, year } = req.body;
 
     const artwork = await Artwork.findById(req.params.id);
     if (!artwork) {
@@ -829,6 +871,8 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
     for (const field of ["collection", "series", "catalogueNumber", "provenance", "exhibitionHistory", "publications", "creationLocation"]) {
       if (req.body[field] !== undefined) artwork[field] = optionalText(req.body[field]);
     }
+    if (tags !== undefined) artwork.tags = cleanTextList(tags);
+    if (keywords !== undefined) artwork.keywords = cleanTextList(keywords);
     if (publicationStatus !== undefined) {
       if (!["draft", "published", "unpublished", "archived"].includes(publicationStatus)) {
         return res.status(400).json({ success: false, message: "Invalid publication status" });
