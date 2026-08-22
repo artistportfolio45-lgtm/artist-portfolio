@@ -62,18 +62,31 @@ const ArchiveModal = ({ item, onClose }) => {
 const AboutPage = () => {
   const [about, setAbout] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [modalItem, setModalItem] = useState(null);
   const location = useLocation();
   const draftPreview = new URLSearchParams(location.search).get("preview") === "draft";
 
-  useEffect(() => {
+  const loadAbout = () => {
+    setLoading(true);
+    setError("");
     const request = draftPreview
       ? aboutAdminAPI.get().then((response) => response.data.aboutPage?.draft)
-      : publicDataAPI.getAbout({ onLiveData: setAbout });
+      : publicDataAPI.getAbout();
     request
-      .then((data) => setAbout(data || FALLBACK_ABOUT))
-      .catch(() => setAbout(FALLBACK_ABOUT))
+      .then((data) => {
+        setAbout(data || null);
+        if (!data) setError("The About page is not currently available.");
+      })
+      .catch(() => {
+        setAbout(null);
+        setError("The About page could not be loaded. Please try again.");
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAbout();
   }, [draftPreview]);
   useEffect(() => {
     if (!about?.seo?.title) return;
@@ -83,7 +96,8 @@ const AboutPage = () => {
   }, [about]);
 
   if (loading) return <PublicLayout><PageLoader /></PublicLayout>;
-  const page = about || FALLBACK_ABOUT;
+  if (!about) return <PublicLayout><main className="flex min-h-[65vh] items-center justify-center px-5 py-24 text-center"><div><h1 className="font-display text-4xl font-light text-charcoal">About page unavailable</h1><p className="mt-4 text-sm text-slate/60">{error}</p><button type="button" className="btn-secondary mt-6" onClick={loadAbout}>Retry</button></div></main></PublicLayout>;
+  const page = about;
   const heroImage = page.hero?.backgroundImage;
   const closingImage = page.closingCta?.backgroundImage;
 

@@ -4,18 +4,55 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("public artwork recovery is bounded, deduplicated, cancellable and stale-aware", async () => {
+test("public runtime data is Blob-first, shared in memory, ETag-aware, and Render-backed", async () => {
   const data = await source("src/services/publicDataService.js");
-  assert.match(data, /liveArtworkRequests\.has/);
-  assert.match(data, /cachedFallbackPortfolio/);
-  assert.match(data, /requestLiveData/);
-  assert.match(data, /new AbortController/);
-  assert.match(data, /scheduleArtworkRetry/);
-  assert.match(data, /isStale: true/);
+  assert.match(data, /PUBLIC_BLOB_URL = "\/api\/public-portfolio"/);
+  assert.match(data, /if \(portfolioPromise\) return portfolioPromise/);
+  assert.match(data, /If-None-Match/);
+  assert.match(data, /response\.status === 304/);
+  assert.match(data, /api\.get\("\/public-data"/);
+  assert.match(data, /cachedPortfolio/);
+  assert.match(data, /localStorage\.removeItem/);
+  assert.doesNotMatch(data, /\/data\/portfolio\.json/);
+  assert.doesNotMatch(data, /localStorage\.setItem/);
+  assert.doesNotMatch(data, /scheduleArtworkRetry|setInterval/);
   assert.match(data, /isStale: false/);
-  assert.match(data, /const staticData = await getFallbackArtworks\(params\)/);
-  assert.match(data, /getLiveArtworks\(params\)\s*\n\s*\.then/);
-  assert.match(data, /12000/);
+});
+
+test("Blob and Render failure leaves a graceful retry state without static artwork flash", async () => {
+  const [data, gallery] = await Promise.all([
+    source("src/services/publicDataService.js"),
+    source("src/pages/public/GalleryPage.jsx"),
+  ]);
+  assert.match(data, /new Error\("Public portfolio is unavailable"\)/);
+  assert.doesNotMatch(data, /portfolio\.json/);
+  assert.match(gallery, /useState\(\[\]\)/);
+  assert.match(gallery, /useState\(true\)/);
+  assert.match(gallery, /Gallery unavailable/);
+  assert.match(gallery, />\s*Retry\s*</);
+});
+
+test("bulk upload defers item writes and performs one final sync per completed or stopped run", async () => {
+  const upload = await source("src/pages/admin/BulkArtworkUploadPage.jsx");
+  assert.match(upload, /deferPublicSync: true/);
+  assert.equal((upload.match(/publicSnapshotAPI\.sync\(/g) || []).length, 2);
+  assert.match(upload, /publicSnapshotAPI\.sync\("bulk-upload-completed"\)/);
+  assert.match(upload, /publicSnapshotAPI\.sync\("bulk-upload-stopped"\)/);
+});
+
+test("390px Gallery layout retains explicit horizontal overflow protection", async () => {
+  const [styles, gallery] = await Promise.all([source("src/index.css"), source("src/pages/public/GalleryPage.jsx")]);
+  assert.match(styles, /\.public-shell\s*\{[^}]*min-width: 0;[^}]*overflow-x: clip;/s);
+  assert.match(styles, /@media \(max-width: 1023px\)[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(gallery, /w-0 min-w-0 flex-1/);
+  assert.match(gallery, /gallery-category-nav mt-4 overflow-x-auto/);
+});
+
+test("admin exposes a protected manual action for initial Blob seed and retry", async () => {
+  const [layout, api] = await Promise.all([source("src/components/admin/AdminLayout.jsx"), source("src/services/api.js")]);
+  assert.match(layout, /Sync Public Data/);
+  assert.match(layout, /Retry Public Sync/);
+  assert.match(api, /api\.post\("\/public-data\/sync"/);
 });
 
 test("gallery images retry transient delivery failures before showing an error", async () => {

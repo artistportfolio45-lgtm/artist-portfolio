@@ -1,4 +1,5 @@
 import axios from "axios";
+import { inspectPublicSyncPayload } from "./publicSyncStatus";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
 
@@ -55,8 +56,12 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    inspectPublicSyncPayload(response.data);
+    return response;
+  },
   (error) => {
+    inspectPublicSyncPayload(error.response?.data);
     const isLoginRequest = error.config?.url?.includes("/auth/login");
     const isOnLoginPage = window.location.pathname === "/admin/login";
 
@@ -164,7 +169,8 @@ export const activityAPI = {
 };
 
 export const publicSnapshotAPI = {
-  rebuild: (reason = "manual-public-data-rebuild") => api.post("/public-data/rebuild", { reason }),
+  sync: (reason = "manual-public-data-sync") => api.post("/public-data/sync", { reason }),
+  rebuildSeo: (reason = "explicit-seo-regeneration") => api.post("/public-data/rebuild-seo", { reason, confirmation: "REGENERATE_SEO" }),
 };
 
 export default api;

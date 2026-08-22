@@ -6,7 +6,7 @@ const router = express.Router();
 const ArtistProfile = require("../models/ArtistProfile");
 const { protect } = require("../middleware/auth");
 const { uploadProfile, cloudinary, getCloudinaryFileInfo } = require("../config/cloudinary");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const { syncPublicData } = require("../utils/publicDataSync");
 const adminOnly = (req, res, next) => req.user?.role === "admin"
   ? next()
   : res.status(403).json({ success: false, message: "Admin access required" });
@@ -54,8 +54,8 @@ router.put("/", protect, adminOnly, async (req, res) => {
 
     await profile.save();
 
-    const staticRebuild = await triggerStaticRebuild("profile-updated");
-    res.json({ success: true, message: "Profile updated", profile, staticRebuild });
+    const publicSync = await syncPublicData("profile-updated");
+    res.json({ success: true, message: "Profile updated", profile, publicSync });
   } catch (error) {
     console.error("Update profile error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -72,11 +72,7 @@ router.put("/photo", protect, adminOnly, uploadProfile.single("photo"), async (r
     }
 
     const profile = await getOrCreateProfile();
-
-    // Delete old photo from Cloudinary if exists
-    if (profile.profilePhotoPublicId) {
-      await cloudinary.uploader.destroy(profile.profilePhotoPublicId);
-    }
+    const previousPhotoPublicId = profile.profilePhotoPublicId;
 
     const uploadedPhoto = getCloudinaryFileInfo(req.file);
     if (!uploadedPhoto.url || !uploadedPhoto.publicId) {
@@ -87,8 +83,13 @@ router.put("/photo", protect, adminOnly, uploadProfile.single("photo"), async (r
     profile.profilePhotoPublicId = uploadedPhoto.publicId;
     await profile.save();
 
-    const staticRebuild = await triggerStaticRebuild("profile-photo-updated");
-    res.json({ success: true, message: "Profile photo updated", profile, staticRebuild });
+    const publicSync = await syncPublicData("profile-photo-updated");
+    if (publicSync.success && previousPhotoPublicId && previousPhotoPublicId !== uploadedPhoto.publicId) {
+      await cloudinary.uploader.destroy(previousPhotoPublicId).catch((error) => {
+        console.error("Previous profile photo cleanup failed:", { name: error?.name });
+      });
+    }
+    res.json({ success: true, message: "Profile photo updated", profile, publicSync });
   } catch (error) {
     console.error("Photo upload error:", error);
     res.status(500).json({ success: false, message: "Server error" });

@@ -23,9 +23,12 @@ test("artwork API exposes authenticated bulk delete request body", () => {
   assert.match(apiSource, /bulkDelete: \(ids\) => api\.delete\("\/artworks\/bulk", \{ data: \{ ids \} \}\)/);
 });
 
-test("bulk delete schedules one rebuild warning without using the missing artwork rebuild endpoint", () => {
-  assert.match(pageSource, /publicSnapshotAPI\.rebuild\("artwork-bulk-deleted"\)/);
-  assert.match(pageSource, /Artworks deleted, but public gallery rebuild could not be scheduled\./);
+test("bulk delete uses one server job with a final public sync warning and no build endpoint", () => {
+  assert.match(pageSource, /artworkAPI\.startDeletionJob\(ids\)/);
+  assert.match(pageSource, /result\.publicSync\?\.status === "failed"/);
+  assert.match(pageSource, /Artwork changes were saved, but public Gallery synchronization failed\./);
+  const bulkSection = pageSource.slice(pageSource.indexOf("const runBulkDelete"), pageSource.indexOf("const handleBulkDelete"));
+  assert.doesNotMatch(bulkSection, /artworkAPI\.delete\(id/);
   assert.doesNotMatch(apiSource, /artworks\/rebuild/);
   assert.doesNotMatch(pageSource, /artworks\/rebuild/);
 });
@@ -59,7 +62,7 @@ test("artwork API exposes cancellable deletion-job endpoints", () => {
   assert.match(apiSource, /cancelDeletionJob: \(jobId\) => api\.post/);
 });
 
-test("bulk deletion deduplicates IDs, caps concurrency at five, and rebuilds once", async () => {
+test("legacy browser deletion helper remains bounded for backward compatibility", async () => {
   let active = 0;
   let maximumActive = 0;
   let rebuilds = 0;

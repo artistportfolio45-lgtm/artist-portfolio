@@ -15,7 +15,6 @@ const apiUrl =
   localEnv.PUBLIC_DATA_API_URL ||
   localEnv.VITE_API_URL ||
   DEFAULT_PRODUCTION_API_URL;
-const exportKey = process.env.PUBLIC_DATA_EXPORT_KEY || localEnv.PUBLIC_DATA_EXPORT_KEY;
 
 const fetchJson = async (url, options) => {
   const response = await fetch(url, options);
@@ -67,10 +66,9 @@ const fetchSnapshot = async () => {
   const url = configuredUrl.endsWith("/public-data")
     ? configuredUrl
     : `${configuredUrl}/public-data`;
-  const headers = exportKey ? { "x-static-export-key": exportKey } : {};
 
   try {
-    return await fetchJson(url, { headers });
+    return await fetchJson(url);
   } catch (error) {
     console.warn(
       `Aggregate public data was unavailable (${error.message}); fetching public resources directly.`

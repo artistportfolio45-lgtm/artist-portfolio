@@ -26,7 +26,7 @@ Place this `README.md` at the project root, beside `frontend` and `backend`.
 - Admin-controlled website themes with preset palettes and custom colors
 - SEO metadata, theme colors, and maintenance mode settings
 - Inquiry/contact form
-- Live public portfolio data from the backend API with static JSON fallback
+- Live public portfolio data from a site-wide Netlify Blob, with Render only as a controlled fallback
 - Netlify Forms support for public contact and artwork inquiries
 - Admin activity logs
 - MongoDB Atlas database support
@@ -159,9 +159,12 @@ FRONTEND_URL=http://localhost:5173
 # Backend URL for security headers in deployed environments
 BACKEND_URL=http://localhost:5000
 
-# Optional static public data export and manual rebuild hook
-PUBLIC_DATA_EXPORT_KEY=optional_shared_secret
-NETLIFY_BUILD_HOOK_URL=https://api.netlify.com/build_hooks/...
+# Runtime public-data synchronization (backend-only)
+PUBLIC_DATA_SYNC_URL=https://your-netlify-site.netlify.app/.netlify/functions/sync-public-portfolio
+PUBLIC_DATA_SYNC_SECRET=replace_with_the_same_random_32_plus_character_secret_used_on_netlify
+
+# Optional, explicit SEO-only rebuild hook
+NETLIFY_BUILD_HOOK_URL=
 ```
 
 Start the backend:
@@ -209,7 +212,6 @@ VITE_API_URL=http://localhost:5000/api
 
 # Optional override for static public data generation
 PUBLIC_DATA_API_URL=http://localhost:5000/api
-PUBLIC_DATA_EXPORT_KEY=optional_shared_secret
 ```
 
 Start the frontend:
@@ -547,17 +549,11 @@ Public data:
 
 ```text
 GET /api/public-data
+POST /api/public-data/sync
+POST /api/public-data/rebuild-seo
 ```
 
-This endpoint exports the public snapshot used as a fallback by the frontend. If `PUBLIC_DATA_EXPORT_KEY` is set on the backend, requests must include the same value in the `x-static-export-key` header.
-
-Manual static rebuild:
-
-```text
-POST /api/public-data/rebuild
-```
-
-This protected admin endpoint triggers `NETLIFY_BUILD_HOOK_URL` when configured. Artwork, profile, and settings saves do not trigger Netlify builds automatically.
+`GET /api/public-data` is the sanitized Render fallback. The protected sync endpoint regenerates and writes the current Netlify Blob snapshot. The protected SEO endpoint requires the body confirmation `REGENERATE_SEO` and is the only content-related route allowed to trigger `NETLIFY_BUILD_HOOK_URL`.
 
 Inquiries:
 
@@ -573,23 +569,19 @@ Public contact and artwork inquiry forms submit through Netlify Forms. The `/api
 
 ## Public Site Data Flow
 
-Public visitors load portfolio content from the live backend API first:
+Public visitors load one complete portfolio snapshot from the same-origin Netlify Function:
 
 ```text
-GET /api/artworks
-GET /api/artworks/:id
-GET /api/artworks/categories
-GET /api/profile
-GET /api/settings
+GET /api/public-portfolio
 ```
 
-The frontend sends no-store cache busters with public API reads, so artwork create, edit, and delete changes appear after a browser refresh without redeploying Netlify. If the live API is unavailable, the frontend falls back to:
+The Function reads `portfolio-public-data/current` with strong consistency and supports ETag revalidation. Search, filters, pagination, settings, profile, About, and artwork details use the shared in-memory snapshot. If Blob access is unavailable, the frontend makes one controlled request to Render:
 
 ```text
-frontend/public/data/portfolio.json
+GET /api/public-data
 ```
 
-That JSON snapshot can still be refreshed by a manual rebuild, or by a scheduled/batched deployment process outside individual artwork operations.
+The generated `frontend/public/data/portfolio.json` remains build-time SEO input only and is never the runtime Gallery source. Normal content changes synchronize the Blob and do not trigger a Netlify deployment.
 
 See `STATIC_PUBLIC_ARCHITECTURE.md` for the fuller deployment notes.
 
@@ -643,7 +635,8 @@ ADMIN_PASSWORD=strong_initial_password
 FRONTEND_URL=https://yourdomain.com
 BACKEND_URL=https://api.yourdomain.com
 NETLIFY_BUILD_HOOK_URL=https://api.netlify.com/build_hooks/...
-PUBLIC_DATA_EXPORT_KEY=optional_shared_secret
+PUBLIC_DATA_SYNC_URL=https://your-netlify-site.netlify.app/.netlify/functions/sync-public-portfolio
+PUBLIC_DATA_SYNC_SECRET=the_same_random_32_plus_character_secret_used_on_netlify
 ```
 
 Backend start command:
@@ -652,15 +645,21 @@ Backend start command:
 npm start
 ```
 
-### Frontend Production Environment
+### Frontend and Netlify Function Production Environment
 
-Set this environment variable on the frontend host:
+Set this build variable on the frontend host:
 
 ```env
 VITE_API_URL=https://api.yourdomain.com/api
-PUBLIC_DATA_API_URL=https://api.yourdomain.com/api
-PUBLIC_DATA_EXPORT_KEY=optional_shared_secret
 ```
+
+Set this separately for the Netlify Function runtime:
+
+```env
+PUBLIC_DATA_SYNC_SECRET=configure_in_netlify_function_runtime_only_not_as_a_vite_variable
+```
+
+Do not prefix `PUBLIC_DATA_SYNC_SECRET` with `VITE_`; it must never enter the browser bundle. See `STATIC_PUBLIC_ARCHITECTURE.md` for the initial seed and verification procedure.
 
 Build command:
 

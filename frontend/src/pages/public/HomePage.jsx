@@ -18,51 +18,28 @@ const HomePage = () => {
   const [latestArtworks, setLatestArtworks] = useState([]);
   const [latestLoading, setLatestLoading] = useState(true);
   const [featuredLoading, setFeaturedLoading] = useState(true);
-  const [dataSource, setDataSource] = useState("loading");
   const [profile, setProfile] = useState(null);
   const [featuredPreview, setFeaturedPreview] = useState(null);
   const requestIdRef = useRef(0);
 
   const fetchHomeData = useCallback(() => {
     const requestId = ++requestIdRef.current;
-    let featuredLive = false;
-    let latestLive = false;
     setLatestLoading(true);
     setFeaturedLoading(true);
 
     Promise.allSettled([
-      publicDataAPI.getArtworks(
-        { featured: "true", limit: 6 },
-        { onLiveData: (res) => {
-          featuredLive = true;
-          if (requestId === requestIdRef.current) {
-            setFeatured(res.items || []);
-            setDataSource("live");
-          }
-        } }
-      ),
-      publicDataAPI.getArtworks(
-        { limit: 9 },
-        { onLiveData: (res) => {
-          latestLive = true;
-          if (requestId === requestIdRef.current) {
-            setLatestArtworks(res.items || []);
-            setDataSource("live");
-          }
-        } }
-      ),
-      publicDataAPI.getProfile({ onLiveData: setProfile }),
+      publicDataAPI.getArtworks({ featured: "true", limit: 6 }),
+      publicDataAPI.getArtworks({ limit: 9 }),
+      publicDataAPI.getProfile(),
     ])
       .then(([featuredRes, latestRes, profileRes]) => {
         if (requestId !== requestIdRef.current) return;
-        if (featuredRes.status === "fulfilled" && (!featuredLive || featuredRes.value.source === "live")) {
+        if (featuredRes.status === "fulfilled") {
           setFeatured(featuredRes.value.items || []);
-          if (featuredRes.value.isStale) setDataSource("static");
         }
 
-        if (latestRes.status === "fulfilled" && (!latestLive || latestRes.value.source === "live")) {
+        if (latestRes.status === "fulfilled") {
           setLatestArtworks(latestRes.value.items || []);
-          if (latestRes.value.isStale) setDataSource("static");
         }
 
         if (profileRes.status === "fulfilled") {

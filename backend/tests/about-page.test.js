@@ -75,5 +75,5 @@ test("public and protected About API routes are registered", () => {
 
 test("public snapshot export includes published About content", () => {
   const source = fs.readFileSync(path.resolve(__dirname, "../utils/publicSnapshot.js"), "utf8");
-  assert.match(source, /about:\s*publicAboutContent\(aboutPage\)/);
+  assert.match(source, /about:\s*removeManagementFields\(publicAboutContent\(aboutPage\)\)/);
 });

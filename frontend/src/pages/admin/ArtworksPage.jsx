@@ -4,12 +4,12 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
-import { artworkAPI, publicSnapshotAPI } from "../../services/api";
+import { artworkAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
-import { BULK_DELETE_CONCURRENCY, createBulkArtworkDeletion } from "../../utils/bulkArtworkDeletion";
 
 const PAGE_SIZE = 10;
+const TERMINAL_DELETE_STATES = new Set(["stopped", "completed", "completed_with_errors"]);
 const DELETE_SESSION_KEY = "artworkDeleteSession.v1";
 const readDeleteSession = () => {
   try { return new Set(JSON.parse(localStorage.getItem(DELETE_SESSION_KEY) || "[]")); } catch { return new Set(); }
@@ -33,8 +33,6 @@ const ArtworksPage = () => {
   const selectAllRef = useRef(null);
   const bulkDeleteLockRef = useRef(false);
   const bulkDeleteJobRef = useRef(null);
-
-  useEffect(() => () => bulkDeleteJobRef.current?.stop(), []);
 
   useEffect(() => {
     if (selectedIds.size) localStorage.setItem(DELETE_SESSION_KEY, JSON.stringify([...selectedIds]));
@@ -177,26 +175,34 @@ const ArtworksPage = () => {
     setBulkDeleting(true);
     setDeleteSummary(null);
     setConfirmBulkDelete(false);
-    const job = createBulkArtworkDeletion({
-      ids,
-      concurrency: BULK_DELETE_CONCURRENCY,
-      deleteArtwork: (id, { signal }) => artworkAPI.delete(id, { params: { deferRebuild: true }, signal }),
-      rebuild: () => publicSnapshotAPI.rebuild("artwork-bulk-deleted"),
-      refresh: fetchArtworks,
-      onUpdate: (progress) => { setBulkDeleteState(progress.state); setDeleteProgress(progress); },
-      onDeleted: (id) => {
-        setArtworks((current) => current.filter((artwork) => artwork._id !== id));
-        setSelectedIds((current) => { const next = new Set(current); next.delete(id); return next; });
-      },
-    });
-    bulkDeleteJobRef.current = job;
     try {
-      const result = await job.start();
+      const started = await artworkAPI.startDeletionJob(ids);
+      const jobId = started.data.job.id;
+      bulkDeleteJobRef.current = { id: jobId };
+      let result = started.data.job;
+      while (!TERMINAL_DELETE_STATES.has(result.state)) {
+        setBulkDeleteState(result.state);
+        setDeleteProgress(result);
+        const finalizedIds = new Set(result.items.filter((item) => ["deleted", "missing"].includes(item.status)).map((item) => item.id));
+        if (finalizedIds.size) setArtworks((current) => current.filter((artwork) => !finalizedIds.has(artwork._id)));
+        await new Promise((resolve) => window.setTimeout(resolve, 350));
+        const response = await artworkAPI.getDeletionJob(jobId);
+        result = response.data.job;
+      }
+      setBulkDeleteState(result.state);
+      setDeleteProgress(result);
       setDeleteSummary(result);
-      if (result.rebuildFailed) toast("Artworks deleted, but public gallery rebuild could not be scheduled.");
+      const retryIds = new Set(result.retryIds || []);
+      setSelectedIds(retryIds);
+      await fetchArtworks();
+      if (result.publicSync?.status === "failed") toast("Artwork changes were saved, but public Gallery synchronization failed.");
+      if (result.cleanupFailed) toast.error(`${result.cleanupFailed} artwork image cleanup ${result.cleanupFailed === 1 ? "operation" : "operations"} failed.`);
       if (result.state === "stopped") toast(`Delete stopped: ${result.deleted} deleted, ${result.failed} failed, ${result.cancelled} cancelled.`);
       else if (result.failed) toast.error(`${result.deleted} deleted, ${result.failed} failed. Only undeleted artworks remain selected.`);
+      else if (result.publicSync?.status === "failed") toast.error("Deletion finished, but the public Gallery is not synchronized.");
       else { setSelectionMode(false); setSelectedIds(new Set()); toast.success(`${result.deleted} ${result.deleted === 1 ? "artwork" : "artworks"} deleted successfully.`); }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Bulk artwork deletion failed");
     } finally {
       bulkDeleteJobRef.current = null;
       bulkDeleteLockRef.current = false;
@@ -210,7 +216,18 @@ const ArtworksPage = () => {
     setConfirmBulkDelete(false);
     runBulkDelete(ids);
   };
-  const stopBulkDelete = () => bulkDeleteJobRef.current?.stop();
+  const stopBulkDelete = async () => {
+    const jobId = bulkDeleteJobRef.current?.id;
+    if (!jobId || bulkDeleteState === "stopping") return;
+    setBulkDeleteState("stopping");
+    setDeleteProgress((current) => current ? { ...current, state: "stopping" } : current);
+    try {
+      const response = await artworkAPI.cancelDeletionJob(jobId);
+      setDeleteProgress(response.data.job);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Could not stop the deletion job");
+    }
+  };
 
   const clearSelection = () => {
     if (bulkDeleting) return;

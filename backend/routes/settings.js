@@ -13,7 +13,7 @@ const {
   cloudinary,
   getCloudinaryFileInfo,
 } = require("../config/cloudinary");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const { syncPublicData } = require("../utils/publicDataSync");
 const {
   HomeHeroValidationError,
   getArtworkHeroImage,
@@ -160,18 +160,18 @@ router.put("/home", protect, adminOnly, async (req, res) => {
     }
 
     await settings.save();
-    if (previousUpload && settings.heroBackgroundSource !== "upload") {
+    const publicSync = await syncPublicData("home-hero-updated");
+    if (publicSync.success && previousUpload && settings.heroBackgroundSource !== "upload") {
       await destroyOwnedHeroUpload(previousUpload);
     }
 
-    const staticRebuild = await triggerStaticRebuild("home-hero-updated");
     res.json({
       success: true,
       message: values.heroBackgroundSource === "none"
         ? "Home Hero background removed"
         : "Home Hero updated",
       settings: await settingsResponse(settings),
-      staticRebuild,
+      publicSync,
     });
   } catch (error) {
     console.error("Update Home Hero error:", error);
@@ -214,16 +214,16 @@ router.put("/home/background", protect, adminOnly, uploadHomeHero.single("image"
     await settings.save();
     newUploadSaved = true;
 
-    if (previousUpload?.publicId && previousUpload.publicId !== newUpload.publicId) {
+    const publicSync = await syncPublicData("home-hero-image-updated");
+    if (publicSync.success && previousUpload?.publicId && previousUpload.publicId !== newUpload.publicId) {
       await destroyOwnedHeroUpload(previousUpload);
     }
 
-    const staticRebuild = await triggerStaticRebuild("home-hero-image-updated");
     res.json({
       success: true,
       message: previousUpload ? "Home Hero photo replaced" : "Home Hero photo uploaded",
       settings: await settingsResponse(settings),
-      staticRebuild,
+      publicSync,
     });
   } catch (error) {
     if (!newUploadSaved && newUpload?.publicId) await destroyOwnedHeroUpload(newUpload);
@@ -325,8 +325,8 @@ router.put("/", protect, adminOnly, async (req, res) => {
 
     await settings.save();
 
-    const staticRebuild = await triggerStaticRebuild("settings-updated");
-    res.json({ success: true, message: "Settings updated", settings: await settingsResponse(settings), staticRebuild });
+    const publicSync = await syncPublicData("settings-updated");
+    res.json({ success: true, message: "Settings updated", settings: await settingsResponse(settings), publicSync });
   } catch (error) {
     console.error("Update settings error:", error);
     res.status(error?.name === "TypeError" || /valid|Social links/.test(error.message) ? 400 : 500).json({ success: false, message: error.message || "Server error" });
@@ -343,11 +343,7 @@ router.put("/logo", protect, adminOnly, uploadLogo.single("logo"), async (req, r
     }
 
     const settings = await getOrCreateSettings();
-
-    // Delete old logo from Cloudinary
-    if (settings.logoPublicId) {
-      await cloudinary.uploader.destroy(settings.logoPublicId);
-    }
+    const previousLogoPublicId = settings.logoPublicId;
 
     const uploadedLogo = getCloudinaryFileInfo(req.file);
     if (!uploadedLogo.url || !uploadedLogo.publicId) {
@@ -358,8 +354,13 @@ router.put("/logo", protect, adminOnly, uploadLogo.single("logo"), async (req, r
     settings.logoPublicId = uploadedLogo.publicId;
     await settings.save();
 
-    const staticRebuild = await triggerStaticRebuild("logo-updated");
-    res.json({ success: true, message: "Logo updated", settings: await settingsResponse(settings), staticRebuild });
+    const publicSync = await syncPublicData("logo-updated");
+    if (publicSync.success && previousLogoPublicId && previousLogoPublicId !== uploadedLogo.publicId) {
+      await cloudinary.uploader.destroy(previousLogoPublicId).catch((error) => {
+        console.error("Previous logo cleanup failed:", { name: error?.name });
+      });
+    }
+    res.json({ success: true, message: "Logo updated", settings: await settingsResponse(settings), publicSync });
   } catch (error) {
     console.error("Logo upload error:", error);
     res.status(500).json({ success: false, message: "Server error" });

@@ -114,11 +114,11 @@ const UploadHistoryPage = () => {
         toast(`Deletion stopped. ${job.deleted} artworks were deleted, ${job.failed} failed and ${job.cancelled} were not deleted.`);
       } else if (job.failed) {
         toast.error(`${job.deleted} deleted, ${job.failed} failed. Failed artworks remain selected for retry.`);
-      } else {
+      } else if (job.publicSync?.status !== "failed") {
         toast.success(`${job.deleted} ${job.deleted === 1 ? "artwork" : "artworks"} permanently deleted.`);
       }
       if (job.missing) toast(`${job.missing} selected ${job.missing === 1 ? "artwork was" : "artworks were"} already missing.`);
-      if (job.rebuild?.status === "failed") toast.error(`Artwork deletion finished, but the gallery rebuild failed: ${job.rebuild.message}`);
+      if (job.publicSync?.status === "failed") toast.error(job.publicSync.message || "Artwork changes were saved, but public Gallery synchronization failed.");
     };
 
     const poll = async () => {

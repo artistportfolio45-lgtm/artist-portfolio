@@ -2,7 +2,7 @@ const express = require("express");
 const { protect } = require("../middleware/auth");
 const { uploadAboutMedia, getCloudinaryFileInfo } = require("../config/cloudinary");
 const { getOrCreateAboutPage } = require("../utils/aboutPage");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const { syncPublicData } = require("../utils/publicDataSync");
 
 const router = express.Router();
 const repeatableSections = new Set(["practices", "timeline", "publicWorks", "awards", "pressArchive", "process"]);
@@ -65,8 +65,8 @@ router.patch("/publish", async (req, res) => {
     aboutPage.isPublished = isPublished;
     aboutPage.updatedBy = updatedBy(req.user);
     await aboutPage.save();
-    const rebuild = await triggerStaticRebuild(isPublished ? "about-page-published" : "about-page-unpublished");
-    res.json({ success: true, message: isPublished ? "About page published" : "About page unpublished", aboutPage, staticRebuild: rebuild });
+    const publicSync = await syncPublicData(isPublished ? "about-page-published" : "about-page-unpublished");
+    res.json({ success: true, message: isPublished ? "About page published" : "About page unpublished", aboutPage, publicSync });
   } catch (error) {
     console.error("Publish About page error:", error);
     res.status(500).json({ success: false, message: "Server error" });

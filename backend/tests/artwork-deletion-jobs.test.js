@@ -16,10 +16,10 @@ const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mill
 
 test.beforeEach(() => resetArtworkDeletionJobsForTests());
 
-test("deletion jobs deduplicate IDs, never exceed five global deletions, and rebuild once", async () => {
+test("deletion jobs deduplicate IDs, never exceed five global deletions, and sync once per job", async () => {
   let active = 0;
   let maximumActive = 0;
-  let rebuilds = 0;
+  let syncs = 0;
   const calls = [];
   const remove = async (id) => {
     calls.push(id);
@@ -33,13 +33,13 @@ test("deletion jobs deduplicate IDs, never exceed five global deletions, and reb
     ids: [...Array.from({ length: 8 }, (_, index) => `first-${index}`), "first-2"],
     requestedBy: adminId,
     deleteArtwork: remove,
-    rebuild: async () => { rebuilds += 1; return { triggered: true }; },
+    sync: async () => { syncs += 1; return { success: true }; },
   });
   const second = createArtworkDeletionJob({
     ids: Array.from({ length: 7 }, (_, index) => `second-${index}`),
     requestedBy: adminId,
     deleteArtwork: remove,
-    rebuild: async () => { rebuilds += 1; return { triggered: true }; },
+    sync: async () => { syncs += 1; return { success: true }; },
   });
   const [firstResult, secondResult] = await Promise.all([
     startArtworkDeletionJob(first.id),
@@ -50,7 +50,7 @@ test("deletion jobs deduplicate IDs, never exceed five global deletions, and reb
   assert.equal(new Set(calls).size, 15);
   assert.equal(firstResult.total, 8);
   assert.equal(firstResult.deleted + secondResult.deleted, 15);
-  assert.equal(rebuilds, 2);
+  assert.equal(syncs, 2);
 });
 
 test("Stop Now is idempotent, cancels queued work, and reports active completions accurately", async () => {
@@ -63,7 +63,7 @@ test("Stop Now is idempotent, cancels queued work, and reports active completion
       started.push(id);
       releases.push(() => resolve({ status: "deleted" }));
     }),
-    rebuild: async () => ({ triggered: true }),
+    sync: async () => ({ success: true }),
   });
   const running = startArtworkDeletionJob(job.id);
   await new Promise((resolve) => setImmediate(resolve));
@@ -83,21 +83,21 @@ test("Stop Now is idempotent, cancels queued work, and reports active completion
   assert.equal(result.percentage, 100);
 });
 
-test("an immediate stop before workers start cancels everything without rebuilding", async () => {
+test("an immediate stop before workers start cancels everything without synchronizing", async () => {
   let started = 0;
-  let rebuilds = 0;
+  let syncs = 0;
   const job = createArtworkDeletionJob({
     ids: ["one", "two", "three"],
     requestedBy: adminId,
     deleteArtwork: async () => { started += 1; return { status: "deleted" }; },
-    rebuild: async () => { rebuilds += 1; return { triggered: true }; },
+    sync: async () => { syncs += 1; return { success: true }; },
   });
   cancelArtworkDeletionJob(job.id, adminId);
   const result = await startArtworkDeletionJob(job.id);
   assert.equal(started, 0);
   assert.equal(result.cancelled, 3);
   assert.equal(result.state, "stopped");
-  assert.equal(rebuilds, 0);
+  assert.equal(syncs, 0);
 });
 
 test("failed and cancelled artwork IDs remain retryable while missing IDs are final", async () => {
@@ -108,7 +108,7 @@ test("failed and cancelled artwork IDs remain retryable while missing IDs are fi
       if (id === "failed") throw Object.assign(new Error("private detail"), { publicMessage: "Cloudinary image deletion failed" });
       return { status: id === "missing" ? "missing" : "deleted" };
     },
-    rebuild: async () => ({ triggered: true }),
+    sync: async () => ({ success: true }),
   });
   const result = await startArtworkDeletionJob(job.id);
   assert.equal(result.deleted, 1);
@@ -134,5 +134,34 @@ test("deletion-job API routes require admin middleware and precede the artwork I
     'router.post("/deletion-jobs/:jobId/cancel", protect, adminOnly',
   ]) assert.ok(source.includes(route), route);
   assert.ok(source.indexOf('router.post("/deletion-jobs"') < source.indexOf('router.delete("/:id"'));
-  assert.match(source, /safeTriggerStaticRebuild\("artwork-deletion-job-finalized"\)/);
+  assert.match(source, /safeSyncPublicData\("artwork-deletion-job-finalized"\)/);
+  assert.match(source, /cleanup: cleanupDeletedArtworkImages/);
+});
+
+test("Cloudinary cleanup runs only after the authoritative sync succeeds", async () => {
+  const events = [];
+  const successful = createArtworkDeletionJob({
+    ids: ["one"],
+    requestedBy: adminId,
+    deleteArtwork: async () => { events.push("mongo"); return { status: "deleted", cleanup: { publicIds: ["image"] } }; },
+    sync: async () => { events.push("sync"); return { success: true }; },
+    cleanup: async () => { events.push("cloudinary"); },
+  });
+  const result = await startArtworkDeletionJob(successful.id);
+  assert.deepEqual(events, ["mongo", "sync", "cloudinary"]);
+  assert.equal(result.publicSync.status, "synced");
+
+  events.length = 0;
+  resetArtworkDeletionJobsForTests();
+  const failed = createArtworkDeletionJob({
+    ids: ["two"],
+    requestedBy: adminId,
+    deleteArtwork: async () => { events.push("mongo"); return { status: "deleted", cleanup: { publicIds: ["image"] } }; },
+    sync: async () => { events.push("sync"); return { success: false, message: "sync failed" }; },
+    cleanup: async () => { events.push("cloudinary"); },
+  });
+  const failedResult = await startArtworkDeletionJob(failed.id);
+  assert.deepEqual(events, ["mongo", "sync"]);
+  assert.equal(failedResult.publicSync.status, "failed");
+  assert.equal(failedResult.cleanupPending, 1);
 });

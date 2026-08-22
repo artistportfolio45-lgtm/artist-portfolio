@@ -1,101 +1,49 @@
 import api from "./api";
-import {
-  buildArtworkSearchSuggestions,
-} from "../utils/artworkSearch";
+import { buildArtworkSearchSuggestions } from "../utils/artworkSearch";
 import { queryPublicArtworks } from "../utils/artworkCollection";
 
-const STATIC_FALLBACK_URL = "/data/portfolio.json";
+const PUBLIC_BLOB_URL = "/api/public-portfolio";
+const LEGACY_PORTFOLIO_CACHE_KEYS = [
+  "artist-portfolio:portfolio",
+  "artist-portfolio:public-data",
+  "portfolioCache",
+  "portfolioData",
+  "publicPortfolio",
+];
+const REVALIDATE_AFTER_MS = 60_000;
 export const ARTWORKS_CHANGED_EVENT = "artist-portfolio:artworks-changed";
 
 const emptyPortfolio = {
+  schemaVersion: 3,
+  snapshotVersion: null,
+  version: null,
   generatedAt: null,
+  artworkCount: 0,
   settings: null,
   profile: null,
   about: null,
   artworks: [],
   categories: [],
+  collections: [],
 };
 
-let fallbackPortfolioPromise = null;
-let cachedFallbackPortfolio = null;
-let forceNextFallbackRefresh = false;
-const liveArtworkRequests = new Map();
-const liveDataRequests = new Map();
-let retryTimer = null;
-let retryAttempt = 0;
+let cachedPortfolio = null;
+let cachedEtag = null;
+let portfolioPromise = null;
+let forceNextRefresh = false;
+let lastValidatedAt = 0;
 let refreshQueued = false;
 
-const buildFallbackUrl = (forceRefresh = false) => {
-  if (!forceRefresh) return STATIC_FALLBACK_URL;
-  return `${STATIC_FALLBACK_URL}?v=${Date.now()}`;
-};
-
-const artworkRequestKey = (params = {}) => JSON.stringify(
-  Object.entries(params).filter(([key]) => key !== "_t").sort(([a], [b]) => a.localeCompare(b))
-);
-
-const queueArtworkRefresh = () => {
-  if (typeof window === "undefined" || refreshQueued) return;
-  refreshQueued = true;
-  window.setTimeout(() => {
-    refreshQueued = false;
-    if (document.visibilityState !== "hidden") notifyArtworksChanged();
-  }, 150);
-};
-
-const clearArtworkRetry = () => {
-  retryAttempt = 0;
-  if (retryTimer) window.clearTimeout(retryTimer);
-  retryTimer = null;
-};
-
-const scheduleArtworkRetry = () => {
-  if (typeof window === "undefined" || retryTimer) return;
-  const delays = [2000, 5000, 10000, 30000, 60000];
-  const base = delays[Math.min(retryAttempt, delays.length - 1)];
-  const jitter = Math.round(base * (Math.random() * 0.3 - 0.15));
-  retryAttempt += 1;
-  retryTimer = window.setTimeout(() => {
-    retryTimer = null;
-    queueArtworkRefresh();
-  }, base + jitter);
-};
-
-export const notifyArtworksChanged = () => {
-  cachedFallbackPortfolio = null;
-  fallbackPortfolioPromise = null;
-  forceNextFallbackRefresh = true;
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(ARTWORKS_CHANGED_EVENT));
+const clearLegacyPortfolioCaches = () => {
+  if (typeof window === "undefined") return;
+  try {
+    for (const key of LEGACY_PORTFOLIO_CACHE_KEYS) window.localStorage.removeItem(key);
+  } catch {
+    // Storage can be disabled; public data remains memory-only either way.
   }
 };
 
-export const subscribeToArtworkRefresh = (callback) => {
-  if (typeof window === "undefined") return () => {};
-
-  const refresh = () => {
-    if (document.visibilityState === "hidden") return;
-    callback();
-  };
-  window.addEventListener(ARTWORKS_CHANGED_EVENT, refresh);
-  window.addEventListener("online", queueArtworkRefresh);
-  window.addEventListener("visibilitychange", queueArtworkRefresh);
-  window.addEventListener("focus", queueArtworkRefresh);
-  window.addEventListener("pageshow", queueArtworkRefresh);
-
-  return () => {
-    window.removeEventListener(ARTWORKS_CHANGED_EVENT, refresh);
-    window.removeEventListener("online", queueArtworkRefresh);
-    window.removeEventListener("visibilitychange", queueArtworkRefresh);
-    window.removeEventListener("focus", queueArtworkRefresh);
-    window.removeEventListener("pageshow", queueArtworkRefresh);
-  };
-};
-
-const withNoStoreParam = (params = {}) => ({
-  ...params,
-  _t: Date.now(),
-});
+clearLegacyPortfolioCaches();
 
 const unwrap = (payload) => {
   if (!payload) return payload;
@@ -108,18 +56,13 @@ const unwrap = (payload) => {
 const normalizeImage = (image) => {
   if (!image) return null;
   if (typeof image === "string") return { url: image, width: null, height: null };
-
   const url = image.url || image.secure_url || image.secureUrl || image.imageUrl || image.src;
   if (!url) return null;
-
-  // Animated placeholder GIFs are not artwork sources. Ignore them so a valid
-  // original image later in the payload can be selected instead.
   try {
     if (/\.gif(?:$|[?#])/i.test(new URL(url, "https://artist-portfolio.invalid").pathname)) return null;
   } catch {
     return null;
   }
-
   return {
     url,
     width: Number(image.width) > 0 ? Number(image.width) : null,
@@ -134,30 +77,19 @@ const normalizeTextList = (value) => {
 
 export const normalizeArtwork = (artwork) => {
   if (!artwork || typeof artwork !== "object") return null;
-
   const id = artwork._id || artwork.id || artwork.slug || artwork.title;
-  const isAvailable =
-    artwork.isAvailable ??
-    artwork.available ??
-    (artwork.availability ? artwork.availability === "available" : undefined) ??
-    artwork.status !== "sold";
+  const isAvailable = artwork.isAvailable ?? artwork.available
+    ?? (artwork.availability ? artwork.availability === "available" : undefined)
+    ?? artwork.status !== "sold";
   const images = [
     ...(Array.isArray(artwork.images) ? artwork.images : []),
     artwork.image,
     artwork.imageUrl,
     artwork.thumbnail,
-  ]
-    .map(normalizeImage)
-    .filter(Boolean)
+  ].map(normalizeImage).filter(Boolean)
     .filter((image, index, all) => all.findIndex((candidate) => candidate.url === image.url) === index);
-  const rawPrice =
-    artwork.price === "" || artwork.price === undefined || artwork.price === null
-      ? null
-      : Number(artwork.price);
-  const rawYear =
-    artwork.year === "" || artwork.year === undefined || artwork.year === null
-      ? null
-      : Number(artwork.year);
+  const rawPrice = artwork.price === "" || artwork.price === undefined || artwork.price === null ? null : Number(artwork.price);
+  const rawYear = artwork.year === "" || artwork.year === undefined || artwork.year === null ? null : Number(artwork.year);
 
   return {
     _id: String(id || ""),
@@ -189,358 +121,182 @@ export const normalizeArtwork = (artwork) => {
 
 const normalizeArtworksArray = (value) => {
   const byId = new Map();
-  (Array.isArray(value) ? value : [])
-    .map(normalizeArtwork)
-    .filter((artwork) => artwork?._id)
+  (Array.isArray(value) ? value : []).map(normalizeArtwork).filter((artwork) => artwork?._id)
     .forEach((artwork) => byId.set(artwork._id, artwork));
   return [...byId.values()];
 };
 
-const pickArtworks = (data) => {
-  const payload = unwrap(data);
-  return (
-    payload?.artworks ||
-    payload?.results ||
-    payload?.items ||
-    payload?.data?.artworks ||
-    payload?.data?.results ||
-    payload?.data ||
-    []
-  );
-};
-
-const pickPagination = (data, total) => {
-  const payload = unwrap(data);
-  return payload?.pagination || {
-    total,
-    page: 1,
-    limit: total,
-    pages: total > 0 ? 1 : 0,
-  };
-};
-
-const normalizePortfolio = (data) => {
-  const payload = unwrap(data);
-  const artworks = normalizeArtworksArray(pickArtworks(payload));
+export const normalizePortfolio = (data) => {
+  const payload = unwrap(data) || {};
+  const artworks = normalizeArtworksArray(payload.artworks || payload.results || payload.items || []);
   const categories = [...new Set([
-    ...(Array.isArray(payload?.categories) ? payload.categories : []),
+    ...(Array.isArray(payload.categories) ? payload.categories : []),
     ...artworks.map((artwork) => artwork.category || "Uncategorized"),
   ].filter(Boolean))].sort();
-
+  const collections = [...new Set([
+    ...(Array.isArray(payload.collections) ? payload.collections : []),
+    ...artworks.map((artwork) => artwork.collection).filter(Boolean),
+  ])].sort();
   return {
     ...emptyPortfolio,
     ...payload,
-    settings: payload?.settings || null,
-    profile: payload?.profile || null,
-    about: payload?.about || null,
+    settings: payload.settings || null,
+    profile: payload.profile || null,
+    about: payload.about || null,
     artworks,
+    artworkCount: artworks.length,
     categories,
+    collections,
   };
 };
 
-const loadFallbackPortfolio = async ({ forceRefresh = false } = {}) => {
-  const shouldForceRefresh = forceRefresh || forceNextFallbackRefresh;
+const loadBlobPortfolio = async ({ forceRefresh = false } = {}) => {
+  const shouldRevalidate = forceRefresh || forceNextRefresh || !cachedPortfolio;
+  if (!shouldRevalidate && cachedPortfolio) return { ...cachedPortfolio, source: "blob", isStale: false };
 
-  if (!shouldForceRefresh && cachedFallbackPortfolio) {
-    return cachedFallbackPortfolio;
+  const headers = { Accept: "application/json" };
+  if (cachedEtag) headers["If-None-Match"] = cachedEtag;
+  const response = await fetch(PUBLIC_BLOB_URL, { cache: "no-store", headers });
+  if (response.status === 304 && cachedPortfolio) {
+    forceNextRefresh = false;
+    lastValidatedAt = Date.now();
+    return { ...cachedPortfolio, source: "blob", isStale: false };
   }
-
-  if (!shouldForceRefresh && fallbackPortfolioPromise) {
-    return fallbackPortfolioPromise;
-  }
-
-  const requestPromise = fetch(buildFallbackUrl(shouldForceRefresh), {
-    cache: shouldForceRefresh ? "no-store" : "default",
-    headers: shouldForceRefresh ? {
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
-    } : undefined,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Static portfolio fallback failed: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(normalizePortfolio)
-    .then((portfolio) => {
-      cachedFallbackPortfolio = portfolio;
-      forceNextFallbackRefresh = false;
-      return portfolio;
-    })
-    .catch((error) => {
-      if (fallbackPortfolioPromise === requestPromise) {
-        fallbackPortfolioPromise = null;
-      }
-      throw error;
-    });
-
-  fallbackPortfolioPromise = requestPromise;
-
-  try {
-    return await requestPromise;
-  } finally {
-    if (fallbackPortfolioPromise === requestPromise) {
-      fallbackPortfolioPromise = null;
-    }
-  }
+  if (!response.ok) throw new Error(`Public portfolio Blob request failed: ${response.status}`);
+  const portfolio = normalizePortfolio(await response.json());
+  if (!portfolio.snapshotVersion || !Array.isArray(portfolio.artworks)) throw new Error("Public portfolio Blob response was invalid");
+  cachedPortfolio = portfolio;
+  cachedEtag = response.headers.get("etag") || `"${portfolio.snapshotVersion}"`;
+  forceNextRefresh = false;
+  lastValidatedAt = Date.now();
+  return { ...portfolio, source: "blob", isStale: false };
 };
 
-const requestLiveData = (key, loadLive) => {
-  if (liveDataRequests.has(key)) return liveDataRequests.get(key);
-
-  const request = loadLive()
-    .finally(() => {
-      liveDataRequests.delete(key);
-    });
-  liveDataRequests.set(key, request);
-  return request;
-};
-
-const preferStaticData = async ({ loadStatic, loadLive, hasStaticData, onLiveData, label }) => {
-  try {
-    const staticData = await loadStatic();
-
-    if (hasStaticData(staticData)) {
-      requestLiveData(label, loadLive)
-        .then((liveData) => onLiveData?.(liveData))
-        .catch((error) => console.warn(`Live public ${label} refresh failed.`, error));
-      return staticData;
-    }
-  } catch (error) {
-    console.warn(`Static public ${label} could not be loaded.`, error);
-  }
-
-  const liveData = await requestLiveData(label, loadLive);
-  onLiveData?.(liveData);
-  return liveData;
-};
-
-const getFallbackArtworks = async (params = {}) => {
-  const portfolio = await loadFallbackPortfolio();
-  return {
-    ...queryPublicArtworks(portfolio.artworks, params),
-    source: "static",
-    isStale: true,
-    generatedAt: portfolio.generatedAt || null,
-  };
-};
-
-const getLiveArtworks = async (params = {}) => {
-  const key = artworkRequestKey(params);
-  if (liveArtworkRequests.has(key)) return liveArtworkRequests.get(key);
-
-  const controller = new AbortController();
-  const abortTimer = window.setTimeout(() => controller.abort("Public artwork request timed out"), 12000);
-  const request = api.get("/artworks", {
-    params: withNoStoreParam(params),
-    timeout: 12000,
-    signal: controller.signal,
+const loadRenderFallback = async () => {
+  const response = await api.get("/public-data", {
+    params: { _t: Date.now() },
+    timeout: 15000,
     headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
-  }).then((response) => {
-    const payload = unwrap(response.data);
-    const items = normalizeArtworksArray(pickArtworks(payload));
-    clearArtworkRetry();
-    return {
-      items,
-      pagination: pickPagination(payload, items.length),
-      source: "live",
-      isStale: false,
-      generatedAt: payload?.generatedAt || new Date().toISOString(),
-    };
-  }).catch((error) => {
-    scheduleArtworkRetry();
-    throw error;
-  }).finally(() => {
-    window.clearTimeout(abortTimer);
-    liveArtworkRequests.delete(key);
   });
+  const portfolio = normalizePortfolio(response.data);
+  if (!portfolio.snapshotVersion || !Array.isArray(portfolio.artworks)) throw new Error("Render public portfolio response was invalid");
+  cachedPortfolio = portfolio;
+  cachedEtag = null;
+  forceNextRefresh = false;
+  lastValidatedAt = Date.now();
+  return { ...portfolio, source: "render-fallback", isStale: false };
+};
 
-  liveArtworkRequests.set(key, request);
-  return request;
+const loadPortfolio = ({ forceRefresh = false } = {}) => {
+  if (!forceRefresh && !forceNextRefresh && cachedPortfolio) {
+    return Promise.resolve({ ...cachedPortfolio, source: "memory", isStale: false });
+  }
+  if (portfolioPromise) return portfolioPromise;
+  portfolioPromise = loadBlobPortfolio({ forceRefresh })
+    .catch((blobError) => loadRenderFallback().catch((renderError) => {
+      const unavailable = new Error("Public portfolio is unavailable");
+      unavailable.causes = [blobError, renderError];
+      throw unavailable;
+    }))
+    .finally(() => { portfolioPromise = null; });
+  return portfolioPromise;
+};
+
+const queueArtworkRefresh = () => {
+  if (typeof window === "undefined" || refreshQueued) return;
+  if (Date.now() - lastValidatedAt < REVALIDATE_AFTER_MS) return;
+  refreshQueued = true;
+  window.setTimeout(() => {
+    refreshQueued = false;
+    if (document.visibilityState !== "hidden") {
+      forceNextRefresh = true;
+      window.dispatchEvent(new CustomEvent(ARTWORKS_CHANGED_EVENT));
+    }
+  }, 150);
+};
+
+export const notifyArtworksChanged = () => {
+  forceNextRefresh = true;
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(ARTWORKS_CHANGED_EVENT));
+};
+
+export const subscribeToArtworkRefresh = (callback) => {
+  if (typeof window === "undefined") return () => {};
+  const refresh = () => document.visibilityState !== "hidden" && callback();
+  window.addEventListener(ARTWORKS_CHANGED_EVENT, refresh);
+  window.addEventListener("online", queueArtworkRefresh);
+  window.addEventListener("focus", queueArtworkRefresh);
+  return () => {
+    window.removeEventListener(ARTWORKS_CHANGED_EVENT, refresh);
+    window.removeEventListener("online", queueArtworkRefresh);
+    window.removeEventListener("focus", queueArtworkRefresh);
+  };
+};
+
+const maybeNotify = (callback, value) => {
+  callback?.(value);
+  return value;
 };
 
 export const publicDataAPI = {
-  getPortfolio: async ({ onLiveData } = {}) => {
-    const loadLivePortfolio = () => Promise.all([
-      requestLiveData("settings", () => api.get("/settings", { params: withNoStoreParam() }).then((res) => unwrap(res.data)?.settings)),
-      requestLiveData("profile", () => api.get("/profile", { params: withNoStoreParam() }).then((res) => unwrap(res.data)?.profile)),
-      getLiveArtworks({ limit: 500 }).then((res) => res.items),
-      requestLiveData("categories", () => api
-        .get("/artworks/categories", { params: withNoStoreParam() })
-        .then((res) => unwrap(res.data)?.categories || [])),
-    ]).then(([settings, profile, artworks, categories]) =>
-      normalizePortfolio({
-        generatedAt: new Date().toISOString(),
-        settings,
-        profile,
-        artworks,
-        categories,
-      })
-    );
-
-    try {
-      const staticPortfolio = await loadFallbackPortfolio();
-      requestLiveData("portfolio", loadLivePortfolio)
-        .then((live) => onLiveData?.(live))
-        .catch((error) => console.warn("Live public portfolio refresh failed.", error));
-      return staticPortfolio;
-    } catch (error) {
-      console.warn("Static public portfolio failed; using live fallback.", error);
-      const live = await requestLiveData("portfolio", loadLivePortfolio);
-      onLiveData?.(live);
-      return live;
-    }
-  },
+  getPortfolio: async ({ onLiveData, forceRefresh = false } = {}) =>
+    maybeNotify(onLiveData, await loadPortfolio({ forceRefresh })),
 
   getSettings: async ({ onLiveData } = {}) => {
-    try {
-      return await preferStaticData({
-        loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.settings),
-        loadLive: () => requestLiveData("settings", () => api
-          .get("/settings", { params: withNoStoreParam() })
-          .then((res) => unwrap(res.data)?.settings)
-          .then((settings) => {
-            if (!settings) throw new Error("Live settings response was invalid");
-            return settings;
-          })),
-        hasStaticData: Boolean,
-        onLiveData,
-        label: "settings",
-      });
-    } catch (error) {
-      console.warn("Live public settings failed; using static fallback.", error);
-      const portfolio = await loadFallbackPortfolio();
-      return portfolio.settings || null;
-    }
+    const portfolio = await loadPortfolio();
+    return maybeNotify(onLiveData, portfolio.settings);
   },
 
   getProfile: async ({ onLiveData } = {}) => {
-    try {
-      return await preferStaticData({
-        loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.profile),
-        loadLive: () => requestLiveData("profile", () => api
-          .get("/profile", { params: withNoStoreParam() })
-          .then((res) => unwrap(res.data)?.profile)
-          .then((profile) => {
-            if (!profile) throw new Error("Live profile response was invalid");
-            return profile;
-          })),
-        hasStaticData: Boolean,
-        onLiveData,
-        label: "profile",
-      });
-    } catch (error) {
-      console.warn("Live public profile failed; using static fallback.", error);
-      const portfolio = await loadFallbackPortfolio();
-      return portfolio.profile || null;
-    }
+    const portfolio = await loadPortfolio();
+    return maybeNotify(onLiveData, portfolio.profile);
   },
 
   getAbout: async ({ onLiveData } = {}) => {
-    try {
-      return await preferStaticData({
-        loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.about),
-        loadLive: () => api
-          .get("/about", { params: withNoStoreParam() })
-          .then((res) => unwrap(res.data)?.about)
-          .then((about) => {
-            if (!about) throw new Error("Live About page response was not published");
-            return about;
-          }),
-        hasStaticData: Boolean,
-        onLiveData,
-        label: "About page",
-      });
-    } catch (error) {
-      console.warn("Live public About page failed; using static fallback.", error);
-      const portfolio = await loadFallbackPortfolio();
-      return portfolio.about || null;
-    }
+    const portfolio = await loadPortfolio();
+    return maybeNotify(onLiveData, portfolio.about);
   },
 
   getArtworks: async (params = {}, { onLiveData } = {}) => {
-    try {
-      const staticData = await getFallbackArtworks(params);
-      getLiveArtworks(params)
-        .then((liveData) => onLiveData?.(liveData))
-        .catch((error) => {
-          console.warn("Live public artworks refresh failed; keeping static data.", error);
-        });
-      return staticData;
-    } catch (error) {
-      try {
-        const liveData = await getLiveArtworks(params);
-        onLiveData?.(liveData);
-        return liveData;
-      } catch (liveError) {
-        console.warn("Both static and live public artworks failed.", liveError);
-        throw error;
-      }
-    }
+    const portfolio = await loadPortfolio();
+    const result = {
+      ...queryPublicArtworks(portfolio.artworks, params),
+      source: portfolio.source || "memory",
+      isStale: false,
+      generatedAt: portfolio.generatedAt,
+      snapshotVersion: portfolio.snapshotVersion,
+    };
+    return maybeNotify(onLiveData, result);
   },
 
   getSearchSuggestions: async (query, limit = 8) => {
-    try {
-      const portfolio = await loadFallbackPortfolio();
-      return buildArtworkSearchSuggestions(portfolio.artworks, query, limit);
-    } catch {
-      const liveData = await getLiveArtworks({ search: query, page: 1, limit: Math.max(12, limit) });
-      return buildArtworkSearchSuggestions(liveData.items, query, limit);
-    }
+    const portfolio = await loadPortfolio();
+    return buildArtworkSearchSuggestions(portfolio.artworks, query, limit);
   },
 
   getArtworkById: async (id, { onLiveData } = {}) => {
-    try {
-      return await preferStaticData({
-        loadStatic: () => loadFallbackPortfolio().then(
-          (portfolio) => portfolio.artworks.find(
-            (artwork) => artwork._id === id || artwork.slug === id
-          ) || null
-        ),
-        loadLive: () => requestLiveData(`artwork:${id}`, () => api
-          .get(`/artworks/${id}`, { params: withNoStoreParam() })
-          .then((res) => normalizeArtwork(unwrap(res.data)?.artwork))
-          .then((item) => {
-            if (!item) throw new Error("Live artwork response was invalid");
-            return item;
-          })),
-        hasStaticData: Boolean,
-        onLiveData,
-        label: "artwork detail",
-      });
-    } catch (error) {
-      if (error.response?.status === 404) return null;
-      console.warn("Live public artwork detail failed; using static fallback.", error);
-      const portfolio = await loadFallbackPortfolio();
-      return portfolio.artworks.find((artwork) => artwork._id === id || artwork.slug === id) || null;
-    }
+    const portfolio = await loadPortfolio();
+    const artwork = portfolio.artworks.find((item) => item._id === id || item.slug === id) || null;
+    return maybeNotify(onLiveData, artwork);
   },
 
-  getArtworkNeighbors: async (id) => api
-    .get(`/artworks/${encodeURIComponent(id)}/neighbors`, { params: withNoStoreParam(), timeout: 4500 })
-    .then((response) => ({
-      previous: normalizeArtwork(unwrap(response.data)?.previous),
-      next: normalizeArtwork(unwrap(response.data)?.next),
-    })),
+  getArtworkNeighbors: async (id) => {
+    const portfolio = await loadPortfolio();
+    const index = portfolio.artworks.findIndex((artwork) => artwork._id === id);
+    if (index < 0) return { previous: null, next: null };
+    return {
+      previous: portfolio.artworks[index + 1] || null,
+      next: portfolio.artworks[index - 1] || null,
+    };
+  },
 
   getCategories: async ({ onLiveData } = {}) => {
-    try {
-      return await preferStaticData({
-        loadStatic: () => loadFallbackPortfolio().then((portfolio) => portfolio.categories),
-        loadLive: () => requestLiveData("categories", () => api
-          .get("/artworks/categories", { params: withNoStoreParam() })
-          .then((res) => unwrap(res.data)?.categories || [])
-          .then((items) => items.filter(Boolean).sort())),
-        hasStaticData: (categories) => categories.length > 0,
-        onLiveData,
-        label: "categories",
-      });
-    } catch (error) {
-      console.warn("Live public categories failed; using static fallback.", error);
-      const portfolio = await loadFallbackPortfolio();
-      return portfolio.categories;
-    }
+    const portfolio = await loadPortfolio();
+    return maybeNotify(onLiveData, portfolio.categories);
+  },
+
+  retry: async () => {
+    forceNextRefresh = true;
+    return loadPortfolio({ forceRefresh: true });
   },
 };

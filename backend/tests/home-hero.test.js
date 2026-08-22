@@ -121,7 +121,7 @@ test("Cloudinary deletion ownership excludes artwork, About, and unrelated image
   }).publicId, "artist-portfolio/home/dedicated-photo");
 });
 
-test("Home Hero routes cover upload, artwork selection, removal, replacement, and rebuilds", () => {
+test("Home Hero routes cover upload, artwork selection, removal, replacement, and public sync", () => {
   const routes = source("routes/settings.js");
   const cloudinary = source("config/cloudinary.js");
   const snapshot = source("utils/publicSnapshot.js");
@@ -131,8 +131,8 @@ test("Home Hero routes cover upload, artwork selection, removal, replacement, an
   assert.match(routes, /values\.heroBackgroundSource === "artwork"/);
   assert.match(routes, /values\.heroBackgroundSource === "none"/);
   assert.match(routes, /previousUpload\.publicId !== newUpload\.publicId/);
-  assert.match(routes, /triggerStaticRebuild\("home-hero-updated"\)/);
-  assert.match(routes, /triggerStaticRebuild\("home-hero-image-updated"\)/);
+  assert.match(routes, /syncPublicData\("home-hero-updated"\)/);
+  assert.match(routes, /syncPublicData\("home-hero-image-updated"\)/);
   assert.match(cloudinary, /folder: "artist-portfolio\/home"/);
   assert.match(cloudinary, /fileSize: 12 \* 1024 \* 1024/);
   assert.match(cloudinary, /ARTWORK_IMAGE_MIME_TYPES\.has\(file\.mimetype\)/);

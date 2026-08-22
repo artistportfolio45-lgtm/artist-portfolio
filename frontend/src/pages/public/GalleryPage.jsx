@@ -60,7 +60,6 @@ const GalleryPage = () => {
     },
   }), [availability, category, collection, decade, location.pathname, location.search, medium, page, search, sortValue, year]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [dataSource, setDataSource] = useState("loading");
   const requestIdRef = useRef(0);
   const mountedRef = useRef(true);
   const gridRef = useRef(null);
@@ -82,13 +81,11 @@ const GalleryPage = () => {
       return [...current.filter((artwork) => !incomingIds.has(artwork._id)), ...incoming];
     });
     setPagination(result.pagination || {});
-    setDataSource(result.isStale ? "static" : "live");
   }, []);
 
   const fetchArtworks = useCallback(async (requestedPage = page) => {
     const requestId = ++requestIdRef.current;
     const append = appendPageRef.current === requestedPage;
-    let liveApplied = false;
     requestedPage === 1 ? setLoading(true) : setLoadingPage(true);
     setError("");
     const [sort, order] = sortValue.split("-");
@@ -103,14 +100,9 @@ const GalleryPage = () => {
       if (year) params.year = year;
       if (decade && !year) params.decade = decade;
 
-      const result = await publicDataAPI.getArtworks(params, {
-        onLiveData: (liveResult) => {
-          liveApplied = true;
-          if (requestId === requestIdRef.current) applyResult(liveResult, append);
-        },
-      });
+      const result = await publicDataAPI.getArtworks(params);
       if (requestId !== requestIdRef.current) return;
-      if (!liveApplied || result.source === "live") applyResult(result, append);
+      applyResult(result, append);
     } catch {
       if (requestId !== requestIdRef.current) return;
       setError("The gallery could not be loaded. Please try again.");
@@ -126,7 +118,7 @@ const GalleryPage = () => {
   }, [applyResult, availability, category, collection, decade, medium, page, search, sortValue, year]);
 
   useEffect(() => {
-    publicDataAPI.getCategories({ onLiveData: setCategories })
+    publicDataAPI.getCategories()
       .then(setCategories)
       .catch(() => setCategories([]));
   }, []);

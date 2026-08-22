@@ -170,7 +170,7 @@ const BulkArtworkUploadPage = () => {
     data.append("images", await optimizeImage(item.file));
 
     try {
-      const response = await artworkAPI.bulkUpload(data, { params: { deferRebuild: true } });
+      const response = await artworkAPI.bulkUpload(data, { params: { deferPublicSync: true } });
       const result = response.data.results?.[0];
       if (result?.status === "successful") {
         updateItem(item.id, { status: "success", artworkId: result.artwork?._id || "", error: "" });
@@ -211,7 +211,7 @@ const BulkArtworkUploadPage = () => {
           setUploadState("stopped");
         } else setUploadState("paused");
         if (uploadControlRef.current.stop && latest.some((item) => item.status === "success")) {
-          try { await publicSnapshotAPI.rebuild("bulk-upload-stopped"); } catch { toast.error("Uploads are saved, but the public gallery refresh could not be started."); }
+          try { await publicSnapshotAPI.sync("bulk-upload-stopped"); } catch { toast.error("Artwork changes were saved, but public Gallery synchronization failed."); }
         }
         return;
       }
@@ -229,9 +229,9 @@ const BulkArtworkUploadPage = () => {
       }
       if (latest.some((item) => item.status === "success")) {
         try {
-          await publicSnapshotAPI.rebuild("bulk-upload-completed");
+          await publicSnapshotAPI.sync("bulk-upload-completed");
         } catch {
-          toast.error("Uploads are saved, but the public gallery refresh could not be started.");
+          toast.error("Artwork changes were saved, but public Gallery synchronization failed.");
         }
       }
       toast.success("Upload processing complete.");

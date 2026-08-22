@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../shared/AuthContext";
 import toast from "react-hot-toast";
+import { publicSnapshotAPI } from "../../services/api";
+import { clearPublicSyncFailure, subscribeToPublicSyncFailure } from "../../services/publicSyncStatus";
 
 const NAV_ITEMS = [
   { to: "/admin/dashboard", label: "Dashboard" },
@@ -20,6 +22,23 @@ const AdminLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [publicSyncFailure, setPublicSyncFailure] = useState(null);
+  const [retryingPublicSync, setRetryingPublicSync] = useState(false);
+
+  useEffect(() => subscribeToPublicSyncFailure(setPublicSyncFailure), []);
+
+  const retryPublicSync = async () => {
+    setRetryingPublicSync(true);
+    try {
+      await publicSnapshotAPI.sync("admin-retry-public-sync");
+      clearPublicSyncFailure();
+      toast.success("Public Gallery synchronized");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Public Gallery synchronization failed");
+    } finally {
+      setRetryingPublicSync(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -50,6 +69,14 @@ const AdminLayout = ({ children }) => {
 
       <div className="px-4 py-4 border-t border-white/10">
         <p className="text-white/40 text-xs mb-3 truncate">{user?.email}</p>
+        <button
+          type="button"
+          onClick={retryPublicSync}
+          disabled={retryingPublicSync}
+          className="mb-3 w-full border border-white/20 px-3 py-2 text-left text-xs font-label uppercase tracking-wider text-white/70 transition-colors hover:border-white/50 hover:text-white disabled:cursor-wait disabled:opacity-50"
+        >
+          {retryingPublicSync ? "Synchronizing…" : "Sync Public Data"}
+        </button>
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors w-full"
@@ -96,6 +123,14 @@ const AdminLayout = ({ children }) => {
         </div>
 
         <main className="flex-1 overflow-y-auto bg-gray-50">
+          {publicSyncFailure && (
+            <div className="sticky top-0 z-30 flex flex-col gap-3 border-b border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between" role="alert">
+              <p>{publicSyncFailure.message}</p>
+              <button type="button" className="btn-secondary flex-none" onClick={retryPublicSync} disabled={retryingPublicSync}>
+                {retryingPublicSync ? "Retrying…" : "Retry Public Sync"}
+              </button>
+            </div>
+          )}
           {children}
         </main>
       </div>

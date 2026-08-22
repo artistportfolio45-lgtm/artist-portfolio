@@ -13,7 +13,7 @@ const {
   cloudinary,
   getCloudinaryFileInfo,
 } = require("../config/cloudinary");
-const { triggerStaticRebuild } = require("../utils/staticRebuild");
+const { syncPublicData } = require("../utils/publicDataSync");
 const { cleanTextList, sanitizePublicArtwork } = require("../utils/publicArtwork");
 const {
   MAX_SEARCH_QUERY_LENGTH,
@@ -99,34 +99,38 @@ const deleteCloudinaryImages = async (publicIds) => {
     .filter(Boolean);
   return { failures, deleted: uniquePublicIds.length - failures.length };
 };
-const safeTriggerStaticRebuild = async (reason) => {
+const safeSyncPublicData = async (reason) => {
   try {
-    return await triggerStaticRebuild(reason);
+    return await syncPublicData(reason);
   } catch (error) {
-    console.error("Static rebuild scheduling failed:", {
+    console.error("Public Gallery synchronization failed:", {
       reason,
       name: error?.name,
       message: error?.message,
     });
-    return { triggered: false, message: "Static rebuild scheduling failed" };
+    return { success: false, message: "Artwork changes were saved, but public Gallery synchronization failed." };
   }
 };
 const deleteArtworkForJob = async (id) => {
   const artwork = await Artwork.findById(id);
   if (!artwork) return { status: "missing" };
-  const cloudinaryCleanup = await deleteCloudinaryImages(imagePublicIdsFor([artwork]));
-  if (cloudinaryCleanup.failures.length) {
-    const error = new Error("Cloudinary cleanup failed");
-    error.publicMessage = "Cloudinary image deletion failed; the artwork record was kept";
-    throw error;
-  }
+  const publicIds = imagePublicIdsFor([artwork]);
   try {
     await artwork.deleteOne();
   } catch (error) {
-    error.publicMessage = "Artwork images were removed, but its database record could not be deleted";
+    error.publicMessage = "Artwork database record could not be deleted; its images were kept";
     throw error;
   }
-  return { status: "deleted" };
+  return { status: "deleted", cleanup: { publicIds } };
+};
+const cleanupDeletedArtworkImages = async ({ publicIds = [] } = {}) => {
+  const result = await deleteCloudinaryImages(publicIds);
+  if (result.failures.length) {
+    const error = new Error("Cloudinary cleanup failed");
+    error.publicMessage = "Artwork was removed from the Gallery, but one or more Cloudinary images could not be deleted";
+    throw error;
+  }
+  return result;
 };
 const validateBulkDeleteIds = (body) => {
   if (!body || typeof body !== "object") {
@@ -511,9 +515,9 @@ router.post(
 
     const successful = results.filter((item) => item.status === "successful").length;
     const failed = results.length - successful;
-    const staticRebuild = successful > 0 && req.query.deferRebuild !== "true"
-      ? await triggerStaticRebuild("artwork-bulk-uploaded")
-      : { triggered: false, message: successful > 0 ? "Static rebuild deferred" : "No successful artwork changes" };
+    const publicSync = successful > 0 && req.query.deferPublicSync !== "true"
+      ? await safeSyncPublicData("artwork-bulk-uploaded")
+      : { success: successful === 0, deferred: successful > 0, message: successful > 0 ? "Public sync deferred" : "No successful artwork changes" };
     res.status(failed ? 207 : 201).json({
       success: failed === 0,
       message: failed ? "Some artworks could not be uploaded" : "Artworks uploaded",
@@ -521,7 +525,7 @@ router.post(
       successful,
       failed,
       results,
-      staticRebuild,
+      publicSync,
     });
   }
 );
@@ -575,26 +579,7 @@ router.delete("/bulk", protect, adminOnly, async (req, res) => {
       });
     }
 
-    console.log("[artworks:bulk-delete] deleting Cloudinary images", {
-      artworkCount: artworks.length,
-      publicIdCount: imagePublicIdsFor(artworks).length,
-    });
-    const cloudinaryCleanup = await deleteCloudinaryImages(imagePublicIdsFor(artworks));
-    if (cloudinaryCleanup.failures.length) {
-      console.error("[artworks:bulk-delete] Cloudinary cleanup failed", {
-        failureCount: cloudinaryCleanup.failures.length,
-        deletedCount: cloudinaryCleanup.deleted,
-      });
-      return res.status(502).json({
-        success: false,
-        message: "Could not delete all associated Cloudinary images. No artwork records were deleted.",
-        failures: cloudinaryCleanup.failures,
-      });
-    }
-    console.log("[artworks:bulk-delete] Cloudinary cleanup complete", {
-      deletedCount: cloudinaryCleanup.deleted,
-    });
-
+    const publicIds = imagePublicIdsFor(artworks);
     const deleteResult = await deleteArtworkDocumentsByIds(ids);
     console.log("[artworks:bulk-delete] MongoDB delete complete", {
       requestedCount: ids.length,
@@ -604,17 +589,34 @@ router.delete("/bulk", protect, adminOnly, async (req, res) => {
     if (deleteResult.deletedCount !== ids.length) {
       return res.status(500).json({
         success: false,
-        message: "Cloudinary images were removed, but not every artwork record could be deleted. Please check the artwork list.",
+        message: "Not every artwork record could be deleted. Cloudinary images were kept.",
         deletedCount: deleteResult.deletedCount,
         requestedCount: ids.length,
       });
     }
 
-    await safeTriggerStaticRebuild("artwork-bulk-deleted");
-    res.json({
-      success: true,
-      message: `${ids.length} artworks deleted successfully`,
+    const publicSync = await safeSyncPublicData("artwork-bulk-deleted");
+    if (!publicSync.success) {
+      return res.status(207).json({
+        success: false,
+        partial: true,
+        message: publicSync.message,
+        deletedCount: ids.length,
+        publicSync,
+        cloudinaryCleanup: { skipped: true, reason: "Public data was not synchronized" },
+      });
+    }
+    const cloudinaryCleanup = await deleteCloudinaryImages(publicIds);
+    const cleanupFailed = cloudinaryCleanup.failures.length > 0;
+    res.status(cleanupFailed ? 207 : 200).json({
+      success: !cleanupFailed,
+      partial: cleanupFailed,
+      message: cleanupFailed
+        ? `${ids.length} artworks were removed from the Gallery, but some image cleanup failed.`
+        : `${ids.length} artworks deleted successfully`,
       deletedCount: ids.length,
+      publicSync,
+      cloudinaryCleanup,
     });
   } catch (error) {
     console.error("Bulk artwork deletion failed:", error);
@@ -643,7 +645,8 @@ router.post("/deletion-jobs", protect, adminOnly, async (req, res) => {
     ids: validation.ids,
     requestedBy: req.user._id,
     deleteArtwork: deleteArtworkForJob,
-    rebuild: () => safeTriggerStaticRebuild("artwork-deletion-job-finalized"),
+    sync: () => safeSyncPublicData("artwork-deletion-job-finalized"),
+    cleanup: cleanupDeletedArtworkImages,
   });
   setImmediate(() => {
     startArtworkDeletionJob(job.id)?.catch((error) => {
@@ -663,26 +666,6 @@ router.post("/deletion-jobs/:jobId/cancel", protect, adminOnly, (req, res) => {
   const job = cancelArtworkDeletionJob(req.params.jobId, req.user._id);
   if (!job) return res.status(404).json({ success: false, message: "Deletion job not found" });
   return res.json({ success: true, job });
-});
-
-// @route   POST /api/artworks/rebuild
-// @desc    Manually schedule a public gallery rebuild from admin tools
-// @access  Private/Admin
-router.post("/rebuild", protect, adminOnly, async (req, res) => {
-  const staticRebuild = await safeTriggerStaticRebuild(req.body?.reason || "manual-admin-rebuild");
-  if (!staticRebuild.triggered) {
-    return res.status(202).json({
-      success: true,
-      message: "Public gallery rebuild could not be scheduled.",
-      staticRebuild,
-    });
-  }
-
-  return res.json({
-    success: true,
-    message: "Public gallery rebuild scheduled.",
-    staticRebuild,
-  });
 });
 
 // @route   GET /api/artworks/upload-status/:clientUploadId
@@ -880,8 +863,8 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
     }
     const artwork = await Artwork.create(draftArtwork);
 
-    const staticRebuild = await triggerStaticRebuild("artwork-created");
-    res.status(201).json({ success: true, message: "Artwork created", artwork, staticRebuild });
+    const publicSync = await safeSyncPublicData("artwork-created");
+    res.status(201).json({ success: true, message: "Artwork created", artwork, publicSync });
   } catch (error) {
     if (error?.code === 11000 && error?.keyPattern?.clientUploadId && req.body?.clientUploadId) {
       const existing = await Artwork.findOne({ clientUploadId: req.body.clientUploadId });
@@ -953,8 +936,8 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
       if (publishingErrors.length) return res.status(400).json({ success: false, message: publishingErrors[0], errors: publishingErrors });
     }
     await artwork.save();
-    const staticRebuild = await triggerStaticRebuild("artwork-updated");
-    res.json({ success: true, message: "Artwork updated", artwork, staticRebuild });
+    const publicSync = await safeSyncPublicData("artwork-updated");
+    res.json({ success: true, message: "Artwork updated", artwork, publicSync });
   } catch (error) {
     console.error("Update artwork error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -980,8 +963,8 @@ router.post("/:id/images", protect, adminOnly, uploadArtwork.array("images", 10)
     artwork.images.push(...newImages);
     await artwork.save();
 
-    const staticRebuild = await triggerStaticRebuild("artwork-images-added");
-    res.json({ success: true, message: "Images added", artwork, staticRebuild });
+    const publicSync = await safeSyncPublicData("artwork-images-added");
+    res.json({ success: true, message: "Images added", artwork, publicSync });
   } catch (error) {
     console.error("Add images error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -1001,15 +984,29 @@ router.delete("/:id/images/:publicId", protect, adminOnly, async (req, res) => {
     // URL-decode the publicId (Cloudinary IDs may contain slashes)
     const publicId = decodeURIComponent(req.params.publicId);
 
-    // Delete from Cloudinary
-    await cloudinary.uploader.destroy(publicId);
-
-    // Remove from images array
+    // Remove the image from public data before permanently deleting its asset.
     artwork.images = artwork.images.filter((img) => img.publicId !== publicId);
     await artwork.save();
-
-    const staticRebuild = await triggerStaticRebuild("artwork-image-removed");
-    res.json({ success: true, message: "Image removed", artwork, staticRebuild });
+    const publicSync = await safeSyncPublicData("artwork-image-removed");
+    if (!publicSync.success) {
+      return res.status(207).json({
+        success: false,
+        partial: true,
+        message: publicSync.message,
+        artwork,
+        publicSync,
+        cloudinaryCleanup: { skipped: true },
+      });
+    }
+    const cloudinaryCleanup = await deleteCloudinaryImages([publicId]);
+    res.status(cloudinaryCleanup.failures.length ? 207 : 200).json({
+      success: cloudinaryCleanup.failures.length === 0,
+      partial: cloudinaryCleanup.failures.length > 0,
+      message: cloudinaryCleanup.failures.length ? "Image was removed from the Gallery, but Cloudinary cleanup failed" : "Image removed",
+      artwork,
+      publicSync,
+      cloudinaryCleanup,
+    });
   } catch (error) {
     console.error("Delete image error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -1027,21 +1024,28 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
       return res.status(404).json({ success: false, message: "Artwork not found" });
     }
 
-    const cloudinaryCleanup = await deleteCloudinaryImages(imagePublicIdsFor([artwork]));
-    if (cloudinaryCleanup.failures.length) {
-      return res.status(502).json({
+    const publicIds = imagePublicIdsFor([artwork]);
+    await artwork.deleteOne();
+    const publicSync = await safeSyncPublicData("artwork-deleted");
+    if (!publicSync.success) {
+      return res.status(207).json({
         success: false,
-        message: "Could not delete all associated Cloudinary images. Artwork record was not deleted.",
-        failures: cloudinaryCleanup.failures,
+        partial: true,
+        message: publicSync.message,
+        publicSync,
+        cloudinaryCleanup: { skipped: true },
       });
     }
-
-    await artwork.deleteOne();
-
-    const staticRebuild = req.query.deferRebuild === "true"
-      ? { triggered: false, message: "Static rebuild deferred" }
-      : await safeTriggerStaticRebuild("artwork-deleted");
-    res.json({ success: true, message: "Artwork deleted", staticRebuild });
+    const cloudinaryCleanup = await deleteCloudinaryImages(publicIds);
+    res.status(cloudinaryCleanup.failures.length ? 207 : 200).json({
+      success: cloudinaryCleanup.failures.length === 0,
+      partial: cloudinaryCleanup.failures.length > 0,
+      message: cloudinaryCleanup.failures.length
+        ? "Artwork was removed from the Gallery, but some Cloudinary images could not be deleted"
+        : "Artwork deleted",
+      publicSync,
+      cloudinaryCleanup,
+    });
   } catch (error) {
     console.error("Delete artwork error:", error);
     res.status(500).json({ success: false, message: "Server error" });

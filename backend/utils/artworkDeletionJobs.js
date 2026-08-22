@@ -33,6 +33,8 @@ const publicJob = (job) => {
   const cancelled = count("cancelled");
   const deleting = count("deleting");
   const queued = count("queued");
+  const cleanupFailed = job.items.filter((item) => item.status === "deleted" && item.cleanupError).length;
+  const cleanupPending = job.items.filter((item) => item.status === "deleted" && item.cleanup && !item.cleanupComplete).length;
   const finished = deleted + missing + failed + cancelled;
   return {
     id: job.id,
@@ -47,10 +49,12 @@ const publicJob = (job) => {
     queued,
     remaining: deleting + queued,
     percentage: job.items.length ? Math.round((finished / job.items.length) * 100) : 100,
-    rebuild: { ...job.rebuild },
+    cleanupFailed,
+    cleanupPending,
+    publicSync: { ...job.publicSync },
     createdAt: job.createdAt,
     finishedAt: job.finishedAt,
-    items: job.items.map(({ id, status, error }) => ({ id, status, error })),
+    items: job.items.map(({ id, status, error, cleanupError }) => ({ id, status, error: error || cleanupError || "" })),
     retryIds: job.items.filter((item) => ["failed", "cancelled"].includes(item.status)).map((item) => item.id),
   };
 };
@@ -60,7 +64,7 @@ const scheduleCleanup = (jobId) => {
   timer.unref?.();
 };
 
-const createArtworkDeletionJob = ({ ids, requestedBy, deleteArtwork, rebuild }) => {
+const createArtworkDeletionJob = ({ ids, requestedBy, deleteArtwork, sync, cleanup }) => {
   const uniqueIds = [...new Set(ids.map(String))];
   const job = {
     id: crypto.randomUUID(),
@@ -69,14 +73,15 @@ const createArtworkDeletionJob = ({ ids, requestedBy, deleteArtwork, rebuild }) 
     cancelRequested: false,
     started: 0,
     items: uniqueIds.map((id) => ({ id, status: "queued", error: "" })),
-    rebuild: { status: "pending", message: "" },
+    publicSync: { status: "pending", message: "" },
     createdAt: new Date().toISOString(),
     finishedAt: null,
     runPromise: null,
   };
-  // Keep callbacks separate from the public rebuild result.
+  // Keep callbacks separate from the public job result.
   job.runDelete = deleteArtwork;
-  job.runRebuild = rebuild;
+  job.runSync = sync;
+  job.runCleanup = cleanup;
   jobs.set(job.id, job);
   return publicJob(job);
 };
@@ -100,6 +105,8 @@ const runItem = async (job, item) => {
   try {
     const result = await job.runDelete(item.id);
     item.status = result?.status === "missing" ? "missing" : "deleted";
+    item.cleanup = result?.cleanup || null;
+    item.cleanupComplete = !item.cleanup;
   } catch (error) {
     item.status = "failed";
     item.error = error?.publicMessage || "Artwork deletion failed";
@@ -128,28 +135,53 @@ const finalizeJob = async (job) => {
   job.items.forEach((item) => {
     if (item.status === "queued") item.status = job.cancelRequested ? "cancelled" : "failed";
   });
-  const beforeRebuild = publicJob(job);
+  const beforeSync = publicJob(job);
   const finalState = job.cancelRequested
     ? "stopped"
-    : beforeRebuild.failed
+    : beforeSync.failed
       ? "completed_with_errors"
       : "completed";
   job.state = "finalizing";
 
-  if (beforeRebuild.deleted > 0 && job.runRebuild) {
-    job.rebuild = { status: "running", message: "" };
+  if (beforeSync.deleted > 0 && job.runSync) {
+    job.publicSync = { status: "running", message: "" };
     try {
-      const outcome = await job.runRebuild();
-      job.rebuild = outcome?.triggered === false
-        ? { status: "failed", message: outcome.message || "Public rebuild was not scheduled" }
-        : { status: "scheduled", message: "" };
+      const outcome = await job.runSync();
+      job.publicSync = outcome?.success === false
+        ? { status: "failed", message: outcome.message || "Public Gallery synchronization failed" }
+        : { status: "synced", message: "", ...outcome };
     } catch {
-      job.rebuild = { status: "failed", message: "Public rebuild was not scheduled" };
+      job.publicSync = { status: "failed", message: "Public Gallery synchronization failed" };
     }
   } else {
-    job.rebuild = { status: "not_needed", message: "" };
+    job.publicSync = { status: "not_needed", message: "" };
   }
-  job.state = finalState;
+
+  if (job.publicSync.status === "synced" && job.runCleanup) {
+    let cleanupIndex = 0;
+    const cleanupItems = job.items.filter((item) => item.status === "deleted" && item.cleanup);
+    const cleanupWorker = async () => {
+      while (cleanupIndex < cleanupItems.length) {
+        const item = cleanupItems[cleanupIndex];
+        cleanupIndex += 1;
+        try {
+          await job.runCleanup(item.cleanup);
+          item.cleanupComplete = true;
+        } catch (error) {
+          item.cleanupError = error?.publicMessage || "Artwork was removed, but image cleanup failed";
+          item.cleanupComplete = true;
+        }
+      }
+    };
+    await Promise.all(Array.from(
+      { length: Math.min(ARTWORK_DELETION_CONCURRENCY, cleanupItems.length) },
+      cleanupWorker
+    ));
+  }
+  const afterCleanup = publicJob(job);
+  job.state = finalState === "completed" && (afterCleanup.cleanupFailed || job.publicSync.status === "failed")
+    ? "completed_with_errors"
+    : finalState;
   job.finishedAt = new Date().toISOString();
   scheduleCleanup(job.id);
   return publicJob(job);

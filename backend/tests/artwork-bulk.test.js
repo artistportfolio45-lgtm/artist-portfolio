@@ -11,9 +11,9 @@ test("bulk artwork route is registered before the artwork id route", () => {
     .filter((layer) => layer.route)
     .map((layer) => layer.route.path);
   assert.ok(paths.includes("/bulk"));
-  assert.ok(paths.includes("/rebuild"));
   assert.ok(paths.indexOf("/bulk") < paths.indexOf("/:id"));
-  assert.ok(paths.indexOf("/rebuild") < paths.indexOf("/:id"));
+  assert.ok(paths.includes("/deletion-jobs"));
+  assert.ok(paths.indexOf("/deletion-jobs") < paths.indexOf("/:id"));
 });
 
 test("DELETE /bulk is claimed by the bulk route before the dynamic id route can match it", () => {
@@ -24,19 +24,12 @@ test("DELETE /bulk is claimed by the bulk route before the dynamic id route can 
   assert.deepEqual(matchingDeleteRoutes.slice(0, 2), ["/bulk", "/:id"]);
 });
 
-test("fixed artwork rebuild route is registered before the dynamic id route", () => {
-  const matchingPostRoutes = artworkRouter.stack
-    .filter((layer) => layer.route?.methods?.post && layer.match("/rebuild"))
-    .map((layer) => layer.route.path);
-  const routes = artworkRouter.stack.filter((layer) => layer.route);
-  const rebuildRoute = routes.find((layer) => layer.route.path === "/rebuild" && layer.route.methods.post);
-  const dynamicImageRoute = routes.find((layer) => layer.route.path === "/:id/images" && layer.route.methods.post);
-
-  assert.equal(matchingPostRoutes[0], "/rebuild");
-  assert.ok(routes.indexOf(rebuildRoute) < routes.indexOf(dynamicImageRoute));
+test("artwork routes contain no content deployment endpoint", () => {
+  const paths = artworkRouter.stack.filter((layer) => layer.route).map((layer) => layer.route.path);
+  assert.ok(!paths.includes("/rebuild"));
 });
 
-test("bulk artwork delete route validates ids and cleans up Cloudinary before MongoDB", () => {
+test("bulk artwork delete updates MongoDB and Blob before Cloudinary cleanup", () => {
   const routes = artworkRouter.stack.filter((layer) => layer.route);
   const bulkDelete = routes.find((layer) => layer.route.path === "/bulk" && layer.route.methods.delete);
   const idRoute = routes.find((layer) => layer.route.path === "/:id");
@@ -46,11 +39,14 @@ test("bulk artwork delete route validates ids and cleans up Cloudinary before Mo
   const source = fs.readFileSync(path.resolve(__dirname, "../routes/artworks.js"), "utf8");
   assert.match(source, /router\.delete\("\/bulk", protect, adminOnly/);
   assert.match(source, /mongoose\.isValidObjectId/);
-  assert.match(source, /deleteCloudinaryImages\(imagePublicIdsFor\(artworks\)\)/);
-  assert.match(source, /No artwork records were deleted/);
+  assert.match(source, /const publicIds = imagePublicIdsFor\(artworks\)/);
   assert.match(source, /Artwork\.deleteMany/);
   assert.match(source, /withTransaction/);
-  assert.match(source, /safeTriggerStaticRebuild\("artwork-bulk-deleted"\)/);
+  assert.match(source, /safeSyncPublicData\("artwork-bulk-deleted"\)/);
+  const mongoIndex = source.indexOf("const deleteResult = await deleteArtworkDocumentsByIds(ids)");
+  const syncIndex = source.indexOf('safeSyncPublicData("artwork-bulk-deleted")');
+  const cloudinaryIndex = source.indexOf("deleteCloudinaryImages(publicIds)", syncIndex);
+  assert.ok(mongoIndex < syncIndex && syncIndex < cloudinaryIndex);
   assert.match(source, /artwork-bulk-deleted/);
 });
 
