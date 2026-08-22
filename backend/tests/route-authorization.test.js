@@ -9,6 +9,9 @@ test("state-changing admin routes require the admin authorization middleware", (
   const checks = [
     ["artworks.js", 'router.put("/:id", protect, adminOnly'],
     ["artworks.js", 'router.delete("/:id/images/:publicId", protect, adminOnly'],
+    ["artworks.js", 'router.post("/deletion-jobs", protect, adminOnly'],
+    ["artworks.js", 'router.get("/deletion-jobs/:jobId", protect, adminOnly'],
+    ["artworks.js", 'router.post("/deletion-jobs/:jobId/cancel", protect, adminOnly'],
     ["profile.js", 'router.put("/", protect, adminOnly'],
     ["settings.js", 'router.put("/", protect, adminOnly'],
     ["settings.js", 'router.put("/home", protect, adminOnly'],

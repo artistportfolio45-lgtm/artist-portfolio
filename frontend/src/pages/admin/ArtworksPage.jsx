@@ -7,6 +7,7 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import { artworkAPI, publicSnapshotAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
+import { BULK_DELETE_CONCURRENCY, createBulkArtworkDeletion } from "../../utils/bulkArtworkDeletion";
 
 const PAGE_SIZE = 10;
 const DELETE_SESSION_KEY = "artworkDeleteSession.v1";
@@ -31,7 +32,9 @@ const ArtworksPage = () => {
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const selectAllRef = useRef(null);
   const bulkDeleteLockRef = useRef(false);
-  const deleteControlRef = useRef({ pause: false, stop: false });
+  const bulkDeleteJobRef = useRef(null);
+
+  useEffect(() => () => bulkDeleteJobRef.current?.stop(), []);
 
   useEffect(() => {
     if (selectedIds.size) localStorage.setItem(DELETE_SESSION_KEY, JSON.stringify([...selectedIds]));
@@ -172,64 +175,32 @@ const ArtworksPage = () => {
     if (!ids.length || bulkDeleteLockRef.current) return;
     bulkDeleteLockRef.current = true;
     setBulkDeleting(true);
-    setBulkDeleteState("running");
-    deleteControlRef.current = { pause: false, stop: false };
     setDeleteSummary(null);
     setConfirmBulkDelete(false);
-    let deleted = 0;
-    const failedIds = new Set();
-
-    for (let index = 0; index < ids.length; index += 1) {
-      if (deleteControlRef.current.pause || deleteControlRef.current.stop) break;
-      const id = ids[index];
-      setDeleteProgress({ current: index + 1, total: ids.length, completed: deleted, failed: failedIds.size, pending: ids.length - index, stopped: 0 });
-      try {
-        await artworkAPI.delete(id, { params: { deferRebuild: true } });
-        deleted += 1;
-        setArtworks((prev) => prev.filter((artwork) => artwork._id !== id));
-        setSelectedIds((current) => {
-          const next = new Set(current);
-          next.delete(id);
-          return next;
-        });
-      } catch (error) {
-        failedIds.add(id);
-        console.error("Bulk artwork deletion item failed:", error);
-      }
-    }
-
-    const interrupted = deleteControlRef.current.pause || deleteControlRef.current.stop;
-    const pending = ids.length - deleted - failedIds.size;
-    if (interrupted) {
-      setDeleteProgress({
-        current: deleted + failedIds.size,
-        total: ids.length,
-        completed: deleted,
-        failed: failedIds.size,
-        pending,
-        stopped: deleteControlRef.current.stop ? pending : 0,
-      });
-    }
+    const job = createBulkArtworkDeletion({
+      ids,
+      concurrency: BULK_DELETE_CONCURRENCY,
+      deleteArtwork: (id, { signal }) => artworkAPI.delete(id, { params: { deferRebuild: true }, signal }),
+      rebuild: () => publicSnapshotAPI.rebuild("artwork-bulk-deleted"),
+      refresh: fetchArtworks,
+      onUpdate: (progress) => { setBulkDeleteState(progress.state); setDeleteProgress(progress); },
+      onDeleted: (id) => {
+        setArtworks((current) => current.filter((artwork) => artwork._id !== id));
+        setSelectedIds((current) => { const next = new Set(current); next.delete(id); return next; });
+      },
+    });
+    bulkDeleteJobRef.current = job;
     try {
-      if (deleted > 0) await publicSnapshotAPI.rebuild("artwork-bulk-deleted");
-    } catch (error) {
-      console.error("Bulk artwork static rebuild failed:", error);
-      toast("Artworks deleted, but public gallery rebuild could not be scheduled.");
-    }
-    await fetchArtworks();
-    if (!interrupted) setDeleteProgress(null);
-    setDeleteSummary({ deleted, failed: failedIds.size });
-    setBulkDeleting(interrupted);
-    setBulkDeleteState(interrupted ? (deleteControlRef.current.stop ? "stopped" : "paused") : "idle");
-    bulkDeleteLockRef.current = false;
-    if (interrupted) {
-      toast(`Delete ${deleteControlRef.current.stop ? "stopped" : "paused"}: ${deleted} completed, ${failedIds.size} failed, ${pending} pending.`, { icon: "⏸" });
-    } else if (failedIds.size) {
-      toast.error(`${deleted} deleted, ${failedIds.size} failed. Failed artworks remain selected.`);
-    } else {
-      setSelectionMode(false);
-      setSelectedIds(new Set());
-      toast.success(`${deleted} ${deleted === 1 ? "artwork" : "artworks"} deleted successfully.`);
+      const result = await job.start();
+      setDeleteSummary(result);
+      if (result.rebuildFailed) toast("Artworks deleted, but public gallery rebuild could not be scheduled.");
+      if (result.state === "stopped") toast(`Delete stopped: ${result.deleted} deleted, ${result.failed} failed, ${result.cancelled} cancelled.`);
+      else if (result.failed) toast.error(`${result.deleted} deleted, ${result.failed} failed. Only undeleted artworks remain selected.`);
+      else { setSelectionMode(false); setSelectedIds(new Set()); toast.success(`${result.deleted} ${result.deleted === 1 ? "artwork" : "artworks"} deleted successfully.`); }
+    } finally {
+      bulkDeleteJobRef.current = null;
+      bulkDeleteLockRef.current = false;
+      setBulkDeleting(false);
     }
   };
 
@@ -239,21 +210,7 @@ const ArtworksPage = () => {
     setConfirmBulkDelete(false);
     runBulkDelete(ids);
   };
-  const pauseBulkDelete = () => { deleteControlRef.current.pause = true; setBulkDeleteState("pausing"); };
-  const stopBulkDelete = () => {
-    if (bulkDeleteState === "paused") {
-      setBulkDeleteState("stopped");
-      setDeleteSummary({
-        deleted: deleteProgress?.completed || 0,
-        failed: deleteProgress?.failed || 0,
-      });
-      return;
-    }
-    deleteControlRef.current.stop = true;
-    deleteControlRef.current.pause = false;
-    setBulkDeleteState("stopping");
-  };
-  const resumeBulkDelete = () => runBulkDelete([...selectedIds]);
+  const stopBulkDelete = () => bulkDeleteJobRef.current?.stop();
 
   const clearSelection = () => {
     if (bulkDeleting) return;
@@ -354,7 +311,7 @@ const ArtworksPage = () => {
         {selectionMode && (
           <div className="mb-6 flex flex-col gap-3 border border-red-100 bg-red-50/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-medium text-charcoal" aria-live="polite">
-              {bulkDeleteState === "running" || bulkDeleteState === "pausing" || bulkDeleteState === "stopping"
+              {bulkDeleteState === "running" || bulkDeleteState === "stopping"
                 ? `Deleting ${deleteProgress?.current || 0} of ${deleteProgress?.total || selectedCount}`
                 : `${selectedCount} ${selectedCount === 1 ? "artwork" : "artworks"} selected across current filters/pages`}
             </p>
@@ -383,9 +340,9 @@ const ArtworksPage = () => {
         )}
 
         {deleteProgress && <div className="mb-6 border border-red-100 bg-red-50/60 px-4 py-3 text-sm" role="status" aria-live="polite">
-          <p>Deleting {deleteProgress.current} of {deleteProgress.total}</p>
-          <p className="mt-1 text-xs text-slate/60">{deleteProgress.completed} completed · {deleteProgress.failed} failed · {deleteProgress.pending} pending</p>
-          <div className="mt-2 h-2 bg-gray-100"><div className="h-2 bg-red-600 transition-all" style={{ width: `${(deleteProgress.completed / deleteProgress.total) * 100}%` }} /></div>
+          <p>Deleting artwork {deleteProgress.current} of {deleteProgress.total}</p>
+          <p className="mt-1 text-xs text-slate/60">{deleteProgress.deleted} deleted · {deleteProgress.failed} failed · {deleteProgress.remaining} remaining · {deleteProgress.cancelled} cancelled · {deleteProgress.percentage}%</p>
+          <div className="mt-2 h-2 bg-gray-100"><div className="h-2 bg-red-600 transition-all" style={{ width: `${deleteProgress.percentage}%` }} /></div>
         </div>}
 
         {loading ? (
@@ -524,25 +481,26 @@ const ArtworksPage = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4" role="dialog" aria-modal="true" aria-labelledby="bulk-delete-progress-title">
             <div className="w-full max-w-md bg-white p-6 shadow-xl ring-1 ring-black/10">
               <h2 id="bulk-delete-progress-title" className="font-display text-2xl font-light text-charcoal">
-                {bulkDeleteState === "paused" ? `Paused after ${deleteProgress.current} of ${deleteProgress.total}`
-                  : bulkDeleteState === "stopped" ? `Stopped. ${deleteProgress.completed} deleted, ${deleteProgress.pending} pending, ${deleteProgress.failed} failed.`
+                {bulkDeleteState === "stopping" ? "Stopping deletion…"
+                  : bulkDeleteState === "stopped" ? `Stopped. ${deleteProgress.deleted} deleted, ${deleteProgress.failed} failed, ${deleteProgress.cancelled} cancelled.`
                     : `Deleting artwork ${Math.min(deleteProgress.current, deleteProgress.total)} of ${deleteProgress.total}`}
               </h2>
-              <div className="mt-5 h-2 bg-gray-100"><div className="h-2 bg-red-600 transition-all" style={{ width: `${(deleteProgress.completed / deleteProgress.total) * 100}%` }} /></div>
-              <p className="mt-3 text-sm text-slate/60">{deleteProgress.completed} completed · {deleteProgress.failed} failed · {deleteProgress.pending} pending</p>
+              <div className="mt-5 h-2 bg-gray-100"><div className="h-2 bg-red-600 transition-all" style={{ width: `${deleteProgress.percentage}%` }} /></div>
+              <p className="mt-3 text-sm text-slate/60">Total {deleteProgress.total} · Current {deleteProgress.current} · {deleteProgress.deleted} deleted · {deleteProgress.failed} failed · {deleteProgress.remaining} remaining · {deleteProgress.cancelled} cancelled · {deleteProgress.percentage}%</p>
+              <ul className="mt-4 max-h-40 overflow-y-auto border border-gray-100 text-xs" aria-label="Individual deletion statuses">
+                {deleteProgress.items.map((item) => <li key={item.id} className="flex justify-between gap-3 border-b border-gray-50 px-3 py-2 last:border-0"><span className="truncate">{item.id}</span><span className="capitalize">{item.status}</span></li>)}
+              </ul>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                {(bulkDeleteState === "running" || bulkDeleteState === "pausing") && <button type="button" onClick={pauseBulkDelete} className="btn-secondary" disabled={bulkDeleteState !== "running"}>Pause</button>}
-                {(bulkDeleteState === "paused" || bulkDeleteState === "stopped") && <button type="button" onClick={resumeBulkDelete} className="btn-primary" disabled={!selectedCount}>Resume</button>}
-                {(bulkDeleteState === "running" || bulkDeleteState === "pausing" || bulkDeleteState === "paused") && <button type="button" onClick={stopBulkDelete} className="btn-danger" disabled={bulkDeleteState === "pausing"}>Stop after current</button>}
+                {(bulkDeleteState === "running" || bulkDeleteState === "stopping") && <button type="button" onClick={stopBulkDelete} className="btn-danger" disabled={bulkDeleteState === "stopping"}>{bulkDeleteState === "stopping" ? "Stopping…" : "Stop Now"}</button>}
               </div>
-              {(bulkDeleteState === "pausing" || bulkDeleteState === "stopping") && <p className="mt-4 text-center text-xs text-slate/55">Finishing the current delete safely…</p>}
+              {bulkDeleteState === "stopping" && <p className="mt-4 text-center text-xs text-slate/55">Queued deletions are cancelled. Waiting for already-started deletions to report their real results…</p>}
             </div>
           </div>
         )}
 
         {deleteSummary && !bulkDeleting && (
           <div className="fixed bottom-5 right-5 z-40 bg-charcoal px-5 py-3 text-sm text-white shadow-lg" role="status">
-            {deleteSummary.deleted} deleted, {deleteSummary.failed} failed
+            {deleteSummary.deleted} deleted, {deleteSummary.failed} failed, {deleteSummary.cancelled} cancelled
           </div>
         )}
 

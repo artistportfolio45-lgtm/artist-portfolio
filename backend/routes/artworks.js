@@ -20,6 +20,12 @@ const {
   prepareSearchQuery,
   searchAndRankArtworks,
 } = require("../utils/artworkSearch");
+const {
+  cancelArtworkDeletionJob,
+  createArtworkDeletionJob,
+  getArtworkDeletionJob,
+  startArtworkDeletionJob,
+} = require("../utils/artworkDeletionJobs");
 
 const optionalText = (value) => (typeof value === "string" ? value.trim() : "");
 const escapeRegex = (value) => optionalText(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -104,6 +110,23 @@ const safeTriggerStaticRebuild = async (reason) => {
     });
     return { triggered: false, message: "Static rebuild scheduling failed" };
   }
+};
+const deleteArtworkForJob = async (id) => {
+  const artwork = await Artwork.findById(id);
+  if (!artwork) return { status: "missing" };
+  const cloudinaryCleanup = await deleteCloudinaryImages(imagePublicIdsFor([artwork]));
+  if (cloudinaryCleanup.failures.length) {
+    const error = new Error("Cloudinary cleanup failed");
+    error.publicMessage = "Cloudinary image deletion failed; the artwork record was kept";
+    throw error;
+  }
+  try {
+    await artwork.deleteOne();
+  } catch (error) {
+    error.publicMessage = "Artwork images were removed, but its database record could not be deleted";
+    throw error;
+  }
+  return { status: "deleted" };
 };
 const validateBulkDeleteIds = (body) => {
   if (!body || typeof body !== "object") {
@@ -607,6 +630,39 @@ router.delete("/bulk", protect, adminOnly, async (req, res) => {
       ...(error?.requestedCount !== undefined ? { requestedCount: error.requestedCount } : {}),
     });
   }
+});
+
+// Cancellable Upload History deletion jobs. Each job globally shares five
+// deletion slots, and a cancelled job never claims another queued artwork.
+router.post("/deletion-jobs", protect, adminOnly, async (req, res) => {
+  const validation = validateBulkDeleteIds(req.body);
+  if (!validation.valid) {
+    return res.status(validation.status).json({ success: false, message: validation.message });
+  }
+  const job = createArtworkDeletionJob({
+    ids: validation.ids,
+    requestedBy: req.user._id,
+    deleteArtwork: deleteArtworkForJob,
+    rebuild: () => safeTriggerStaticRebuild("artwork-deletion-job-finalized"),
+  });
+  setImmediate(() => {
+    startArtworkDeletionJob(job.id)?.catch((error) => {
+      console.error("Artwork deletion job failed:", error?.message || "unknown error");
+    });
+  });
+  return res.status(202).json({ success: true, job });
+});
+
+router.get("/deletion-jobs/:jobId", protect, adminOnly, (req, res) => {
+  const job = getArtworkDeletionJob(req.params.jobId, req.user._id);
+  if (!job) return res.status(404).json({ success: false, message: "Deletion job not found" });
+  return res.json({ success: true, job });
+});
+
+router.post("/deletion-jobs/:jobId/cancel", protect, adminOnly, (req, res) => {
+  const job = cancelArtworkDeletionJob(req.params.jobId, req.user._id);
+  if (!job) return res.status(404).json({ success: false, message: "Deletion job not found" });
+  return res.json({ success: true, job });
 });
 
 // @route   POST /api/artworks/rebuild

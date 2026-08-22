@@ -119,6 +119,9 @@ export const artworkAPI = {
   uploadHistory: (params) => api.get("/artworks/upload-history", { params }),
   uploadBatches: () => api.get("/artworks/upload-history/batches"),
   updateBatchSummary: (uploadBatchId, summary) => api.put(`/artworks/upload-history/batches/${encodeURIComponent(uploadBatchId)}`, summary),
+  startDeletionJob: (ids) => api.post("/artworks/deletion-jobs", { ids }),
+  getDeletionJob: (jobId, config = {}) => api.get(`/artworks/deletion-jobs/${encodeURIComponent(jobId)}`, config),
+  cancelDeletionJob: (jobId) => api.post(`/artworks/deletion-jobs/${encodeURIComponent(jobId)}/cancel`),
   update: (id, data) => api.put(`/artworks/${id}`, data),
   addImages: (id, formData) => api.post(`/artworks/${id}/images`, formData, { timeout: 0 }),
   deleteImage: (id, publicId) =>
