@@ -135,4 +135,4 @@ test("batch history can only be deleted after every artwork in that batch is gon
   assert.match(source, /remainingArtworkCount/);
   assert.match(source, /Batch history cannot be deleted while/);
   assert.doesNotMatch(source, /\$unset: \{ uploadBatchId: "", uploadStatus: "", uploadedBy: "" \}/);
-});
+  });

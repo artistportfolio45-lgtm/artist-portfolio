@@ -620,7 +620,7 @@ router.post("/duplicates/scan", protect, adminOnly, async (req, res) => {
           fingerprinted += 1;
         } catch (error) {
           unavailable += 1;
-          console.warn("Could not fingerprint artwork image:", {
+    console.warn("Could not fingerprint artwork image:", {
             artworkId: String(artwork._id),
             message: error?.message || error?.error?.message || "Cloudinary returned an unknown error",
             httpCode: error?.http_code || error?.error?.http_code,
