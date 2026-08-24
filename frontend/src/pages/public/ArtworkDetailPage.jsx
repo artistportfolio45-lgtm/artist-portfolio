@@ -231,7 +231,7 @@ const ArtworkDetailPage = () => {
               </button>
 
               {artwork.images?.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2">
+                <div className="flex gap-1 overflow-x-auto pb-2">
                   {artwork.images.map((img, index) => (
                     <button
                       key={img.publicId || img.url || index}
@@ -260,7 +260,7 @@ const ArtworkDetailPage = () => {
               {artwork.category && artwork.category !== "Uncategorized" && (
                 <p className="eyebrow mb-3">{artwork.category}</p>
               )}
-              <h1 className="font-display text-4xl md:text-5xl font-light text-charcoal mb-4 leading-tight">
+              <h1 className="mb-4 font-display text-3xl font-light leading-tight text-charcoal md:text-5xl">
                 {displayTitle}
               </h1>
 
@@ -316,7 +316,7 @@ const ArtworkDetailPage = () => {
                   netlify-honeypot="bot-field"
                   noValidate
                   onSubmit={handleSubmit}
-                  className="mt-8 border border-gray-100 p-6 animate-slide-up"
+                  className="mt-8 animate-slide-up border border-gray-100 p-4 sm:p-6"
                 >
                   <input type="hidden" name="form-name" value="artwork-inquiry" />
                   <input type="hidden" name="inquiryType" value="artwork" />
@@ -435,7 +435,7 @@ const ArtworkDetailPage = () => {
                       type="submit"
                       disabled={submitting}
                       aria-busy={submitting}
-                      className="btn-primary w-full flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="btn-primary inline-flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {submitting ? <><LoadingSpinner size="sm" light />Sending...</> : "Send Enquiry"}
                     </button>

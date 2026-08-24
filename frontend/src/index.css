@@ -59,19 +59,19 @@
 @layer components {
   /* Luxury button styles */
   .btn-primary {
-    @apply bg-charcoal text-ivory px-6 py-3 text-sm font-label font-medium tracking-widest uppercase
+    @apply inline-flex min-h-11 items-center justify-center bg-charcoal text-ivory px-4 py-2 text-xs font-label font-medium tracking-widest uppercase sm:px-6 sm:text-sm
            hover:bg-slate transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2;
     border-radius: var(--theme-button-radius);
   }
 
   .btn-secondary {
-    @apply border border-charcoal text-charcoal px-6 py-3 text-sm font-label font-medium tracking-widest uppercase
+    @apply inline-flex min-h-11 items-center justify-center border border-charcoal text-charcoal px-4 py-2 text-xs font-label font-medium tracking-widest uppercase sm:px-6 sm:text-sm
            hover:bg-charcoal hover:text-ivory transition-all duration-300;
     border-radius: var(--theme-button-radius);
   }
 
   .btn-gold {
-    @apply bg-gold text-white px-6 py-3 text-sm font-label font-medium tracking-widest uppercase
+    @apply inline-flex min-h-11 items-center justify-center bg-gold text-white px-4 py-2 text-xs font-label font-medium tracking-widest uppercase sm:px-6 sm:text-sm
            hover:bg-gold-dark transition-all duration-300;
     border-radius: var(--theme-button-radius);
   }
@@ -112,7 +112,7 @@
 
   /* Page section spacing */
   .section {
-    @apply py-16 md:py-24;
+    @apply py-12 sm:py-16 md:py-24;
   }
 
   .container-site {
@@ -160,6 +160,39 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep the editorial About page dense and proportional below desktop size. */
+@media (max-width: 1023px) {
+  .about-retrospective > section:not(:first-child) {
+    padding-top: clamp(3.5rem, 8vw, 6rem);
+    padding-bottom: clamp(3.5rem, 8vw, 6rem);
+  }
+
+  .about-retrospective > section:first-child {
+    min-height: clamp(36rem, 78vh, 48rem);
+    padding-top: 7rem;
+  }
+
+  .about-retrospective > section:last-child {
+    min-height: 0;
+  }
+
+  .about-retrospective h1 {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+  }
+
+  .about-retrospective h2 {
+    font-size: clamp(2rem, 6vw, 3rem);
+  }
+
+  .about-retrospective blockquote {
+    font-size: clamp(1.875rem, 5vw, 3rem);
+  }
+
+  .about-retrospective article.group {
+    min-height: clamp(20rem, 50vw, 24rem);
   }
 }
 
@@ -354,7 +387,7 @@
 
 .artwork-masonry {
   column-count: 1;
-  column-gap: 12px;
+  column-gap: 6px;
 }
 
 .artwork-masonry-mobile-columns {
@@ -364,7 +397,7 @@
 .artwork-masonry-balanced {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 7px;
   align-items: start;
 }
 
@@ -372,7 +405,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 14px;
+  gap: 7px;
 }
 
 .artwork-masonry-balanced .artwork-masonry-item {
@@ -384,7 +417,7 @@
 .artwork-masonry-item {
   display: inline-block;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   break-inside: avoid;
   page-break-inside: avoid;
   vertical-align: top;
@@ -406,7 +439,7 @@
   .artwork-masonry-mobile-columns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+    gap: 0.5rem;
   }
 
   .artwork-masonry-mobile-columns > div {
@@ -421,21 +454,18 @@
   }
 
   .artwork-masonry-mobile-columns .artwork-masonry-item + .artwork-masonry-item {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
   }
 
   .artwork-masonry-mobile-columns .artwork-masonry-link {
-    border-radius: 1.5rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    border-radius: min(var(--theme-card-radius), 4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
   }
 
   .artwork-masonry-mobile-columns .artwork-masonry-image {
     border-radius: inherit;
   }
 
-  .artwork-masonry-mobile-caption {
-    display: none;
-  }
 }
 
 .artwork-masonry-link,
@@ -477,6 +507,15 @@
   scrollbar-width: thin;
 }
 
+.featured-artworks-carousel {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.featured-artworks-carousel::-webkit-scrollbar {
+  display: none;
+}
+
 .artwork-masonry-skeleton {
   background: rgb(var(--theme-border-rgb) / 0.65);
   animation: artwork-masonry-skeleton-pulse 1.4s ease-in-out infinite;
@@ -497,11 +536,11 @@
 @media (min-width: 1024px) {
   .artwork-masonry {
     column-count: 3;
-    column-gap: 14px;
+    column-gap: 7px;
   }
 
   .artwork-masonry > .artwork-masonry-item {
-    margin-bottom: 14px;
+    margin-bottom: 7px;
   }
 
   .artwork-masonry-mobile-caption {
@@ -519,7 +558,18 @@
 
 @media (max-width: 1023px) {
   .artwork-masonry-overlay {
-    display: flex;
+    display: none;
+  }
+
+  .artwork-masonry-mobile-caption {
+    display: block;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .featured-artwork-actions {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 

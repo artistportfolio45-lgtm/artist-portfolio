@@ -51,6 +51,9 @@ const UploadHistoryPage = () => {
   const [deleteSummary, setDeleteSummary] = useState(null);
   const [activeDeleteJobId, setActiveDeleteJobId] = useState(() => localStorage.getItem(ACTIVE_DELETE_JOB_KEY) || "");
   const [selectingBatchId, setSelectingBatchId] = useState("");
+  const [deleteBatchHistoryWithArtworks, setDeleteBatchHistoryWithArtworks] = useState(false);
+  const [historyBatchToDelete, setHistoryBatchToDelete] = useState(null);
+  const [deletingBatchHistory, setDeletingBatchHistory] = useState(false);
   const selectPageRef = useRef(null);
 
   useEffect(() => {
@@ -106,6 +109,7 @@ const UploadHistoryPage = () => {
       setSelectedIds((current) => new Set([...current].filter((id) => !completedIds.has(id))));
       setDeleteSummary(job);
       setDeleting(false);
+      setDeleteBatchHistoryWithArtworks(false);
       setActiveDeleteJobId("");
       setRefreshKey((current) => current + 1);
       notifyArtworksChanged();
@@ -119,6 +123,9 @@ const UploadHistoryPage = () => {
       }
       if (job.missing) toast(`${job.missing} selected ${job.missing === 1 ? "artwork was" : "artworks were"} already missing.`);
       if (job.publicSync?.status === "failed") toast.error(job.publicSync.message || "Artwork changes were saved, but public Gallery synchronization failed.");
+      if (job.historyCleanup?.status === "deleted") toast.success("Associated batch history was deleted.");
+      if (job.historyCleanup?.status === "kept") toast("Batch history was kept because artwork from that batch still remains on the website.");
+      if (job.historyCleanup?.status === "failed") toast.error(job.historyCleanup.message || "Artworks were processed, but batch history could not be deleted.");
     };
 
     const poll = async () => {
@@ -233,7 +240,7 @@ const UploadHistoryPage = () => {
     setDeleteSummary(null);
     setDeleteProgress(null);
     try {
-      const response = await artworkAPI.startDeletionJob(ids);
+      const response = await artworkAPI.startDeletionJob(ids, { deleteBatchHistory: deleteBatchHistoryWithArtworks });
       setDeleteProgress(response.data.job);
       setActiveDeleteJobId(response.data.job.id);
     } catch (error) {
@@ -250,6 +257,30 @@ const UploadHistoryPage = () => {
       setDeleteProgress(response.data.job);
     } catch (error) {
       toast.error(error.response?.data?.message || "Could not stop the deletion job");
+    }
+  };
+
+  const deleteBatchHistoryOnly = async () => {
+    if (!historyBatchToDelete?.uploadBatchId || deletingBatchHistory) return;
+    if (!historyBatchToDelete.canDeleteHistory) {
+      toast.error("Delete every artwork from this batch before deleting its history.");
+      setHistoryBatchToDelete(null);
+      return;
+    }
+    setDeletingBatchHistory(true);
+    try {
+      const response = await artworkAPI.deleteBatchHistory(historyBatchToDelete.uploadBatchId);
+      setHistoryBatchToDelete(null);
+      setSelectedIds(new Set());
+      setFilters((current) => current.batchId === historyBatchToDelete.uploadBatchId
+        ? { ...current, batchId: "" }
+        : current);
+      setRefreshKey((current) => current + 1);
+      toast.success(response.data.message || "Batch history deleted. Artworks were kept.");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Batch history could not be deleted");
+    } finally {
+      setDeletingBatchHistory(false);
     }
   };
 
@@ -285,6 +316,15 @@ const UploadHistoryPage = () => {
                     >
                       {selectingBatchId === batch.uploadBatchId ? "Selecting..." : "Select batch for deletion"}
                     </button>
+                    <button
+                      type="button"
+                      className="text-sm text-red-600 hover:underline disabled:opacity-40"
+                      onClick={() => setHistoryBatchToDelete(batch)}
+                      disabled={deleting || deletingBatchHistory || !batch.canDeleteHistory}
+                      title={batch.canDeleteHistory ? "Delete batch history" : `${batch.remainingArtworkCount} batch artworks still remain`}
+                    >
+                      {batch.canDeleteHistory ? "Delete history" : "History kept while artworks remain"}
+                    </button>
                   </div>
                 </article>
               ))}
@@ -309,6 +349,7 @@ const UploadHistoryPage = () => {
             <button type="button" className="btn-secondary" onClick={() => choosePreset("month")}>This month</button>
             <label className="text-xs text-slate/55">From<input type="date" className="input-field mt-1 block" value={filters.startDate} onChange={(event) => setFilter("startDate", event.target.value)} /></label>
             <label className="text-xs text-slate/55">To<input type="date" className="input-field mt-1 block" value={filters.endDate} onChange={(event) => setFilter("endDate", event.target.value)} /></label>
+            {filters.batchId && (() => { const selectedBatch = batches.find((batch) => batch.uploadBatchId === filters.batchId); return <button type="button" className="btn-danger text-xs" onClick={() => setHistoryBatchToDelete(selectedBatch)} disabled={deleting || deletingBatchHistory || !selectedBatch?.canDeleteHistory} title={selectedBatch?.canDeleteHistory ? "Delete batch history" : "Delete all artworks from this batch first"}>{selectedBatch?.canDeleteHistory ? "Delete selected batch history" : "History kept while artworks remain"}</button>; })()}
             {(filters.startDate || filters.endDate || filters.batchId) && <button type="button" className="px-3 py-2 text-sm text-red-600 hover:underline" onClick={() => { setPage(1); setFilters((current) => ({ ...current, batchId: "", startDate: "", endDate: "" })); }}>Clear range/batch</button>}
           </div>
         </section>
@@ -317,7 +358,7 @@ const UploadHistoryPage = () => {
           <strong className="mr-auto text-sm text-charcoal" aria-live="polite">{selectedCount} selected</strong>
           <button type="button" className="btn-secondary text-xs" onClick={toggleCurrentPage} disabled={!pageIds.length || deleting}>{allPageSelected ? "Clear current page" : "Select current page"}</button>
           <button type="button" className="btn-secondary text-xs" onClick={() => setSelectedIds(new Set())} disabled={!selectedCount || deleting}>Clear selection</button>
-          <button type="button" className="btn-danger text-xs disabled:opacity-40" onClick={() => setConfirmDelete(true)} disabled={!selectedCount || deleting}>Delete selected</button>
+          <button type="button" className="btn-danger text-xs disabled:opacity-40" onClick={() => { setDeleteBatchHistoryWithArtworks(false); setConfirmDelete(true); }} disabled={!selectedCount || deleting}>Delete selected</button>
         </section>
 
         {loading ? (
@@ -385,6 +426,19 @@ const UploadHistoryPage = () => {
               <h2 id="upload-history-delete-title" className="mt-2 font-display text-3xl font-light text-charcoal">Delete {selectedCount} {selectedCount === 1 ? "artwork" : "artworks"}?</h2>
               <p className="mt-4 text-sm leading-6 text-slate/65">This action cannot be undone. The selected artwork records and all associated Cloudinary images will be permanently deleted from the website.</p>
               <p className="mt-3 text-xs text-red-600">Upload History is showing real artworks—not disposable log entries.</p>
+              {!deleting && (
+                <fieldset className="mt-5 space-y-3 border border-gray-200 p-4">
+                  <legend className="px-1 text-sm font-medium text-charcoal">What should happen to batch history?</legend>
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-slate/70">
+                    <input type="radio" name="batch-history-choice" checked={!deleteBatchHistoryWithArtworks} onChange={() => setDeleteBatchHistoryWithArtworks(false)} className="mt-1 accent-charcoal" />
+                    <span><strong className="block text-charcoal">Keep batch history</strong>Only the selected artworks and their images are deleted.</span>
+                  </label>
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-slate/70">
+                    <input type="radio" name="batch-history-choice" checked={deleteBatchHistoryWithArtworks} onChange={() => setDeleteBatchHistoryWithArtworks(true)} className="mt-1 accent-red-600" />
+                    <span><strong className="block text-red-600">Delete history for emptied batches</strong>History is removed only when every artwork from an affected batch has been deleted. Partially deleted batch history is always kept.</span>
+                  </label>
+                </fieldset>
+              )}
               {deleting && !deleteProgress && <p className="mt-5 text-sm font-medium text-charcoal" role="status">Starting deletion job…</p>}
               {deleteProgress && (
                 <div className="mt-5" role="status" aria-live="polite">
@@ -408,10 +462,25 @@ const UploadHistoryPage = () => {
               )}
               {deleteSummary && !deleting && <p className="mt-4 text-sm text-charcoal">{deleteSummary.state === "stopped" ? `Deletion stopped. ${deleteSummary.deleted} artworks were deleted, ${deleteSummary.failed} failed and ${deleteSummary.cancelled} were not deleted.` : `Deletion finished. ${deleteSummary.deleted} deleted, ${deleteSummary.failed} failed and ${deleteSummary.cancelled} cancelled.`}</p>}
               <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button type="button" className="btn-secondary" onClick={() => setConfirmDelete(false)} disabled={deleting}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => { setDeleteBatchHistoryWithArtworks(false); setConfirmDelete(false); }} disabled={deleting}>Cancel</button>
                 {deleting
                   ? <button type="button" className="btn-danger disabled:opacity-40" onClick={stopDeletion} disabled={!activeDeleteJobId || deleteProgress?.state === "stopping" || deleteProgress?.state === "finalizing"}>{!activeDeleteJobId ? "Starting…" : deleteProgress?.state === "stopping" ? "Stopping…" : deleteProgress?.state === "finalizing" ? "Finalizing…" : "Stop Now"}</button>
                   : <button type="button" className="btn-danger disabled:opacity-40" onClick={deleteSelected} disabled={!selectedCount}>{deleteSummary && selectedCount ? `Retry ${selectedCount} remaining` : `Delete ${selectedCount} permanently`}</button>}
+              </div>
+            </section>
+          </div>
+        )}
+        {historyBatchToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !deletingBatchHistory) setHistoryBatchToDelete(null); }}>
+            <section className="w-full max-w-md bg-white p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="delete-batch-history-title">
+              <p className="text-xs font-label uppercase tracking-widest text-red-600">History only</p>
+              <h2 id="delete-batch-history-title" className="mt-2 font-display text-3xl font-light text-charcoal">Delete this batch history?</h2>
+              <p className="mt-4 text-sm leading-6 text-slate/65">The batch card and its Upload History entries will be permanently removed.</p>
+              <p className="mt-3 border-l-2 border-green-600 pl-3 text-sm font-medium leading-6 text-green-700">All artwork records, Gallery entries, and Cloudinary images will be kept.</p>
+              <p className="mt-3 text-xs text-slate/55">Batch: {dateFormat(historyBatchToDelete.uploadedAt)} · {historyBatchToDelete.total} selected</p>
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button type="button" className="btn-secondary" onClick={() => setHistoryBatchToDelete(null)} disabled={deletingBatchHistory}>Cancel</button>
+                <button type="button" className="btn-danger disabled:opacity-40" onClick={deleteBatchHistoryOnly} disabled={deletingBatchHistory}>{deletingBatchHistory ? "Deleting history…" : "Delete history only"}</button>
               </div>
             </section>
           </div>

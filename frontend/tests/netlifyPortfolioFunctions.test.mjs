@@ -83,7 +83,7 @@ test("valid signed snapshot sync writes one complete site-wide Blob", async () =
 
 test("invalid signatures and expired timestamps are rejected", async () => {
   const memory = memoryStore();
-  const handler = createSyncPublicPortfolioHandler({ getStore: () => memory.store, env: { PUBLIC_DATA_SYNC_SECRET: secret }, now: () => fixedNow });
+  const handler = createSyncPublicPortfolioHandler({ getStore: () => memory.store, env: { PUBLIC_DATA_SYNC_SECRET: secret }, now: () => fixedNow, blobOperationTimeoutMs: 5 });
   const invalid = await handler(signedRequest(snapshot(), { signature: `sha256=${"0".repeat(64)}` }));
   const expired = await handler(signedRequest(snapshot(), { timestamp: fixedNow - 301_000 }));
   assert.equal(invalid.status, 401);
@@ -128,6 +128,15 @@ test("unseeded Blob returns a controlled unavailable response", async () => {
   const response = await createPublicPortfolioHandler({ getStore: () => memory.store })(new Request("https://example.netlify.app/api/public-portfolio"));
   assert.equal(response.status, 503);
   assert.equal((await response.json()).code, "PUBLIC_DATA_NOT_SEEDED");
+});
+
+test("Blob write timeout returns a controlled retryable response instead of a platform 502", async () => {
+  const memory = memoryStore();
+  memory.store.setJSON = async () => new Promise(() => {});
+  const handler = createSyncPublicPortfolioHandler({ getStore: () => memory.store, env: { PUBLIC_DATA_SYNC_SECRET: secret }, now: () => fixedNow, blobOperationTimeoutMs: 5 });
+  const response = await handler(signedRequest(snapshot()));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, "BLOB_WRITE_TIMEOUT");
 });
 
 test("approximately 900 artworks validate and store in one request", async () => {

@@ -44,8 +44,29 @@ test("390px Gallery layout retains explicit horizontal overflow protection", asy
   const [styles, gallery] = await Promise.all([source("src/index.css"), source("src/pages/public/GalleryPage.jsx")]);
   assert.match(styles, /\.public-shell\s*\{[^}]*min-width: 0;[^}]*overflow-x: clip;/s);
   assert.match(styles, /@media \(max-width: 1023px\)[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(gallery, /w-0 min-w-0 flex-1/);
+  assert.match(gallery, /w-full min-w-0 sm:w-0 sm:flex-1/);
   assert.match(gallery, /gallery-category-nav mt-4 overflow-x-auto/);
+});
+
+test("public phone and tablet layouts preserve features without oversized or clipped controls", async () => {
+  const [layout, nav, hero, gallery, masonry, card, styles] = await Promise.all([
+    source("src/components/public/PublicLayout.jsx"),
+    source("src/components/public/Navbar.jsx"),
+    source("src/components/public/HomeHero.jsx"),
+    source("src/pages/public/GalleryPage.jsx"),
+    source("src/components/public/ArtworkMasonry.jsx"),
+    source("src/components/public/ArtworkCard.jsx"),
+    source("src/index.css"),
+  ]);
+  assert.match(layout, /grid-cols-4/);
+  assert.match(layout, /bottom-20 right-3[^"]*lg:bottom-5/);
+  assert.match(nav, /PublicSocialLinks tone="dark"/);
+  assert.doesNotMatch(hero, /button: "w-full text-center/);
+  assert.doesNotMatch(gallery, /fixed bottom-24 right-4/);
+  assert.match(masonry, /artwork-masonry-mobile-caption bg-white/);
+  assert.match(card, /featured-artwork-actions/);
+  assert.match(styles, /\.artwork-masonry-mobile-caption\s*\{\s*display: block;/);
+  assert.match(styles, /@media \(hover: none\), \(pointer: coarse\)/);
 });
 
 test("admin exposes a protected manual action for initial Blob seed and retry", async () => {
@@ -64,7 +85,16 @@ test("gallery images retry transient delivery failures before showing an error",
   assert.match(masonry, /portfolio_retry/);
   assert.match(masonry, /retryAttempt < IMAGE_RETRY_DELAYS\.length/);
   assert.match(masonry, /window\.clearTimeout\(retryTimerRef\.current\)/);
+  assert.match(masonry, /retrySrcSet/);
+  assert.match(masonry, /withRetryToken\(url, attempt\)/);
   assert.match(html, /rel="preconnect" href="https:\/\/res\.cloudinary\.com"/);
+});
+
+test("gallery image state is local to each keyed artwork card, so one delivery failure cannot block neighbours", async () => {
+  const masonry = await source("src/components/public/ArtworkMasonry.jsx");
+  assert.match(masonry, /key=\{artwork\._id\}/);
+  assert.match(masonry, /const \[status, setStatus\] = useState\("loading"\)/);
+  assert.match(masonry, /Image unavailable/);
 });
 
 test("production snapshot generation has a live Render API fallback", async () => {
@@ -76,6 +106,8 @@ test("production snapshot generation has a live Render API fallback", async () =
 test("gallery provides debounced URL filters, pagination and cached retry state", async () => {
   const gallery = await source("src/pages/public/GalleryPage.jsx");
   for (const token of ["setTimeout", "collection", "medium", "year", "Gallery pagination", "setSearchParams"]) assert.ok(gallery.includes(token), token);
+  assert.doesNotMatch(gallery, /hidden lg:flex[^\n]+Gallery pagination/);
+  assert.doesNotMatch(gallery, />Load More</);
   assert.doesNotMatch(gallery, /setLoadingPage\(true\);\s*setPage\(safePage\)/);
   assert.match(gallery, /resultPage === page/);
 });
@@ -114,11 +146,25 @@ test("mobile navigation and generated SEO include focus and crawler safeguards",
 });
 
 test("featured artworks stay in one horizontally scrollable row", async () => {
-  const home = await source("src/pages/public/HomePage.jsx");
+  const [home, styles] = await Promise.all([source("src/pages/public/HomePage.jsx"), source("src/index.css")]);
   assert.match(home, /aria-label="Featured artwork carousel"/);
-  assert.match(home, /flex snap-x snap-mandatory[^\"]*overflow-x-auto/);
+  assert.match(home, /featured-artworks-carousel flex snap-x snap-mandatory[^\"]*overflow-x-auto/);
   assert.match(home, /lg:w-\[calc\(\(100%_-_4rem\)\/3\)\]/);
   assert.doesNotMatch(home, /grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10/);
+  assert.match(styles, /\.featured-artworks-carousel\s*\{[^}]*scrollbar-width: none;/s);
+  assert.match(styles, /\.featured-artworks-carousel::\-webkit-scrollbar\s*\{[^}]*display: none;/s);
+});
+
+test("artwork image collections use the compact half-gap rhythm at every breakpoint", async () => {
+  const [styles, home, detail, about] = await Promise.all([
+    source("src/index.css"), source("src/pages/public/HomePage.jsx"),
+    source("src/pages/public/ArtworkDetailPage.jsx"), source("src/pages/public/AboutPage.jsx"),
+  ]);
+  for (const token of ["column-gap: 6px", "gap: 7px", "gap: 0.5rem", "margin-top: 0.5rem", "column-gap: 7px"]) assert.ok(styles.includes(token), token);
+  assert.match(home, /featured-artworks-carousel[^\"]*gap-3[^\"]*md:gap-4/);
+  assert.match(detail, /flex gap-1 overflow-x-auto pb-2/);
+  assert.match(about, /flex snap-x gap-1\.5 overflow-x-auto/);
+  assert.match(about, /mt-12 grid gap-2\.5 sm:grid-cols-2/);
 });
 
 test("Home requests nine latest artworks to fill three balanced columns", async () => {

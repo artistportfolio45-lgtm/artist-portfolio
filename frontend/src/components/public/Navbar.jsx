@@ -183,28 +183,36 @@ const Navbar = () => {
             id="public-mobile-menu"
             className="fixed inset-0 z-50 overflow-hidden bg-charcoal text-white transition-transform duration-300"
           >
-            <div className="container-site flex h-full flex-col justify-center gap-6 px-4 py-8">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.to === "/"}
-                  className={({ isActive }) =>
-                    `block rounded-3xl border border-white/10 px-4 py-4 text-center text-lg uppercase tracking-[0.22em] transition ${
-                      isActive ? "bg-gold text-charcoal" : "text-white/85 hover:bg-white/10"
-                    }`
-                  }
+            <div className="container-site flex h-full items-center justify-center px-4 py-8">
+              <div className="w-full max-w-sm">
+                <p className="mb-5 text-center text-[10px] uppercase tracking-[0.26em] text-gold">Navigation</p>
+                <div className="border-t border-white/15">
+                  {navLinks.map((link) => (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      end={link.to === "/"}
+                      className={({ isActive }) =>
+                        `flex min-h-11 items-center justify-between border-b border-white/15 px-1 text-sm uppercase tracking-[0.18em] transition ${
+                          isActive ? "text-gold" : "text-white/80 hover:text-white"
+                        }`
+                      }
+                    >
+                      {link.label}
+                      <span aria-hidden="true">&rarr;</span>
+                    </NavLink>
+                  ))}
+                </div>
+                <div className="mt-7 flex justify-center"><PublicSocialLinks tone="dark" /></div>
+                {settings?.websiteDescription && <p className="mx-auto mt-5 max-w-xs text-center text-xs leading-5 text-white/45">{settings.websiteDescription}</p>}
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="mx-auto mt-7 flex min-h-11 items-center border-b border-white/30 px-2 text-xs uppercase tracking-[0.2em] text-white/70 transition hover:text-white"
                 >
-                  {link.label}
-                </NavLink>
-              ))}
-              <button
-                type="button"
-                onClick={() => setMenuOpen(false)}
-                className="mt-4 rounded-3xl border border-white/20 px-4 py-4 text-sm uppercase tracking-[0.22em] text-white/80 transition hover:bg-white/10"
-              >
-                Close
-              </button>
+                  Close menu
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -6,6 +6,7 @@ export const REPLAY_KEY = "_recent-sync-signatures";
 export const MAX_BODY_BYTES = 5 * 1024 * 1024;
 export const MAX_ARTWORKS = 2000;
 export const REPLAY_WINDOW_MS = 5 * 60 * 1000;
+export const BLOB_OPERATION_TIMEOUT_MS = 8000;
 
 const FORBIDDEN_FIELDS = new Set([
   "password", "passwordhash", "jwt", "token", "otp", "otpcode", "otphash",
@@ -19,6 +20,20 @@ const jsonResponse = (payload, status = 200, headers = {}) => new Response(JSON.
   status,
   headers: { "Content-Type": "application/json; charset=utf-8", ...headers },
 });
+
+const withTimeout = async (operation, timeoutMs = BLOB_OPERATION_TIMEOUT_MS) => {
+  let timer;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(Object.assign(new Error("Blob operation timed out"), { code: "BLOB_TIMEOUT" })), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
 
 const responseHeaders = (snapshot) => ({
   "Cache-Control": "public, max-age=0, must-revalidate",
@@ -88,13 +103,13 @@ const signaturesMatch = (provided, expected) => {
   return first.length === second.length && timingSafeEqual(first, second);
 };
 
-export const createPublicPortfolioHandler = ({ getStore }) => async (request) => {
+export const createPublicPortfolioHandler = ({ getStore, blobOperationTimeoutMs = BLOB_OPERATION_TIMEOUT_MS }) => async (request) => {
   if (request.method !== "GET") {
     return jsonResponse({ success: false, message: "Method not allowed" }, 405, { Allow: "GET" });
   }
   try {
     const store = getStore({ name: PORTFOLIO_STORE, consistency: "strong" });
-    const snapshot = await store.get(CURRENT_KEY, { type: "json", consistency: "strong" });
+    const snapshot = await withTimeout(store.get(CURRENT_KEY, { type: "json", consistency: "strong" }), blobOperationTimeoutMs);
     if (!snapshot) {
       return jsonResponse({
         success: false,
@@ -109,13 +124,13 @@ export const createPublicPortfolioHandler = ({ getStore }) => async (request) =>
     console.error("[public-portfolio] Blob read failed", { name: error?.name });
     return jsonResponse({
       success: false,
-      code: "PUBLIC_DATA_UNAVAILABLE",
+      code: error?.code === "BLOB_TIMEOUT" ? "PUBLIC_DATA_TIMEOUT" : "PUBLIC_DATA_UNAVAILABLE",
       message: "Public portfolio data is temporarily unavailable.",
     }, 503, { "Cache-Control": "no-store" });
   }
 };
 
-export const createSyncPublicPortfolioHandler = ({ getStore, env = process.env, now = Date.now }) => async (request) => {
+export const createSyncPublicPortfolioHandler = ({ getStore, env = process.env, now = Date.now, blobOperationTimeoutMs = BLOB_OPERATION_TIMEOUT_MS }) => async (request) => {
   if (request.method !== "POST") {
     return jsonResponse({ success: false, message: "Method not allowed" }, 405, { Allow: "POST", "Cache-Control": "no-store" });
   }
@@ -163,7 +178,7 @@ export const createSyncPublicPortfolioHandler = ({ getStore, env = process.env, 
 
   try {
     const store = getStore({ name: PORTFOLIO_STORE, consistency: "strong" });
-    const replayState = await store.get(REPLAY_KEY, { type: "json", consistency: "strong" }) || { entries: [] };
+    const replayState = await withTimeout(store.get(REPLAY_KEY, { type: "json", consistency: "strong" }), blobOperationTimeoutMs) || { entries: [] };
     const replayId = createHmac("sha256", configuredSecret).update(`${timestampValue}.${nonce}.${provided}`).digest("hex");
     const recentEntries = (Array.isArray(replayState.entries) ? replayState.entries : [])
       .filter((entry) => Number(entry?.expiresAt) > now());
@@ -171,10 +186,10 @@ export const createSyncPublicPortfolioHandler = ({ getStore, env = process.env, 
       return jsonResponse({ success: false, message: "Request has already been processed" }, 409, { "Cache-Control": "no-store" });
     }
     recentEntries.push({ id: replayId, expiresAt: now() + REPLAY_WINDOW_MS });
-    await store.setJSON(REPLAY_KEY, { entries: recentEntries.slice(-100) });
-    await store.setJSON(CURRENT_KEY, snapshot, {
+    await withTimeout(store.setJSON(REPLAY_KEY, { entries: recentEntries.slice(-100) }), blobOperationTimeoutMs);
+    await withTimeout(store.setJSON(CURRENT_KEY, snapshot, {
       metadata: { snapshotVersion: snapshot.snapshotVersion, generatedAt: snapshot.generatedAt },
-    });
+    }), blobOperationTimeoutMs);
     return jsonResponse({
       success: true,
       version: snapshot.snapshotVersion,
@@ -184,6 +199,10 @@ export const createSyncPublicPortfolioHandler = ({ getStore, env = process.env, 
     }, 200, { "Cache-Control": "no-store" });
   } catch (error) {
     console.error("[sync-public-portfolio] Blob write failed", { name: error?.name });
-    return jsonResponse({ success: false, message: "Snapshot could not be stored" }, 503, { "Cache-Control": "no-store" });
+    return jsonResponse({
+      success: false,
+      code: error?.code === "BLOB_TIMEOUT" ? "BLOB_WRITE_TIMEOUT" : "BLOB_WRITE_FAILED",
+      message: error?.code === "BLOB_TIMEOUT" ? "Snapshot storage timed out" : "Snapshot could not be stored",
+    }, 503, { "Cache-Control": "no-store" });
   }
 };

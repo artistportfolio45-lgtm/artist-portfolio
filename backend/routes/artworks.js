@@ -26,6 +26,7 @@ const {
   getArtworkDeletionJob,
   startArtworkDeletionJob,
 } = require("../utils/artworkDeletionJobs");
+const { buildDuplicateGroups, duplicateReason, sha256 } = require("../utils/artworkDuplicates");
 
 const optionalText = (value) => (typeof value === "string" ? value.trim() : "");
 const escapeRegex = (value) => optionalText(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -181,6 +182,42 @@ const deleteArtworkDocumentsByIds = async (ids) => {
     await session.endSession();
   }
 };
+const normalizeUploadBatchIds = (values) => [...new Set((Array.isArray(values) ? values : [values])
+  .map((value) => optionalText(value))
+  .filter((value) => value && value.length <= 160))];
+const deleteUploadBatchHistory = async (values) => {
+  const uploadBatchIds = normalizeUploadBatchIds(values);
+  if (!uploadBatchIds.length) return { batchCount: 0, blockedBatchIds: [], remainingArtworkCount: 0 };
+  const remainingCounts = await Artwork.aggregate([
+    { $match: { uploadBatchId: { $in: uploadBatchIds } } },
+    { $group: { _id: "$uploadBatchId", count: { $sum: 1 } } },
+  ]);
+  const remainingByBatch = new Map(remainingCounts.map((item) => [item._id, item.count]));
+  const blockedBatchIds = uploadBatchIds.filter((batchId) => (remainingByBatch.get(batchId) || 0) > 0);
+  const deletableBatchIds = uploadBatchIds.filter((batchId) => !blockedBatchIds.includes(batchId));
+  if (!deletableBatchIds.length) {
+    return {
+      batchCount: 0,
+      blockedBatchIds,
+      remainingArtworkCount: blockedBatchIds.reduce((count, batchId) => count + (remainingByBatch.get(batchId) || 0), 0),
+    };
+  }
+  const session = await mongoose.startSession();
+  try {
+    let batchCount = 0;
+    await session.withTransaction(async () => {
+      const removed = await UploadBatch.deleteMany({ uploadBatchId: { $in: deletableBatchIds } }, { session });
+      batchCount = removed.deletedCount || 0;
+    });
+    return {
+      batchCount,
+      blockedBatchIds,
+      remainingArtworkCount: blockedBatchIds.reduce((count, batchId) => count + (remainingByBatch.get(batchId) || 0), 0),
+    };
+  } finally {
+    await session.endSession();
+  }
+};
 
 const adminOnly = (req, res, next) => {
   if (req.user?.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
@@ -231,6 +268,7 @@ const uploadBulkImage = (file, clientUploadId) =>
         public_id: clientUploadId,
         unique_filename: false,
         overwrite: true,
+        phash: true,
       },
       (error, result) => (error ? reject(error) : resolve(result))
     );
@@ -462,6 +500,7 @@ router.post(
       let uploadedImage;
       try {
         const clientUploadId = clientIds[index] || undefined;
+        const contentHash = sha256(file.buffer);
         const existing = await Artwork.findOne({ clientUploadId });
         if (existing) {
           results.push({ ...baseResult, clientId: clientUploadId, status: "successful", message: "Artwork was already uploaded.", artwork: existing });
@@ -474,6 +513,25 @@ router.post(
           ...(Number(uploaded.width) > 0 ? { width: Number(uploaded.width) } : {}),
           ...(Number(uploaded.height) > 0 ? { height: Number(uploaded.height) } : {}),
         };
+        const fingerprint = { contentHash, perceptualHash: optionalText(uploaded.phash).toLowerCase() };
+        const duplicateCandidates = await Artwork.find({
+          $or: [
+            { contentHash },
+            ...(fingerprint.perceptualHash ? [{ perceptualHash: { $exists: true, $ne: "" } }] : []),
+          ],
+        }).select("_id title images contentHash perceptualHash createdAt").lean();
+        const duplicate = duplicateCandidates.find((candidate) => duplicateReason(fingerprint, candidate));
+        if (duplicate) {
+          await cloudinary.uploader.destroy(uploadedImage.publicId).catch(() => {});
+          uploadedImage = null;
+          results.push({
+            ...baseResult,
+            status: "duplicate",
+            message: `Duplicate skipped: matches ${duplicate.title || "an existing artwork"}.`,
+            duplicateOf: duplicate,
+          });
+          continue;
+        }
         const artwork = await Artwork.create({
           title: titleFromFilename(file.originalname),
           description: "",
@@ -485,6 +543,8 @@ router.post(
           isFeatured: false,
           year: null,
           images: [uploadedImage],
+          originalFilename: file.originalname,
+          ...fingerprint,
           clientUploadId,
           uploadBatchId,
           uploadStatus: "success",
@@ -514,7 +574,8 @@ router.post(
     }
 
     const successful = results.filter((item) => item.status === "successful").length;
-    const failed = results.length - successful;
+    const duplicates = results.filter((item) => item.status === "duplicate").length;
+    const failed = results.length - successful - duplicates;
     const publicSync = successful > 0 && req.query.deferPublicSync !== "true"
       ? await safeSyncPublicData("artwork-bulk-uploaded")
       : { success: successful === 0, deferred: successful > 0, message: successful > 0 ? "Public sync deferred" : "No successful artwork changes" };
@@ -523,12 +584,124 @@ router.post(
       message: failed ? "Some artworks could not be uploaded" : "Artworks uploaded",
       total: results.length,
       successful,
+      duplicates,
       failed,
       results,
       publicSync,
     });
   }
 );
+
+// Duplicate analysis is deliberately non-destructive. It fingerprints legacy
+// Cloudinary assets and reports which newer records can safely be removed.
+router.post("/duplicates/scan", protect, adminOnly, async (req, res) => {
+  try {
+    const offset = Math.max(0, Number.parseInt(req.body?.offset, 10) || 0);
+    const batchSize = Math.min(25, Math.max(1, Number.parseInt(req.body?.batchSize, 10) || 25));
+    const scanQuery = { "images.0.publicId": { $exists: true } };
+    const [total, artworks] = await Promise.all([Artwork.countDocuments(scanQuery), Artwork.find(scanQuery)
+      .select("_id title images contentHash perceptualHash originalFilename createdAt")
+      .sort({ createdAt: 1, _id: 1 })
+      .skip(offset)
+      .limit(batchSize)]);
+    let fingerprinted = 0;
+    let unavailable = 0;
+    let cursor = 0;
+    const fingerprintWorker = async () => {
+      while (cursor < artworks.length) {
+        const artwork = artworks[cursor++];
+        if (artwork.perceptualHash && artwork.contentHash) continue;
+        try {
+          const resource = await cloudinary.api.resource(artwork.images[0].publicId, { phash: true });
+          artwork.perceptualHash = optionalText(resource.phash).toLowerCase();
+          artwork.contentHash = optionalText(resource.etag).toLowerCase() || artwork.contentHash;
+          if (!artwork.originalFilename) artwork.originalFilename = optionalText(resource.original_filename);
+          await artwork.save();
+          fingerprinted += 1;
+        } catch (error) {
+          unavailable += 1;
+          console.warn("Could not fingerprint artwork image:", {
+            artworkId: String(artwork._id),
+            message: error?.message || error?.error?.message || "Cloudinary returned an unknown error",
+            httpCode: error?.http_code || error?.error?.http_code,
+          });
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(5, artworks.length) }, fingerprintWorker));
+    const nextOffset = offset + artworks.length;
+    const complete = nextOffset >= total;
+    let groups = [];
+    if (complete) {
+      const refreshed = await Artwork.find({ $or: [{ contentHash: { $exists: true, $ne: "" } }, { perceptualHash: { $ne: "" } }] })
+        .select("_id title images contentHash perceptualHash originalFilename createdAt")
+        .sort({ createdAt: 1, _id: 1 })
+        .lean();
+      groups = buildDuplicateGroups(refreshed).map((group) => ({
+        keep: group.keep,
+        duplicates: group.duplicates,
+        reason: duplicateReason(group.keep, group.duplicates[0]),
+      }));
+    }
+    res.json({
+      success: true,
+      scanned: nextOffset,
+      total,
+      nextOffset,
+      complete,
+      fingerprinted,
+      unavailable,
+      duplicateGroups: groups,
+      duplicateCount: groups.reduce((count, group) => count + group.duplicates.length, 0),
+    });
+  } catch (error) {
+    console.error("Duplicate scan failed:", error);
+    res.status(500).json({ success: false, message: "Duplicate scan could not be completed" });
+  }
+});
+
+router.post("/duplicates/remove", protect, adminOnly, async (req, res) => {
+  try {
+    if (req.body?.confirm !== true) return res.status(400).json({ success: false, message: "Explicit confirmation is required" });
+    const artworks = await Artwork.find({ $or: [{ contentHash: { $exists: true, $ne: "" } }, { perceptualHash: { $ne: "" } }] })
+      .select("_id title images contentHash perceptualHash createdAt")
+      .sort({ createdAt: 1, _id: 1 });
+    const groups = buildDuplicateGroups(artworks);
+    const confirmedDuplicates = groups.flatMap((group) => group.duplicates);
+    const requestedIds = Array.isArray(req.body?.ids)
+      ? [...new Set(req.body.ids.map((id) => optionalText(id)).filter(Boolean))]
+      : [];
+    if (requestedIds.some((id) => !mongoose.isValidObjectId(id))) {
+      return res.status(400).json({ success: false, message: "One or more selected duplicate IDs are invalid" });
+    }
+    const confirmedIds = new Set(confirmedDuplicates.map((artwork) => String(artwork._id)));
+    if (requestedIds.some((id) => !confirmedIds.has(id))) {
+      return res.status(409).json({ success: false, message: "Selection contains an artwork that is not a confirmed duplicate. Scan again." });
+    }
+    const duplicates = requestedIds.length
+      ? confirmedDuplicates.filter((artwork) => requestedIds.includes(String(artwork._id)))
+      : confirmedDuplicates;
+    if (!duplicates.length) return res.json({ success: true, removed: 0, message: "No duplicates were found" });
+    const ids = duplicates.map((artwork) => artwork._id);
+    const publicIds = imagePublicIdsFor(duplicates);
+    await deleteArtworkDocumentsByIds(ids);
+    const publicSync = await safeSyncPublicData("automatic-duplicate-removal");
+    if (!publicSync.success) {
+      return res.status(502).json({ success: false, removed: ids.length, message: publicSync.message, cloudinaryCleanup: { skipped: true } });
+    }
+    const cloudinaryCleanup = await deleteCloudinaryImages(publicIds);
+    res.status(cloudinaryCleanup.failures.length ? 207 : 200).json({
+      success: cloudinaryCleanup.failures.length === 0,
+      removed: ids.length,
+      kept: groups.length,
+      cloudinaryCleanup,
+      message: `${ids.length} duplicate artwork${ids.length === 1 ? "" : "s"} removed; the oldest copy in each group was kept.`,
+    });
+  } catch (error) {
+    console.error("Duplicate removal failed:", error);
+    res.status(error?.status || 500).json({ success: false, message: error?.publicMessage || "Duplicates could not be removed" });
+  }
+});
 
 // @route   DELETE /api/artworks/bulk
 // @desc    Delete multiple artworks and all associated Cloudinary images
@@ -641,19 +814,41 @@ router.post("/deletion-jobs", protect, adminOnly, async (req, res) => {
   if (!validation.valid) {
     return res.status(validation.status).json({ success: false, message: validation.message });
   }
-  const job = createArtworkDeletionJob({
-    ids: validation.ids,
-    requestedBy: req.user._id,
-    deleteArtwork: deleteArtworkForJob,
-    sync: () => safeSyncPublicData("artwork-deletion-job-finalized"),
-    cleanup: cleanupDeletedArtworkImages,
-  });
-  setImmediate(() => {
-    startArtworkDeletionJob(job.id)?.catch((error) => {
-      console.error("Artwork deletion job failed:", error?.message || "unknown error");
+  try {
+    const deleteBatchHistory = req.body?.deleteBatchHistory === true;
+    const batchByArtworkId = new Map();
+    if (deleteBatchHistory) {
+      const selectedArtworks = await Artwork.find({ _id: { $in: validation.ids } }).select("_id uploadBatchId").lean();
+      selectedArtworks.forEach((artwork) => {
+        if (artwork.uploadBatchId) batchByArtworkId.set(String(artwork._id), artwork.uploadBatchId);
+      });
+    }
+    const job = createArtworkDeletionJob({
+      ids: validation.ids,
+      requestedBy: req.user._id,
+      deleteArtwork: deleteArtworkForJob,
+      sync: () => safeSyncPublicData("artwork-deletion-job-finalized"),
+      cleanup: cleanupDeletedArtworkImages,
+      finalize: deleteBatchHistory
+        ? async (result) => {
+            const completedIds = result.items
+              .filter((item) => item.status === "deleted" || item.status === "missing")
+              .map((item) => batchByArtworkId.get(item.id))
+              .filter(Boolean);
+            return deleteUploadBatchHistory(completedIds);
+          }
+        : null,
     });
-  });
-  return res.status(202).json({ success: true, job });
+    setImmediate(() => {
+      startArtworkDeletionJob(job.id)?.catch((error) => {
+        console.error("Artwork deletion job failed:", error?.message || "unknown error");
+      });
+    });
+    return res.status(202).json({ success: true, job });
+  } catch (error) {
+    console.error("Artwork deletion job initialization failed:", error);
+    return res.status(500).json({ success: false, message: "Deletion job could not be started" });
+  }
 });
 
 router.get("/deletion-jobs/:jobId", protect, adminOnly, (req, res) => {
@@ -684,7 +879,7 @@ router.get("/upload-status/:clientUploadId", protect, adminOnly, async (req, res
 router.get("/upload-history", protect, adminOnly, async (req, res) => {
   try {
     const { page = 1, limit = 20, search, status, batchId, startDate, endDate } = req.query;
-    const query = {};
+    const query = { uploadHistoryVisible: { $ne: false } };
     if (search) query.title = { $regex: search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
     if (status === "success") query.$or = [{ uploadStatus: "success" }, { uploadStatus: { $exists: false } }];
     if (status === "failed") query.uploadStatus = "failed";
@@ -711,10 +906,10 @@ router.get("/upload-history", protect, adminOnly, async (req, res) => {
 router.get("/upload-history/batches", protect, adminOnly, async (req, res) => {
   try {
     const [artworkBatches, savedBatches] = await Promise.all([Artwork.aggregate([
-      { $match: { uploadBatchId: { $exists: true, $ne: "" } } },
+      { $match: { uploadBatchId: { $exists: true, $ne: "" }, uploadHistoryVisible: { $ne: false } } },
       { $group: { _id: "$uploadBatchId", uploadedAt: { $max: "$createdAt" }, total: { $sum: 1 }, successful: { $sum: { $cond: [{ $eq: ["$uploadStatus", "success"] }, 1, 0] } }, failed: { $sum: { $cond: [{ $eq: ["$uploadStatus", "failed"] }, 1, 0] } }, uploadedBy: { $first: "$uploadedBy" } } },
       { $sort: { uploadedAt: -1 } },
-    ]), UploadBatch.find().sort({ createdAt: -1 }).lean()]);
+    ]), UploadBatch.find({ historyVisible: { $ne: false } }).sort({ createdAt: -1 }).lean()]);
     const summaries = new Map(savedBatches.map((batch) => [batch.uploadBatchId, batch]));
     const batches = artworkBatches.map(({ _id, ...batch }) => {
       const saved = summaries.get(_id);
@@ -727,6 +922,8 @@ router.get("/upload-history/batches", protect, adminOnly, async (req, res) => {
         successful: saved?.successfulCount || batch.successful,
         failed: saved?.failedCount || batch.failed,
         uploadedBy: saved?.uploadedBy || batch.uploadedBy,
+        remainingArtworkCount: batch.total,
+        canDeleteHistory: batch.total === 0,
       };
     });
     for (const saved of summaries.values()) batches.push({
@@ -736,6 +933,8 @@ router.get("/upload-history/batches", protect, adminOnly, async (req, res) => {
       successful: saved.successfulCount,
       failed: saved.failedCount,
       uploadedBy: saved.uploadedBy,
+      remainingArtworkCount: 0,
+      canDeleteHistory: true,
     });
     batches.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
     res.json({ success: true, batches });
@@ -756,6 +955,31 @@ router.put("/upload-history/batches/:uploadBatchId", protect, adminOnly, async (
   } catch (error) {
     console.error("Upload batch summary error:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.delete("/upload-history/batches/:uploadBatchId", protect, adminOnly, async (req, res) => {
+  try {
+    const uploadBatchId = optionalText(req.params.uploadBatchId);
+    if (!uploadBatchId || uploadBatchId.length > 160) {
+      return res.status(400).json({ success: false, message: "Invalid upload batch ID" });
+    }
+    const result = await deleteUploadBatchHistory([uploadBatchId]);
+    if (result.blockedBatchIds.length) {
+      return res.status(409).json({
+        success: false,
+        message: `Batch history cannot be deleted while ${result.remainingArtworkCount} artwork${result.remainingArtworkCount === 1 ? "" : "s"} from this batch remain on the website.`,
+        ...result,
+      });
+    }
+    return res.json({
+      success: true,
+      message: "Batch history deleted because no artworks from this batch remain.",
+      ...result,
+    });
+  } catch (error) {
+    console.error("Upload batch history deletion error:", error);
+    return res.status(500).json({ success: false, message: "Batch history could not be deleted" });
   }
 });
 

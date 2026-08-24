@@ -11,8 +11,8 @@ const MODE_CLASSES = {
     eyebrow: "mb-3",
     heading: "text-4xl mb-4",
     subtitle: "text-sm mb-8 max-w-xl",
-    buttons: "flex-col gap-3",
-    button: "w-full text-center",
+    buttons: "flex-wrap items-center gap-3",
+    button: "text-center",
   },
   tablet: {
     section: "min-h-[500px] items-center",
@@ -43,8 +43,8 @@ const RESPONSIVE_CLASSES = {
   eyebrow: "mb-3 lg:mb-6",
   heading: "mb-4 text-4xl sm:text-5xl lg:mb-8 lg:text-8xl",
   subtitle: "mb-8 max-w-xl text-sm sm:text-base lg:mx-auto lg:mb-12 lg:max-w-lg lg:text-xl",
-  buttons: "flex-col gap-3 sm:flex-row sm:gap-4 lg:justify-center",
-  button: "w-full text-center sm:w-auto",
+  buttons: "flex-wrap items-center gap-3 sm:gap-4 lg:justify-center",
+  button: "text-center",
 };
 
 const HomeHero = ({ settings, previewMode = "responsive", showScrollIndicator = true }) => {

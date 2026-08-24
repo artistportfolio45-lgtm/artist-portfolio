@@ -33,7 +33,7 @@ test("bulk delete uses one server job with a final public sync warning and no bu
   assert.doesNotMatch(pageSource, /artworks\/rebuild/);
 });
 
-test("upload history supports page and whole-batch selection with permanent-delete confirmation", () => {
+test("upload history supports artwork deletion choices and independent batch-history deletion", () => {
   for (const token of [
     "selectedIds",
     "Select current page",
@@ -43,8 +43,16 @@ test("upload history supports page and whole-batch selection with permanent-dele
     "Select all artworks on this page",
     "This action cannot be undone",
     "associated Cloudinary images",
+    "Keep batch history",
+    "Delete history for emptied batches",
+    "Delete history only",
+    "Delete selected batch history",
+    "All artwork records, Gallery entries, and Cloudinary images will be kept.",
   ]) assert.ok(historySource.includes(token), token);
-  assert.match(historySource, /artworkAPI\.startDeletionJob\(ids\)/);
+  assert.match(historySource, /History kept while artworks remain/);
+  assert.match(historySource, /!batch\.canDeleteHistory/);
+  assert.match(historySource, /artworkAPI\.startDeletionJob\(ids, \{ deleteBatchHistory: deleteBatchHistoryWithArtworks \}\)/);
+  assert.match(historySource, /artworkAPI\.deleteBatchHistory\(historyBatchToDelete\.uploadBatchId\)/);
   assert.match(historySource, /artworkAPI\.cancelDeletionJob\(activeDeleteJobId\)/);
   assert.match(historySource, /artworkAPI\.getDeletionJob\(activeDeleteJobId/);
   assert.match(historySource, /uploadHistoryDeletionJob\.v1/);
@@ -57,7 +65,8 @@ test("upload history supports page and whole-batch selection with permanent-dele
 });
 
 test("artwork API exposes cancellable deletion-job endpoints", () => {
-  assert.match(apiSource, /startDeletionJob: \(ids\) => api\.post\("\/artworks\/deletion-jobs", \{ ids \}\)/);
+  assert.match(apiSource, /deleteBatchHistory: \(uploadBatchId\) => api\.delete/);
+  assert.match(apiSource, /startDeletionJob: \(ids, options = \{\}\) => api\.post\("\/artworks\/deletion-jobs"/);
   assert.match(apiSource, /getDeletionJob: \(jobId, config = \{\}\)/);
   assert.match(apiSource, /cancelDeletionJob: \(jobId\) => api\.post/);
 });

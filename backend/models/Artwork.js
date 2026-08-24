@@ -54,10 +54,14 @@ const artworkSchema = new mongoose.Schema(
       default: false,
     },
     images: [imageSchema],
+    originalFilename: { type: String, trim: true, default: "" },
+    contentHash: { type: String, trim: true, lowercase: true, sparse: true },
+    perceptualHash: { type: String, trim: true, lowercase: true, default: "" },
     clientUploadId: { type: String, unique: true, sparse: true, trim: true },
     uploadBatchId: { type: String, trim: true },
     uploadStatus: { type: String, enum: ["success", "failed"], default: "success" },
     uploadedBy: { type: String, trim: true },
+    uploadHistoryVisible: { type: Boolean, default: true },
     // Denormalized for easy display
     year: { type: Number, default: null },
   },
@@ -70,5 +74,6 @@ const artworkSchema = new mongoose.Schema(
 artworkSchema.index({ publicationStatus: 1, createdAt: -1, _id: -1 });
 artworkSchema.index({ publicationStatus: 1, category: 1, year: -1, _id: -1 });
 artworkSchema.index({ catalogueNumber: 1 }, { unique: true, partialFilterExpression: { catalogueNumber: { $type: "string", $gt: "" } } });
+artworkSchema.index({ perceptualHash: 1 }, { sparse: true });
 
 module.exports = mongoose.model("Artwork", artworkSchema);

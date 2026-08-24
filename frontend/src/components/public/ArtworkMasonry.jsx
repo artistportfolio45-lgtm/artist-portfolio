@@ -26,6 +26,10 @@ const withRetryToken = (url, attempt) => {
   }
 };
 
+const retrySrcSet = (urls, attempt) => urls
+  .map(({ url, width }) => `${withRetryToken(url, attempt)} ${width}w`)
+  .join(", ");
+
 const ArtworkMasonryImage = ({ image, title, priority }) => {
   const originalUrl = image.url;
   const thumbnailWidths = galleryThumbnailWidths(image.width);
@@ -33,9 +37,8 @@ const ArtworkMasonryImage = ({ image, title, priority }) => {
     thumbnailWidths.find((width) => width >= GALLERY_THUMBNAIL_WIDTHS[1]) ||
     thumbnailWidths[thumbnailWidths.length - 1];
   const optimizedUrl = cloudinaryThumbnailUrl(originalUrl, defaultWidth);
-  const optimizedSrcSet = thumbnailWidths
-    .map((width) => `${cloudinaryThumbnailUrl(originalUrl, width)} ${width}w`)
-    .join(", ");
+  const optimizedCandidates = thumbnailWidths
+    .map((width) => ({ url: cloudinaryThumbnailUrl(originalUrl, width), width }));
   const hasOptimizedSource = optimizedUrl !== originalUrl;
   const hasIntrinsicDimensions = Number(image.width) > 0 && Number(image.height) > 0;
   const [status, setStatus] = useState("loading");
@@ -130,7 +133,9 @@ const ArtworkMasonryImage = ({ image, title, priority }) => {
       {loadMode !== null && <img
         ref={setImageRef}
         src={sourceUrl}
-        srcSet={!useOriginal && hasOptimizedSource ? optimizedSrcSet : undefined}
+        // The retry token must be present in every srcset candidate.  Updating
+        // only src leaves browsers free to keep retrying a failed srcset URL.
+        srcSet={!useOriginal && hasOptimizedSource ? retrySrcSet(optimizedCandidates, retryAttempt) : undefined}
         sizes={!useOriginal && hasOptimizedSource ? GALLERY_IMAGE_SIZES : undefined}
         width={hasIntrinsicDimensions ? Number(image.width) : 4}
         height={hasIntrinsicDimensions ? Number(image.height) : 5}
@@ -211,7 +216,12 @@ const ArtworkMasonryItem = ({ artwork, priority = false, galleryRestoreState = n
               )}
             </span>
           </span>
-        </span>
+          </span>
+
+          <span className="artwork-masonry-mobile-caption bg-white px-2.5 py-2.5 text-left">
+            <span className="block truncate font-display text-sm font-light leading-tight text-charcoal">{title}</span>
+            {metadata && <span className="mt-1 block truncate text-[8px] font-label uppercase tracking-[0.12em] text-slate/55">{metadata}</span>}
+          </span>
 
       </Link>
     </article>

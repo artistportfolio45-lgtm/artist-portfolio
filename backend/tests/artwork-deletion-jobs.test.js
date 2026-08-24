@@ -165,3 +165,23 @@ test("Cloudinary cleanup runs only after the authoritative sync succeeds", async
   assert.equal(failedResult.publicSync.status, "failed");
   assert.equal(failedResult.cleanupPending, 1);
 });
+
+test("optional batch-history finalization is reported without hiding artwork deletion results", async () => {
+  const events = [];
+  const job = createArtworkDeletionJob({
+    ids: ["one"],
+    requestedBy: adminId,
+    deleteArtwork: async () => { events.push("mongo"); return { status: "deleted" }; },
+    sync: async () => { events.push("sync"); return { success: true }; },
+    finalize: async (result) => {
+      events.push("history");
+      assert.equal(result.deleted, 1);
+      return { batchCount: 1, hiddenArtworkCount: 0 };
+    },
+  });
+  const result = await startArtworkDeletionJob(job.id);
+  assert.deepEqual(events, ["mongo", "sync", "history"]);
+  assert.equal(result.deleted, 1);
+  assert.equal(result.historyCleanup.status, "deleted");
+  assert.equal(result.historyCleanup.batchCount, 1);
+});

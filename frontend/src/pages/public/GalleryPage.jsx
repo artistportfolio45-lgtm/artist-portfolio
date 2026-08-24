@@ -38,11 +38,9 @@ const GalleryPage = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
-  const [collection, setCollection] = useState(() => searchParams.get("collection") || "");
-  const [medium, setMedium] = useState(() => searchParams.get("medium") || "");
   const [year, setYear] = useState(() => searchParams.get("year") || "");
-  const [decade, setDecade] = useState(() => searchParams.get("decade") || "");
   const [page, setPage] = useState(() => normalizeGalleryPage(searchParams.get("page"), 1));
+  const [pageInput, setPageInput] = useState(() => String(normalizeGalleryPage(searchParams.get("page"), 1)));
   const restoreState = useMemo(() => ({
     pathname: location.pathname,
     search: location.search,
@@ -53,12 +51,9 @@ const GalleryPage = () => {
       availability,
       sort: sortValue,
       search,
-      collection,
-      medium,
       year,
-      decade,
     },
-  }), [availability, category, collection, decade, location.pathname, location.search, medium, page, search, sortValue, year]);
+  }), [availability, category, location.pathname, location.search, page, search, sortValue, year]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const requestIdRef = useRef(0);
   const mountedRef = useRef(true);
@@ -67,25 +62,19 @@ const GalleryPage = () => {
   const restorePendingRef = useRef(false);
   const restoreFrameRef = useRef(null);
   const activeArtworkIdRef = useRef("");
-  const appendPageRef = useRef(null);
   const filterDialogRef = useRef(null);
   const filterTriggerRef = useRef(null);
   const suggestionRequestIdRef = useRef(0);
 
-  const applyResult = useCallback((result, append = false) => {
+  const applyResult = useCallback((result) => {
     if (!mountedRef.current) return;
     const incoming = result.items || [];
-    setArtworks((current) => {
-      if (!append) return incoming;
-      const incomingIds = new Set(incoming.map((artwork) => artwork._id));
-      return [...current.filter((artwork) => !incomingIds.has(artwork._id)), ...incoming];
-    });
+    setArtworks(incoming);
     setPagination(result.pagination || {});
   }, []);
 
   const fetchArtworks = useCallback(async (requestedPage = page) => {
     const requestId = ++requestIdRef.current;
-    const append = appendPageRef.current === requestedPage;
     requestedPage === 1 ? setLoading(true) : setLoadingPage(true);
     setError("");
     const [sort, order] = sortValue.split("-");
@@ -95,14 +84,11 @@ const GalleryPage = () => {
       if (category !== "all") params.category = category;
       if (availability !== "all") params.available = availability;
       if (search) params.search = search;
-      if (collection) params.collection = collection;
-      if (medium) params.medium = medium;
       if (year) params.year = year;
-      if (decade && !year) params.decade = decade;
 
       const result = await publicDataAPI.getArtworks(params);
       if (requestId !== requestIdRef.current) return;
-      applyResult(result, append);
+      applyResult(result);
     } catch {
       if (requestId !== requestIdRef.current) return;
       setError("The gallery could not be loaded. Please try again.");
@@ -112,10 +98,9 @@ const GalleryPage = () => {
       if (requestId === requestIdRef.current) {
         setLoading(false);
         setLoadingPage(false);
-        if (appendPageRef.current === requestedPage) appendPageRef.current = null;
       }
     }
-  }, [applyResult, availability, category, collection, decade, medium, page, search, sortValue, year]);
+  }, [applyResult, availability, category, page, search, sortValue, year]);
 
   useEffect(() => {
     publicDataAPI.getCategories()
@@ -130,21 +115,16 @@ const GalleryPage = () => {
     const nextSort = searchParams.get("sort") || DEFAULT_SORT;
     const nextRawSearch = getSearchParam(searchParams);
     const nextSearch = getActiveSearchParam(searchParams);
-    const nextCollection = searchParams.get("collection") || "";
-    const nextMedium = searchParams.get("medium") || "";
     const nextYear = searchParams.get("year") || "";
-    const nextDecade = searchParams.get("decade") || "";
 
     setPage(nextPage);
+    setPageInput(String(nextPage));
     setCategory(nextCategory);
     setAvailability(nextAvailability);
     setSortValue(nextSort);
     setSearch(nextSearch);
     setSearchInput(nextRawSearch);
-    setCollection(nextCollection);
-    setMedium(nextMedium);
     setYear(nextYear);
-    setDecade(nextDecade);
   }, [searchParams]);
 
   useEffect(() => {
@@ -191,25 +171,18 @@ const GalleryPage = () => {
   }, [categories]);
 
   const updateCollection = (changes = {}, nextPage = 1) => {
-    appendPageRef.current = null;
     const nextCategory = changes.category ?? category;
     const nextAvailability = changes.availability ?? availability;
     const nextSort = changes.sortValue ?? sortValue;
     const nextSearch = changes.search ?? search;
-    const nextCollection = changes.collection ?? collection;
-    const nextMedium = changes.medium ?? medium;
     const nextYear = changes.year ?? year;
-    const nextDecade = changes.decade ?? decade;
 
     setPage(nextPage);
     setCategory(nextCategory);
     setAvailability(nextAvailability);
     setSortValue(nextSort);
     setSearch(nextSearch);
-    setCollection(nextCollection);
-    setMedium(nextMedium);
     setYear(nextYear);
-    setDecade(nextDecade);
 
     const nextParams = new URLSearchParams();
     if (nextPage > 1) nextParams.set("page", String(nextPage));
@@ -217,10 +190,7 @@ const GalleryPage = () => {
     if (nextAvailability !== "all") nextParams.set("availability", nextAvailability);
     if (nextSort !== DEFAULT_SORT) nextParams.set("sort", nextSort);
     if (nextSearch) nextParams.set("search", nextSearch);
-    if (nextCollection) nextParams.set("collection", nextCollection);
-    if (nextMedium) nextParams.set("medium", nextMedium);
     if (nextYear) nextParams.set("year", nextYear);
-    if (nextDecade && !nextYear) nextParams.set("decade", nextDecade);
     setSearchParams(nextParams, { replace: true });
   };
 
@@ -293,7 +263,7 @@ const GalleryPage = () => {
 
   const clearFilters = () => {
     setSearchInput("");
-    updateCollection({ category: "all", availability: "all", search: "", collection: "", medium: "", year: "", decade: "" }, 1);
+    updateCollection({ category: "all", availability: "all", search: "", year: "" }, 1);
   };
 
   const clearSearch = () => {
@@ -304,7 +274,7 @@ const GalleryPage = () => {
   };
 
   const hasActiveFilters =
-    category !== "all" || availability !== "all" || Boolean(search || collection || medium || year || decade);
+    category !== "all" || availability !== "all" || Boolean(search || year);
   const resultCount = pagination.total ?? artworks.length;
   const totalPages = Math.max(1, Number(pagination.pages) || 1);
   const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -328,24 +298,10 @@ const GalleryPage = () => {
     if (availability !== "all") nextParams.set("availability", availability);
     if (sortValue !== DEFAULT_SORT) nextParams.set("sort", sortValue);
     if (search) nextParams.set("search", search);
-    if (collection) nextParams.set("collection", collection);
-    if (medium) nextParams.set("medium", medium);
     if (year) nextParams.set("year", year);
-    if (decade && !year) nextParams.set("decade", decade);
     setSearchParams(nextParams, { replace: false });
     requestAnimationFrame(() => scrollGalleryToStart());
-  }, [availability, category, collection, decade, loadingPage, medium, page, prefersReducedMotion, search, searchParams, setSearchParams, sortValue, totalPages, year, scrollGalleryToStart]);
-
-  const loadMore = useCallback(() => {
-    const currentPage = normalizeGalleryPage(searchParams.get("page"), page);
-    const nextPage = Math.min(currentPage + 1, totalPages);
-    if (nextPage === currentPage || loadingPage) return;
-    appendPageRef.current = nextPage;
-    setLoadingPage(true);
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.set("page", String(nextPage));
-    setSearchParams(nextParams, { replace: false });
-  }, [loadingPage, page, searchParams, setSearchParams, totalPages]);
+  }, [availability, category, loadingPage, page, prefersReducedMotion, search, searchParams, setSearchParams, sortValue, totalPages, year, scrollGalleryToStart]);
 
   useEffect(() => {
     const restoreState = readGalleryRestoreState();
@@ -364,10 +320,7 @@ const GalleryPage = () => {
     const restoreCategory = restoreState.filters?.category || "all";
     const restoreAvailability = restoreState.filters?.availability || "all";
     const restoreSort = restoreState.filters?.sort || DEFAULT_SORT;
-    const restoreCollection = restoreState.filters?.collection || "";
-    const restoreMedium = restoreState.filters?.medium || "";
     const restoreYear = restoreState.filters?.year || "";
-    const restoreDecade = restoreState.filters?.decade || "";
 
     if (restoreState.artworkId) activeArtworkIdRef.current = restoreState.artworkId;
 
@@ -382,10 +335,10 @@ const GalleryPage = () => {
       if (restoreSort !== DEFAULT_SORT) next.set("sort", restoreSort); else next.delete("sort");
       if (restoreSearch) next.set("search", restoreSearch); else next.delete("search");
       next.delete("q");
-      if (restoreCollection) next.set("collection", restoreCollection); else next.delete("collection");
-      if (restoreMedium) next.set("medium", restoreMedium); else next.delete("medium");
       if (restoreYear) next.set("year", restoreYear); else next.delete("year");
-      if (restoreDecade && !restoreYear) next.set("decade", restoreDecade); else next.delete("decade");
+      next.delete("collection");
+      next.delete("medium");
+      next.delete("decade");
       return next;
     }, { replace: true });
 
@@ -499,9 +452,9 @@ const GalleryPage = () => {
           </nav>
 
           <div className="mt-3 border-b border-charcoal/10 pb-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
               <form
-                className="flex w-0 min-w-0 flex-1 lg:w-full lg:max-w-sm"
+                className="flex w-full min-w-0 sm:w-0 sm:flex-1 lg:w-full lg:max-w-sm"
                 role="search"
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -529,7 +482,7 @@ const GalleryPage = () => {
                     aria-expanded={suggestionsOpen}
                     aria-activedescendant={activeSuggestionIndex >= 0 ? `gallery-search-option-${activeSuggestionIndex}` : undefined}
                     className="h-11 w-full min-w-0 border border-charcoal/15 bg-transparent py-2 pl-3 pr-10 text-sm text-charcoal placeholder:text-slate/35 focus:border-gold focus:outline-none"
-                    placeholder="Search title, medium, year..."
+                    placeholder="Search title or year..."
                   />
                   {searchInput && (
                     <button
@@ -582,7 +535,7 @@ const GalleryPage = () => {
               <button
                 type="button"
                 onClick={() => setFiltersOpen((open) => !open)}
-                className="h-11 flex-shrink-0 border border-charcoal/15 px-3 text-sm text-charcoal"
+                className="h-11 flex-shrink-0 border border-charcoal/15 px-3 text-xs font-label uppercase tracking-[0.12em] text-charcoal sm:text-sm sm:normal-case sm:tracking-normal"
                 aria-expanded={filtersOpen}
                 aria-controls="gallery-mobile-filters"
               >
@@ -597,21 +550,21 @@ const GalleryPage = () => {
 
             <div
               id="gallery-mobile-filters"
-              className={`hidden lg:grid grid-cols-1 gap-2 overflow-hidden transition-all sm:grid-cols-2 lg:grid-cols-5 ${
+              className={`hidden lg:grid grid-cols-1 gap-2 overflow-hidden transition-all sm:grid-cols-2 lg:grid-cols-3 ${
                 filtersOpen ? "mt-3 max-h-96 opacity-100" : "mt-0 max-h-0 opacity-0"
               }`}
             >
               {availabilitySelect}
               {sortSelect}
-              {[["collection", collection, setCollection], ["medium", medium, setMedium], ["year", year, setYear], ["decade", decade, setDecade]].map(([key, value, setter]) => (
+              {[["year", year, setYear]].map(([key, value, setter]) => (
                 <label key={key} className="block">
                   <span className="sr-only">Filter by {key}</span>
                   <input
                     type={key === "year" ? "number" : "text"}
                     value={value}
                     onChange={(event) => setter(event.target.value)}
-                    onBlur={() => updateCollection({ collection, medium, year, decade })}
-                    onKeyDown={(event) => { if (event.key === "Enter") updateCollection({ collection, medium, year, decade }); }}
+                    onBlur={() => updateCollection({ year })}
+                    onKeyDown={(event) => { if (event.key === "Enter") updateCollection({ year }); }}
                     className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
                     placeholder={key[0].toUpperCase() + key.slice(1)}
                   />
@@ -648,47 +601,14 @@ const GalleryPage = () => {
                     {availabilitySelect}
                     {sortSelect}
                     <label className="block">
-                      <span className="sr-only">Filter by collection</span>
-                      <input
-                        type="text"
-                        value={collection}
-                        onChange={(event) => setCollection(event.target.value)}
-                        onBlur={() => updateCollection({ collection, medium, year, decade })}
-                        className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
-                        placeholder="Collection"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="sr-only">Filter by medium</span>
-                      <input
-                        type="text"
-                        value={medium}
-                        onChange={(event) => setMedium(event.target.value)}
-                        onBlur={() => updateCollection({ collection, medium, year, decade })}
-                        className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
-                        placeholder="Medium"
-                      />
-                    </label>
-                    <label className="block">
                       <span className="sr-only">Filter by year</span>
                       <input
                         type="number"
                         value={year}
                         onChange={(event) => setYear(event.target.value)}
-                        onBlur={() => updateCollection({ collection, medium, year, decade })}
+                        onBlur={() => updateCollection({ year })}
                         className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
                         placeholder="Year"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="sr-only">Filter by decade</span>
-                      <input
-                        type="text"
-                        value={decade}
-                        onChange={(event) => setDecade(event.target.value)}
-                        onBlur={() => updateCollection({ collection, medium, year, decade })}
-                        className="h-11 w-full border border-charcoal/15 bg-transparent px-3 text-sm text-charcoal focus:border-gold focus:outline-none"
-                        placeholder="Decade"
                       />
                     </label>
                     <button
@@ -765,29 +685,40 @@ const GalleryPage = () => {
           )}
 
           {totalPages > 1 && !loading && (
-            <>
-              <div className="lg:hidden mt-6">
-                <button
-                  type="button"
-                  onClick={loadMore}
-                  disabled={page >= totalPages || loadingPage}
-                  className="btn-gold w-full py-4 text-sm font-medium"
-                >
-                  {loadingPage && page < totalPages ? <LoadingSpinner size="sm" /> : page < totalPages ? "Load More" : "End of collection"}
-                </button>
-              </div>
-
-              <nav className="hidden lg:flex mt-8 flex-col gap-4 border-t border-charcoal/10 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Gallery pagination">
+              <nav className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-charcoal/10 pt-5 sm:mt-8 sm:pt-6" aria-label="Gallery pagination">
                 <div className="text-sm text-slate/60">
                   Page {page} of {totalPages}
                 </div>
-                <div className="flex items-center gap-3">
+                <form
+                  className="flex items-center gap-2"
+                  aria-label="Jump to Gallery page"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const target = Math.min(Math.max(1, Number.parseInt(pageInput, 10) || 1), totalPages);
+                    setPageInput(String(target));
+                    goToPage(target);
+                  }}
+                >
+                  <label htmlFor="gallery-page-number" className="text-xs text-slate/60 sm:text-sm">Go to page</label>
+                  <input
+                    id="gallery-page-number"
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    max={totalPages}
+                    value={pageInput}
+                    onChange={(event) => setPageInput(event.target.value)}
+                    className="h-11 w-16 rounded-full border border-charcoal/20 bg-transparent px-2 text-center text-sm text-charcoal focus:border-gold focus:outline-none sm:w-20"
+                  />
+                  <button type="submit" className="inline-flex h-11 items-center justify-center rounded-full border border-charcoal/20 px-3 text-xs font-medium text-charcoal hover:border-gold hover:text-gold disabled:opacity-40" disabled={loadingPage}>GO</button>
+                </form>
+                <div className="flex items-center gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => goToPage(normalizeGalleryPage(searchParams.get("page"), page) - 1)}
                     disabled={page <= 1 || loadingPage}
                     aria-label="Go to previous Gallery page"
-                    className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-charcoal/20 px-3 py-2 text-xs font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[7rem] sm:px-4 sm:text-sm"
                   >
                     {loadingPage && page > 1 ? <LoadingSpinner size="sm" /> : "PREVIOUS"}
                   </button>
@@ -796,26 +727,15 @@ const GalleryPage = () => {
                     onClick={() => goToPage(normalizeGalleryPage(searchParams.get("page"), page) + 1)}
                     disabled={page >= totalPages || loadingPage}
                     aria-label="Go to next Gallery page"
-                    className="inline-flex min-h-11 min-w-[7rem] items-center justify-center rounded-full border border-charcoal/20 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-charcoal/20 px-3 py-2 text-xs font-medium text-charcoal transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[7rem] sm:px-4 sm:text-sm"
                   >
                     {loadingPage && page < totalPages ? <LoadingSpinner size="sm" /> : "NEXT"}
                   </button>
                 </div>
               </nav>
-            </>
           )}
         </section>
  
-        <div className="fixed bottom-24 right-4 z-40 lg:hidden">
-          <button
-            type="button"
-            onClick={() => setFiltersOpen(true)}
-            className="inline-flex items-center justify-center rounded-full bg-charcoal px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-2xl shadow-black/15 transition-colors hover:bg-gold"
-            aria-label="Open gallery filters"
-          >
-            Filters
-          </button>
-        </div>
       </div>
     </PublicLayout>
   );

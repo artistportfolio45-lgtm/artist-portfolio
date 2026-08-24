@@ -65,6 +65,9 @@ const generalRateLimiter = createJsonLimiter({
   // keep the general limiter for every other API request.
   skip: (req) =>
     isPublicReadRoute(req) ||
+    // The authenticated legacy duplicate scan intentionally uses many small
+    // requests; route-level admin authorization remains mandatory.
+    (req.method === "POST" && req.path === "/artworks/duplicates/scan") ||
     (req.method === "POST" && /^\/artworks(?:\/bulk|\/?$|\/[^/]+\/images)$/.test(req.path)) ||
     (req.method === "GET" && /^\/artworks\/upload-status\/[^/]+$/.test(req.path)),
 });

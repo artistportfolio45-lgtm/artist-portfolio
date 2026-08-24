@@ -30,6 +30,55 @@ Place this `README.md` at the project root, beside `frontend` and `backend`.
 - Netlify Forms support for public contact and artwork inquiries
 - Admin activity logs
 - MongoDB Atlas database support
+- Responsive Gallery pagination with Previous/Next controls and direct page-number navigation
+- Gallery search and category, availability, year, and sorting controls (Collection, Medium, and Decade filters are intentionally removed)
+- Automatic duplicate detection for bulk uploads and existing artwork libraries
+- Stoppable/resumable duplicate scans with protected original artwork review
+- Upload batch history retention rules that prevent deleting history while batch artworks remain
+
+## Current Implementation Notes
+
+### Gallery
+
+The public Gallery supports search, category, availability, year, sorting, Previous/Next navigation, and a direct page-number field. Visitors can enter a page number such as `10` to jump directly to that Gallery page. Page state is preserved in the URL and works across desktop, tablet, and mobile layouts.
+
+Collection, Medium, and Decade filters are not exposed in the Gallery interface. Legacy URL parameters for those filters are ignored and removed when Gallery state is updated.
+
+### Duplicate artwork protection
+
+Bulk uploads automatically fingerprint each image and skip exact or visually matching duplicates. Existing artwork can be scanned from **Admin → Artworks → Bulk Upload**.
+
+The existing-library scan is non-destructive, runs in bounded batches, and can be stopped and resumed. Completed scans show duplicate groups with thumbnails, titles, filenames, dates, match reasons, and links to view each artwork. The oldest artwork in each group is protected as the original. Only confirmed newer duplicates can be selected for removal, and removal always requires confirmation.
+
+Relevant endpoints:
+
+```text
+POST /api/artworks/duplicates/scan
+POST /api/artworks/duplicates/remove
+```
+
+### Upload batch history safety
+
+Batch history can be deleted only after every artwork belonging to that batch has been removed. If even one artwork from the batch remains on the website, the history is kept and the admin control is disabled. This rule is enforced in both the frontend and backend.
+
+### Local public-data synchronization
+
+When running locally without `PUBLIC_DATA_SYNC_URL` and `PUBLIC_DATA_SYNC_SECRET`, external Netlify Blob synchronization is skipped and the backend public-data fallback is used. Production still requires both secure Netlify synchronization settings.
+
+### Validation commands
+
+Run these commands before handing off or deploying changes:
+
+```bash
+cd backend
+npm run lint
+npm test
+
+cd ../frontend
+npm run lint
+npm test
+npm run build
+```
 
 ## Tech Stack
 

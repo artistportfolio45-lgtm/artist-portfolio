@@ -118,9 +118,21 @@ test("clientUploadId has a sparse unique MongoDB index and duplicate-key recover
 });
 
 test("protected upload status and history routes precede the public id route", () => {
-  const paths = artworkRouter.stack.filter((layer) => layer.route).map((layer) => layer.route.path);
+  const routes = artworkRouter.stack.filter((layer) => layer.route);
+  const paths = routes.map((layer) => layer.route.path);
   for (const pathName of ["/upload-status/:clientUploadId", "/upload-history", "/upload-history/batches"]) {
     assert.ok(paths.includes(pathName));
     assert.ok(paths.indexOf(pathName) < paths.indexOf("/:id"));
   }
+  const deleteHistory = routes.find((layer) => layer.route?.path === "/upload-history/batches/:uploadBatchId" && layer.route.methods.delete);
+  assert.ok(deleteHistory);
+  assert.ok(routes.indexOf(deleteHistory) < paths.indexOf("/:id"));
+});
+
+test("batch history can only be deleted after every artwork in that batch is gone", async () => {
+  const source = await require("node:fs/promises").readFile(require.resolve("../routes/artworks"), "utf8");
+  assert.match(source, /blockedBatchIds/);
+  assert.match(source, /remainingArtworkCount/);
+  assert.match(source, /Batch history cannot be deleted while/);
+  assert.doesNotMatch(source, /\$unset: \{ uploadBatchId: "", uploadStatus: "", uploadedBy: "" \}/);
 });

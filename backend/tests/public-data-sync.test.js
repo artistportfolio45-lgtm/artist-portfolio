@@ -9,6 +9,7 @@ const {
 
 const originalUrl = process.env.PUBLIC_DATA_SYNC_URL;
 const originalSecret = process.env.PUBLIC_DATA_SYNC_SECRET;
+const originalNodeEnv = process.env.NODE_ENV;
 const secret = "test-only-sync-secret-with-at-least-32-characters";
 const fixture = {
   schemaVersion: 3,
@@ -29,6 +30,33 @@ test.after(() => {
   else process.env.PUBLIC_DATA_SYNC_URL = originalUrl;
   if (originalSecret === undefined) delete process.env.PUBLIC_DATA_SYNC_SECRET;
   else process.env.PUBLIC_DATA_SYNC_SECRET = originalSecret;
+  if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = originalNodeEnv;
+});
+
+test("local development succeeds through the backend fallback when Netlify sync is unconfigured", async () => {
+  delete process.env.PUBLIC_DATA_SYNC_URL;
+  delete process.env.PUBLIC_DATA_SYNC_SECRET;
+  process.env.NODE_ENV = "development";
+  const result = await performPublicDataSync();
+  assert.equal(result.success, true);
+  assert.equal(result.localOnly, true);
+  assert.equal(result.attempts, 0);
+});
+
+test("production still fails safely when secure Netlify sync configuration is missing", async () => {
+  delete process.env.PUBLIC_DATA_SYNC_URL;
+  delete process.env.PUBLIC_DATA_SYNC_SECRET;
+  process.env.NODE_ENV = "production";
+  const result = await performPublicDataSync();
+  assert.equal(result.success, false);
+  assert.match(result.detail, /not configured/);
+});
+
+test("rejects a public-read URL so a sync cannot POST to the Blob read route", () => {
+  process.env.PUBLIC_DATA_SYNC_URL = "https://artistportfolio46.netlify.app/api/public-portfolio";
+  const { validateConfiguration } = require("../utils/publicDataSync");
+  assert.match(validateConfiguration().error, /sync-public-portfolio/);
 });
 
 test("backend signs timestamp, nonce and exact request body with HMAC-SHA256", () => {
@@ -69,3 +97,16 @@ test("backend returns the exact admin warning and never loops indefinitely", asy
   assert.equal(result.message, "Artwork changes were saved, but public Gallery synchronization failed.");
 });
 
+test("backend aborts an unresponsive sync endpoint and reports a safe actionable timeout", async () => {
+  const result = await performPublicDataSync({
+    buildSnapshot: async () => fixture,
+    sleep: async () => {},
+    requestTimeoutMs: 5,
+    fetchImpl: async (_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })));
+    }),
+  });
+  assert.equal(result.success, false);
+  assert.equal(result.detail, "Sync request timed out");
+  assert.equal(result.attempts, MAX_ATTEMPTS);
+});

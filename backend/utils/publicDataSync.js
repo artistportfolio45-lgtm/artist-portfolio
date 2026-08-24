@@ -30,6 +30,9 @@ const validateConfiguration = () => {
     if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") {
       return { error: "Public sync URL must use HTTPS" };
     }
+    if (!/\/.netlify\/functions\/sync-public-portfolio\/?$/.test(parsed.pathname)) {
+      return { error: "Public sync URL must target the Netlify sync-public-portfolio function" };
+    }
   } catch {
     return { error: "Public sync URL is invalid" };
   }
@@ -57,9 +60,23 @@ const performPublicDataSync = async ({
   buildSnapshot = buildPublicSnapshot,
   sleep = wait,
   now = Date.now,
+  requestTimeoutMs = REQUEST_TIMEOUT_MS,
 } = {}) => {
   const configuration = validateConfiguration();
-  if (configuration.error) return safeFailure(configuration.error);
+  if (configuration.error) {
+    const localDevelopment = process.env.NODE_ENV !== "production"
+      && !String(process.env.PUBLIC_DATA_SYNC_URL || "").trim()
+      && !String(process.env.PUBLIC_DATA_SYNC_SECRET || "");
+    if (localDevelopment) {
+      return {
+        success: true,
+        localOnly: true,
+        message: "Local development uses the live backend public-data fallback; external Netlify Blob sync was skipped.",
+        attempts: 0,
+      };
+    }
+    return safeFailure(configuration.error);
+  }
   if (typeof fetchImpl !== "function") return safeFailure("Fetch is unavailable");
 
   let snapshot;
@@ -76,7 +93,7 @@ const performPublicDataSync = async ({
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     attempts = attempt;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
     timeout.unref?.();
     try {
       const response = await fetchImpl(configuration.url, {
@@ -96,7 +113,7 @@ const performPublicDataSync = async ({
           attempts: attempt,
         };
       }
-      lastDetail = `Sync endpoint returned ${response.status}`;
+      lastDetail = `Sync endpoint returned HTTP ${response.status}${payload?.message ? `: ${String(payload.message).slice(0, 160)}` : ""}`;
       if (response.status >= 400 && response.status < 500 && response.status !== 408 && response.status !== 429) break;
     } catch (error) {
       lastDetail = error?.name === "AbortError" ? "Sync request timed out" : "Sync request could not be completed";

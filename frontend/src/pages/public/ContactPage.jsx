@@ -125,10 +125,10 @@ const ContactPage = () => {
 
   return (
     <PublicLayout>
-      <div className="bg-charcoal pt-28 pb-16 lg:pt-16 lg:pb-12">
+      <div className="bg-charcoal pb-12 pt-24 md:pb-14 md:pt-28 lg:pb-12 lg:pt-16">
         <div className="container-site text-center">
           <p className="eyebrow text-gold mb-3">Get in Touch</p>
-          <h1 className="font-display text-5xl md:text-6xl font-light text-white">
+          <h1 className="font-display text-4xl font-light text-white md:text-6xl">
             Contact
           </h1>
         </div>
@@ -136,7 +136,7 @@ const ContactPage = () => {
 
       <section className="section bg-ivory">
         <div className="container-site">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+          <div className="grid grid-cols-1 gap-9 lg:grid-cols-2 lg:gap-20">
             <div>
               <p className="eyebrow mb-6">Reach Out</p>
               <h2 className="font-display text-3xl md:text-4xl font-light text-charcoal mb-6">
@@ -225,7 +225,7 @@ const ContactPage = () => {
                 netlify-honeypot="bot-field"
                 noValidate
                 onSubmit={handleSubmit}
-                className="bg-white p-8 shadow-sm"
+                className="bg-white p-5 shadow-sm sm:p-8"
               >
                 <input type="hidden" name="form-name" value="contact" />
                 <div className="hidden" aria-hidden="true">
@@ -372,7 +372,7 @@ const ContactPage = () => {
                     type="submit"
                     disabled={submitting}
                     aria-busy={submitting}
-                    className="btn-primary w-full flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="btn-primary inline-flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {submitting ? <><LoadingSpinner size="sm" light />Sending...</> : "Send Message"}
                   </button>

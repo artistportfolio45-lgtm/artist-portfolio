@@ -105,7 +105,7 @@ const PublicLayout = ({ children }) => {
       <Navbar />
       <main id="main-content" tabIndex={-1} className="flex-1 pb-24 lg:pb-0">{children}</main>
       <Footer />
-      <div className="hidden lg:flex fixed bottom-5 right-5 z-50 flex-col items-end gap-3">
+      <div className="fixed bottom-20 right-3 z-50 flex flex-col items-end gap-3 lg:bottom-5 lg:right-5">
         <button
           type="button"
           onClick={scrollToTop}
@@ -118,7 +118,7 @@ const PublicLayout = ({ children }) => {
         </button>
       </div>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-charcoal/10 bg-white/95 backdrop-blur-sm lg:hidden">
-        <div className="container-site flex items-center justify-between gap-2 px-2 py-2">
+        <div className="mx-auto grid w-full max-w-xl grid-cols-4 gap-1 px-2 py-2">
           {[
             { to: "/", label: "Home" },
             { to: "/gallery", label: "Gallery" },
@@ -130,7 +130,7 @@ const PublicLayout = ({ children }) => {
               to={link.to}
               end={link.to === "/"}
               className={({ isActive }) =>
-                `flex-1 rounded-full px-3 py-3 text-center text-[10px] uppercase tracking-[0.24em] transition ${
+                `min-w-0 rounded-full px-1 py-3 text-center text-[9px] uppercase tracking-[0.14em] transition sm:text-[10px] sm:tracking-[0.22em] ${
                   isActive ? "bg-charcoal text-white shadow-lg" : "text-charcoal/80 hover:text-charcoal"
                 }`
               }

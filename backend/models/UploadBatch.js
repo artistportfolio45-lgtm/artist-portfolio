@@ -7,6 +7,7 @@ const uploadBatchSchema = new mongoose.Schema(
     successfulCount: { type: Number, default: 0, min: 0 },
     failedCount: { type: Number, default: 0, min: 0 },
     uploadedBy: { type: String, trim: true },
+    historyVisible: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

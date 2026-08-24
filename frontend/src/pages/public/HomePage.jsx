@@ -68,16 +68,16 @@ const HomePage = () => {
       {/* ── Featured Artworks ─────────────────────────────────── */}
       <section className="featured-artworks section bg-ivory" aria-label="Featured Artworks">
         <div className="container-site">
-          <div className="text-center mb-12">
+          <div className="mb-8 text-center md:mb-12">
             <p className="eyebrow mb-3">Curated Selection</p>
-            <h2 className="font-display text-4xl md:text-5xl font-light text-charcoal">
+            <h2 className="font-display text-3xl font-light text-charcoal md:text-5xl">
               Featured Works
             </h2>
           </div>
 
           {featuredLoading ? (
-            <div role="status" aria-label="Loading featured artworks" className="flex gap-6 overflow-hidden md:gap-8">
-              {[0, 1, 2].map((item) => <div key={item} className="aspect-[4/3] w-[86%] flex-none animate-pulse bg-charcoal/5 sm:w-[47%] lg:w-[calc((100%_-_4rem)/3)]" />)}
+            <div role="status" aria-label="Loading featured artworks" className="flex gap-3 overflow-hidden md:gap-4">
+              {[0, 1, 2].map((item) => <div key={item} className="aspect-[4/3] w-[74%] flex-none animate-pulse bg-charcoal/5 sm:w-[42%] lg:w-[calc((100%_-_4rem)/3)]" />)}
             </div>
           ) : featured.length === 0 ? (
             <div className="text-center py-16 text-slate/50">
@@ -86,11 +86,11 @@ const HomePage = () => {
             </div>
           ) : (
             <div
-              className="flex snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain pb-4 md:gap-8"
+              className="featured-artworks-carousel flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-4 md:gap-4"
               aria-label="Featured artwork carousel"
             >
               {featured.map((artwork, index) => (
-                <div key={artwork._id} className="w-[86%] flex-none snap-start sm:w-[47%] lg:w-[calc((100%_-_4rem)/3)]">
+                <div key={artwork._id} className="w-[74%] flex-none snap-start sm:w-[42%] lg:w-[calc((100%_-_4rem)/3)]">
                   <ArtworkCard
                     artwork={artwork}
                     variant="featured"
@@ -102,7 +102,7 @@ const HomePage = () => {
             </div>
           )}
 
-          <div className="text-center mt-12">
+          <div className="mt-8 text-center md:mt-12">
             <Link to="/gallery" className="btn-secondary">
               View All Works
             </Link>
@@ -146,17 +146,17 @@ const HomePage = () => {
       {profile?.name && (
         <section className="section bg-white" aria-label="About the Artist">
           <div className="container-site">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 lg:gap-20">
               {/* Photo */}
               <div className="relative">
                 {profile.profilePhoto ? (
                   <img
                     src={profile.profilePhoto}
                     alt={profile.name}
-                    className="w-full max-w-md mx-auto object-cover aspect-square grayscale hover:grayscale-0 transition-all duration-700"
+                    className="mx-auto aspect-square w-full max-w-xs object-cover grayscale transition-all duration-700 hover:grayscale-0 sm:max-w-md"
                   />
                 ) : (
-                  <div className="w-full max-w-md mx-auto aspect-square bg-gray-100 flex items-center justify-center">
+                  <div className="mx-auto flex aspect-square w-full max-w-xs items-center justify-center bg-gray-100 sm:max-w-md">
                     <span className="text-gray-300 text-8xl">🎨</span>
                   </div>
                 )}
@@ -167,10 +167,10 @@ const HomePage = () => {
               {/* Text */}
               <div>
                 <p className="eyebrow mb-4">The Artist</p>
-                <h2 className="font-display text-4xl md:text-5xl font-light text-charcoal mb-6">
+                <h2 className="mb-5 font-display text-3xl font-light text-charcoal md:text-5xl">
                   {profile.name}
                 </h2>
-                <p className="text-slate leading-relaxed mb-8 text-lg font-light">
+                <p className="mb-7 text-base font-light leading-relaxed text-slate md:text-lg">
                   {profile.about
                     ? profile.about.substring(0, 300) + (profile.about.length > 300 ? "…" : "")
                     : ""}
@@ -185,13 +185,13 @@ const HomePage = () => {
       )}
 
       {/* ── Contact CTA ───────────────────────────────────────── */}
-      <section className="py-20 bg-charcoal" aria-label="Contact CTA">
+      <section className="bg-charcoal py-14 md:py-20" aria-label="Contact CTA">
         <div className="container-site text-center">
           <p className="eyebrow text-gold mb-4">Interested in a Piece?</p>
-          <h2 className="font-display text-4xl md:text-5xl font-light text-white mb-6">
+          <h2 className="mb-5 font-display text-3xl font-light text-white md:text-5xl">
             Let's Start a Conversation
           </h2>
-          <p className="text-white/50 max-w-md mx-auto mb-10 text-lg font-light leading-relaxed">
+          <p className="mx-auto mb-8 max-w-md text-base font-light leading-relaxed text-white/50 md:mb-10 md:text-lg">
             Every artwork is available for enquiry. Reach out to discuss availability,
             pricing, and commissions.
           </p>

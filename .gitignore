@@ -19,3 +19,8 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .vscode/
+
+chrome-audit-profile-*/
+edge-audit-profile-*/
+production-headers.txt
+production-snapshot.json

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { cloudinaryThumbnailUrl, galleryThumbnailWidths } from "../../utils/imageDelivery";
+import { cloudinaryThumbnailUrl, galleryThumbnailWidths, imageAspectRatio } from "../../utils/imageDelivery";
 
 const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
   const image = artwork.images?.[0];
@@ -17,6 +17,9 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
     }
     setFailedUrls((current) => new Set([...current, failed]));
   };
+  const thumbnailSrcSet = imageUrl
+    ? galleryThumbnailWidths(image?.width).map((width) => `${cloudinaryThumbnailUrl(imageUrl, width)} ${width}w`).join(", ")
+    : undefined;
 
   if (variant === "featured") {
     const numericPrice = Number(artwork.price);
@@ -83,7 +86,7 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
             )}
           </div>
 
-          <div className="absolute inset-x-3 bottom-3 translate-y-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
+          <div className="featured-artwork-actions absolute inset-x-3 bottom-3 translate-y-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -115,11 +118,14 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
       >
         {imageUrl ? (
           <img
-            src={imageUrl}
+            src={cloudinaryThumbnailUrl(imageUrl, 960)}
+            srcSet={thumbnailSrcSet}
+            sizes="(max-width: 639px) 92vw, (max-width: 1023px) 45vw, 33vw"
             width={image.width || undefined}
             height={image.height || undefined}
             alt={title}
             className="block h-auto w-full transition duration-500 group-hover:scale-[1.015] group-hover:brightness-[0.9]"
+            style={{ aspectRatio: imageAspectRatio(image) }}
             loading="lazy"
             decoding="async"
             onError={handleImageError}

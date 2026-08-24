@@ -52,6 +52,7 @@ const publicJob = (job) => {
     cleanupFailed,
     cleanupPending,
     publicSync: { ...job.publicSync },
+    historyCleanup: { ...job.historyCleanup },
     createdAt: job.createdAt,
     finishedAt: job.finishedAt,
     items: job.items.map(({ id, status, error, cleanupError }) => ({ id, status, error: error || cleanupError || "" })),
@@ -64,7 +65,7 @@ const scheduleCleanup = (jobId) => {
   timer.unref?.();
 };
 
-const createArtworkDeletionJob = ({ ids, requestedBy, deleteArtwork, sync, cleanup }) => {
+const createArtworkDeletionJob = ({ ids, requestedBy, deleteArtwork, sync, cleanup, finalize }) => {
   const uniqueIds = [...new Set(ids.map(String))];
   const job = {
     id: crypto.randomUUID(),
@@ -74,6 +75,7 @@ const createArtworkDeletionJob = ({ ids, requestedBy, deleteArtwork, sync, clean
     started: 0,
     items: uniqueIds.map((id) => ({ id, status: "queued", error: "" })),
     publicSync: { status: "pending", message: "" },
+    historyCleanup: { status: finalize ? "pending" : "kept", message: "" },
     createdAt: new Date().toISOString(),
     finishedAt: null,
     runPromise: null,
@@ -82,6 +84,7 @@ const createArtworkDeletionJob = ({ ids, requestedBy, deleteArtwork, sync, clean
   job.runDelete = deleteArtwork;
   job.runSync = sync;
   job.runCleanup = cleanup;
+  job.runFinalize = finalize;
   jobs.set(job.id, job);
   return publicJob(job);
 };
@@ -178,8 +181,24 @@ const finalizeJob = async (job) => {
       cleanupWorker
     ));
   }
+  if (job.runFinalize && (beforeSync.deleted > 0 || beforeSync.missing > 0)) {
+    job.historyCleanup = { status: "running", message: "" };
+    try {
+      const outcome = await job.runFinalize(publicJob(job));
+      const blockedCount = outcome?.blockedBatchIds?.length || 0;
+      job.historyCleanup = {
+        status: outcome?.batchCount > 0 ? "deleted" : blockedCount > 0 ? "kept" : "not_needed",
+        message: blockedCount > 0 ? "Batch history was kept because artwork from the batch still remains." : "",
+        ...outcome,
+      };
+    } catch (error) {
+      job.historyCleanup = { status: "failed", message: error?.message || "Batch history could not be deleted" };
+    }
+  } else if (job.runFinalize) {
+    job.historyCleanup = { status: "not_needed", message: "No artwork was deleted" };
+  }
   const afterCleanup = publicJob(job);
-  job.state = finalState === "completed" && (afterCleanup.cleanupFailed || job.publicSync.status === "failed")
+  job.state = finalState === "completed" && (afterCleanup.cleanupFailed || job.publicSync.status === "failed" || job.historyCleanup.status === "failed")
     ? "completed_with_errors"
     : finalState;
   job.finishedAt = new Date().toISOString();
