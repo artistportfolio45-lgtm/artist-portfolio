@@ -53,6 +53,7 @@ const artworkStorage = createStorage({
   params: {
     folder: "artist-portfolio/artworks",
     allowed_formats: ["jpg", "jpeg", "png", "webp", "avif"],
+    phash: true,
     transformation: [{ quality: "auto", fetch_format: "auto" }],
   },
 });

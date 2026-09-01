@@ -28,7 +28,7 @@ const BackButton = ({
       type="button"
       onClick={handleBack}
       aria-label={ariaLabel}
-      className={`inline-flex items-center gap-2 border px-4 py-2 text-xs font-label font-medium tracking-widest uppercase transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses} ${className}`}
+      className={`inline-flex min-h-11 items-center gap-2 border px-4 py-2 text-xs font-label font-medium tracking-widest uppercase transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses} ${className}`}
       style={{ borderRadius: "var(--theme-button-radius)" }}
     >
       <span aria-hidden="true">{"\u2190"}</span>

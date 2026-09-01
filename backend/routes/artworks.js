@@ -275,6 +275,25 @@ const uploadBulkImage = (file, clientUploadId) =>
     stream.end(file.buffer);
   });
 
+// Cloudinary's ETag is the stable content fingerprint returned both at upload
+// time and by the Admin API for existing assets.  Do not compare it with a
+// browser/server SHA-256 of the original bytes: they are different algorithms.
+const cloudinaryFingerprint = (resource, fallbackContentHash = "") => ({
+  contentHash: optionalText(resource?.etag).toLowerCase() || fallbackContentHash,
+  perceptualHash: optionalText(resource?.phash).toLowerCase(),
+});
+
+const findDuplicateArtwork = async (fingerprint) => {
+  if (!fingerprint.contentHash && !fingerprint.perceptualHash) return null;
+  const candidates = await Artwork.find({
+    $or: [
+      ...(fingerprint.contentHash ? [{ contentHash: fingerprint.contentHash }] : []),
+      ...(fingerprint.perceptualHash ? [{ perceptualHash: { $exists: true, $ne: "" } }] : []),
+    ],
+  }).select("_id title images contentHash perceptualHash createdAt").lean();
+  return candidates.find((candidate) => duplicateReason(fingerprint, candidate)) || null;
+};
+
 
 // ─── PUBLIC ROUTES ──────────────────────────────────────────────────────────
 
@@ -513,14 +532,8 @@ router.post(
           ...(Number(uploaded.width) > 0 ? { width: Number(uploaded.width) } : {}),
           ...(Number(uploaded.height) > 0 ? { height: Number(uploaded.height) } : {}),
         };
-        const fingerprint = { contentHash, perceptualHash: optionalText(uploaded.phash).toLowerCase() };
-        const duplicateCandidates = await Artwork.find({
-          $or: [
-            { contentHash },
-            ...(fingerprint.perceptualHash ? [{ perceptualHash: { $exists: true, $ne: "" } }] : []),
-          ],
-        }).select("_id title images contentHash perceptualHash createdAt").lean();
-        const duplicate = duplicateCandidates.find((candidate) => duplicateReason(fingerprint, candidate));
+        const fingerprint = cloudinaryFingerprint(uploaded, contentHash);
+        const duplicate = await findDuplicateArtwork(fingerprint);
         if (duplicate) {
           await cloudinary.uploader.destroy(uploadedImage.publicId).catch(() => {});
           uploadedImage = null;
@@ -545,6 +558,7 @@ router.post(
           images: [uploadedImage],
           originalFilename: file.originalname,
           ...fingerprint,
+          fingerprintVersion: 2,
           clientUploadId,
           uploadBatchId,
           uploadStatus: "success",
@@ -600,7 +614,7 @@ router.post("/duplicates/scan", protect, adminOnly, async (req, res) => {
     const batchSize = Math.min(25, Math.max(1, Number.parseInt(req.body?.batchSize, 10) || 25));
     const scanQuery = { "images.0.publicId": { $exists: true } };
     const [total, artworks] = await Promise.all([Artwork.countDocuments(scanQuery), Artwork.find(scanQuery)
-      .select("_id title images contentHash perceptualHash originalFilename createdAt")
+      .select("_id title images contentHash perceptualHash fingerprintVersion originalFilename createdAt")
       .sort({ createdAt: 1, _id: 1 })
       .skip(offset)
       .limit(batchSize)]);
@@ -610,11 +624,12 @@ router.post("/duplicates/scan", protect, adminOnly, async (req, res) => {
     const fingerprintWorker = async () => {
       while (cursor < artworks.length) {
         const artwork = artworks[cursor++];
-        if (artwork.perceptualHash && artwork.contentHash) continue;
+        if (artwork.fingerprintVersion >= 2 && artwork.perceptualHash && artwork.contentHash) continue;
         try {
           const resource = await cloudinary.api.resource(artwork.images[0].publicId, { phash: true });
           artwork.perceptualHash = optionalText(resource.phash).toLowerCase();
           artwork.contentHash = optionalText(resource.etag).toLowerCase() || artwork.contentHash;
+          artwork.fingerprintVersion = 2;
           if (!artwork.originalFilename) artwork.originalFilename = optionalText(resource.original_filename);
           await artwork.save();
           fingerprinted += 1;
@@ -1078,6 +1093,20 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
       uploadStatus: "success",
       uploadedBy: uploadedByValue(req.user),
     };
+    const fingerprint = cloudinaryFingerprint(req.files?.[0]);
+    const duplicate = await findDuplicateArtwork(fingerprint);
+    if (duplicate) {
+      await discardUploadedImages(images);
+      return res.status(409).json({
+        success: false,
+        code: "DUPLICATE_ARTWORK",
+        message: `Duplicate skipped: matches ${duplicate.title || "an existing artwork"}.`,
+        duplicateOf: duplicate,
+      });
+    }
+    draftArtwork.contentHash = fingerprint.contentHash || undefined;
+    draftArtwork.perceptualHash = fingerprint.perceptualHash;
+    draftArtwork.fingerprintVersion = 2;
     if (draftArtwork.publicationStatus === "published") {
       const publishingErrors = validatePublishableArtwork(draftArtwork);
       if (publishingErrors.length) {

@@ -33,7 +33,10 @@ const SettingsPage = () => {
 
   useEffect(() => {
     settingsAPI.get()
-      .then((res) => setSettings(res.data.settings))
+      .then((res) => {
+        setSettings(res.data.settings);
+        setCachedSettings(res.data.settings);
+      })
       .catch(() => toast.error("Failed to load settings"))
       .finally(() => setLoading(false));
   }, []);

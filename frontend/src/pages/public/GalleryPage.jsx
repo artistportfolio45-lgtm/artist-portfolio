@@ -55,6 +55,9 @@ const GalleryPage = () => {
     },
   }), [availability, category, location.pathname, location.search, page, search, sortValue, year]);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [isMobileFilterDialog, setIsMobileFilterDialog] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches
+  );
   const requestIdRef = useRef(0);
   const mountedRef = useRef(true);
   const gridRef = useRef(null);
@@ -128,7 +131,17 @@ const GalleryPage = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!filtersOpen) return undefined;
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const updateFilterDialogMode = () => setIsMobileFilterDialog(mediaQuery.matches);
+    updateFilterDialogMode();
+    mediaQuery.addEventListener?.("change", updateFilterDialogMode);
+    return () => mediaQuery.removeEventListener?.("change", updateFilterDialogMode);
+  }, []);
+
+  useEffect(() => {
+    // The desktop filter controls are part of the document flow and must not
+    // lock the page. Only the mobile bottom-sheet has a backdrop to lock.
+    if (!filtersOpen || !isMobileFilterDialog) return undefined;
     filterTriggerRef.current = document.activeElement;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -145,7 +158,7 @@ const GalleryPage = () => {
       document.body.style.overflow = previousOverflow;
       filterTriggerRef.current?.focus?.();
     };
-  }, [filtersOpen]);
+  }, [filtersOpen, isMobileFilterDialog]);
 
   useEffect(() => {
     fetchArtworks(page);
@@ -177,6 +190,9 @@ const GalleryPage = () => {
     const nextSearch = changes.search ?? search;
     const nextYear = changes.year ?? year;
 
+    // Applying a filter should dismiss the mobile sheet and restore document
+    // scrolling immediately after the new collection is requested.
+    setFiltersOpen(false);
     setPage(nextPage);
     setCategory(nextCategory);
     setAvailability(nextAvailability);
@@ -439,10 +455,10 @@ const GalleryPage = () => {
                   type="button"
                   onClick={() => updateCollection({ category: item })}
                   aria-pressed={category === item}
-                  className={`-mb-px min-h-11 border-b text-[11px] font-label uppercase tracking-[0.14em] transition-colors ${
+                  className={`-mb-px min-h-11 min-w-11 border-b px-2 text-[11px] font-label uppercase tracking-[0.14em] transition-colors ${
                     category === item
                       ? "border-gold text-charcoal"
-                      : "border-transparent text-slate/45 hover:text-charcoal"
+                      : "border-transparent text-slate/65 hover:text-charcoal"
                   }`}
                 >
                   {item === "all" ? "All" : item}
@@ -626,7 +642,7 @@ const GalleryPage = () => {
               </div>
             )}
 
-            <div className="mt-2 flex min-h-7 items-center justify-between gap-4 text-xs text-slate/50">
+            <div className="mt-2 flex min-h-7 items-center justify-between gap-4 text-xs text-slate/80">
               <p aria-live="polite">
                 {loading && artworks.length === 0
                   ? "Loading collection..."
@@ -658,7 +674,7 @@ const GalleryPage = () => {
               <p className={artworks.length ? "text-sm font-medium" : "font-display text-3xl"}>
                 {artworks.length ? "Gallery refresh failed" : "Gallery unavailable"}
               </p>
-              <p className="mt-2 text-sm text-slate/60">{error}</p>
+              <p className="mt-2 text-sm text-slate/80">{error}</p>
               <button type="button" onClick={() => fetchArtworks(page)} className="btn-secondary mt-4">
                 Retry
               </button>
@@ -673,7 +689,7 @@ const GalleryPage = () => {
               emptyState={
                 <div className="mx-auto my-16 max-w-xl px-6 py-12 text-center">
                   <p className="font-display text-3xl">No artworks found</p>
-                  <p className="mt-3 text-sm text-slate/60">Try adjusting the search or filters.</p>
+                  <p className="mt-3 text-sm text-slate/80">Try adjusting the search or filters.</p>
                   {hasActiveFilters && (
                     <button type="button" onClick={clearFilters} className="btn-secondary mt-6">
                       Clear Filters
@@ -699,7 +715,7 @@ const GalleryPage = () => {
                     goToPage(target);
                   }}
                 >
-                  <label htmlFor="gallery-page-number" className="text-xs text-slate/60 sm:text-sm">Go to page</label>
+                  <label htmlFor="gallery-page-number" className="text-xs text-slate/80 sm:text-sm">Go to page</label>
                   <input
                     id="gallery-page-number"
                     type="number"

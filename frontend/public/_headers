@@ -1,6 +1,9 @@
 /data/portfolio.json
   Cache-Control: no-store, no-cache, must-revalidate
 
+/theme-bootstrap.js
+  Cache-Control: public, max-age=0, must-revalidate
+
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 

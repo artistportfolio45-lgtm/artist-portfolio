@@ -10,9 +10,9 @@ const Footer = () => {
       <div className="container-site py-12 md:py-16">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div>
-            <h3 className="mb-4 font-display text-2xl font-light">
+            <p className="mb-4 font-display text-2xl font-light">
               {settings?.websiteTitle || "Artist Portfolio"}
-            </h3>
+            </p>
             <p className="text-sm leading-relaxed text-white/50">
               {settings?.websiteDescription ||
                 "Original artworks in oil, acrylic, watercolour and mixed media. Each piece is available for inquiry."}
@@ -20,7 +20,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <p className="eyebrow mb-4 text-gold">Navigate</p>
+            <p className="eyebrow mb-4 text-white/80">Navigate</p>
             <ul className="space-y-2">
               {[
                 { to: "/", label: "Home" },
@@ -31,7 +31,7 @@ const Footer = () => {
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    className="text-sm text-white/60 transition-colors duration-200 hover:text-white"
+                    className="inline-flex min-h-11 items-center text-sm text-white/70 transition-colors duration-200 hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -41,12 +41,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <p className="eyebrow mb-4 text-gold">Connect</p>
+            <p className="eyebrow mb-4 text-white/80">Connect</p>
             <div className="mb-6 space-y-2">
               {settings?.contactEmail && (
                 <a
                   href={`mailto:${settings.contactEmail}`}
-                  className="block text-sm text-white/60 transition-colors hover:text-white"
+                  className="flex min-h-11 items-center text-sm text-white/70 transition-colors hover:text-white"
                 >
                   {settings.contactEmail}
                 </a>
@@ -54,7 +54,7 @@ const Footer = () => {
               {settings?.contactPhone && (
                 <a
                   href={`tel:${settings.contactPhone}`}
-                  className="block text-sm text-white/60 transition-colors hover:text-white"
+                  className="flex min-h-11 items-center text-sm text-white/70 transition-colors hover:text-white"
                 >
                   {settings.contactPhone}
                 </a>
@@ -65,7 +65,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 md:flex-row">
-          <Link to="/admin" className="text-xs text-white/30 no-underline" aria-label="Admin">
+          <Link to="/admin" className="inline-flex min-h-11 items-center text-xs text-white/70 no-underline">
             © 2026 Curated Artist Portfolio. All rights reserved.
           </Link>
         </div>

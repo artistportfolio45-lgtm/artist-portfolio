@@ -12,7 +12,7 @@ import { distributeByShortestColumn } from "../../utils/masonryLayout";
 const SKELETON_RATIOS = ["4 / 5", "1 / 1", "3 / 4", "5 / 4", "2 / 3", "4 / 3"];
 
 const GALLERY_IMAGE_SIZES =
-  "(min-width: 2240px) 615px, (min-width: 1883px) calc(33.333vw - 132px), (min-width: 1471px) calc(27.667vw - 25.333px), (min-width: 1024px) calc(33.333vw - 108.667px), (min-width: 640px) calc(50vw - 30px), calc(100vw - 32px)";
+  "(min-width: 2240px) 615px, (min-width: 1883px) calc(33.333vw - 132px), (min-width: 1471px) calc(27.667vw - 25.333px), (min-width: 1024px) calc(33.333vw - 108.667px), (min-width: 640px) calc(50vw - 30px), calc(50vw - 20px)";
 const IMAGE_RETRY_DELAYS = [800, 2000];
 
 const withRetryToken = (url, attempt) => {

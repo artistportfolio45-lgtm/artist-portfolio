@@ -37,11 +37,15 @@ test("leaves non-Cloudinary and invalid-width URLs unchanged", () => {
 test("caps and deduplicates srcset widths to the source image width", () => {
   assert.deepEqual(galleryThumbnailWidths(null), GALLERY_THUMBNAIL_WIDTHS);
   assert.deepEqual(galleryThumbnailWidths(0.4), GALLERY_THUMBNAIL_WIDTHS);
-  assert.deepEqual(galleryThumbnailWidths(400), [400]);
-  assert.deepEqual(galleryThumbnailWidths(600), [480, 600]);
-  assert.deepEqual(galleryThumbnailWidths(960), [480, 960]);
-  assert.deepEqual(galleryThumbnailWidths(1200), [480, 960, 1200]);
+  assert.deepEqual(galleryThumbnailWidths(400), [240, 320, 400]);
+  assert.deepEqual(galleryThumbnailWidths(600), [240, 320, 480, 600]);
+  assert.deepEqual(galleryThumbnailWidths(960), [240, 320, 480, 720, 960]);
+  assert.deepEqual(galleryThumbnailWidths(1200), [240, 320, 480, 720, 960, 1200]);
   assert.deepEqual(galleryThumbnailWidths(4000), GALLERY_THUMBNAIL_WIDTHS);
+});
+
+test("offers compact mobile candidates before larger desktop widths", () => {
+  assert.deepEqual(GALLERY_THUMBNAIL_WIDTHS, [240, 320, 480, 720, 960, 1440]);
 });
 
 test("uses source dimensions for a stable ratio and a safe legacy fallback", () => {

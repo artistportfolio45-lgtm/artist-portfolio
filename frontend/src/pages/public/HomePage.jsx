@@ -80,7 +80,7 @@ const HomePage = () => {
               {[0, 1, 2].map((item) => <div key={item} className="aspect-[4/3] w-[74%] flex-none animate-pulse bg-charcoal/5 sm:w-[42%] lg:w-[calc((100%_-_4rem)/3)]" />)}
             </div>
           ) : featured.length === 0 ? (
-            <div className="text-center py-16 text-slate/50">
+            <div className="text-center py-16 text-slate/80">
               <p className="font-display text-2xl mb-2">No featured artworks yet</p>
               <p className="text-sm">Check back soon for new additions</p>
             </div>
@@ -133,7 +133,7 @@ const HomePage = () => {
             skeletonCount={9}
             priorityCount={3}
             emptyState={
-              <div className="py-16 text-center text-slate/50">
+              <div className="py-16 text-center text-slate/80">
                 <p className="mb-2 font-display text-2xl">No artworks uploaded yet</p>
                 <p className="text-sm">New works will appear here after the admin adds them.</p>
               </div>
@@ -187,7 +187,7 @@ const HomePage = () => {
       {/* ── Contact CTA ───────────────────────────────────────── */}
       <section className="bg-charcoal py-14 md:py-20" aria-label="Contact CTA">
         <div className="container-site text-center">
-          <p className="eyebrow text-gold mb-4">Interested in a Piece?</p>
+          <p className="eyebrow mb-4 text-white/80">Interested in a Piece?</p>
           <h2 className="mb-5 font-display text-3xl font-light text-white md:text-5xl">
             Let's Start a Conversation
           </h2>

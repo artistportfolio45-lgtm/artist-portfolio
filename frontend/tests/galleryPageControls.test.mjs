@@ -13,3 +13,8 @@ test("Gallery removes collection, medium, and decade controls and supports direc
   assert.match(source, /goToPage\(target\)/);
   assert.match(source, /max=\{totalPages\}/);
 });
+
+test("Gallery only locks mobile filter dialogs and releases the lock when a filter is applied", () => {
+  assert.match(source, /if \(!filtersOpen \|\| !isMobileFilterDialog\) return undefined/);
+  assert.match(source, /setFiltersOpen\(false\);\s+setPage\(nextPage\)/);
+});

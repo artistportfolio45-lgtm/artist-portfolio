@@ -1,4 +1,6 @@
-export const GALLERY_THUMBNAIL_WIDTHS = [480, 960, 1440];
+// Include compact candidates for the two-column mobile masonry. Without
+// these, high-DPI phones can select a 960px asset for a card under 200px wide.
+export const GALLERY_THUMBNAIL_WIDTHS = [240, 320, 480, 720, 960, 1440];
 
 const CLOUDINARY_UPLOAD_PATH = "/image/upload/";
 

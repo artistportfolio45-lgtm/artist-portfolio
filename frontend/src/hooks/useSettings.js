@@ -14,6 +14,8 @@ const publishSettings = (newSettings) => {
   if (!newSettings) return;
   cachedSettings = newSettings;
   if (typeof window !== "undefined") {
+    // Applies and persists only the allow-listed, validated theme subset.
+    window.ArtistPortfolioTheme?.cacheAndApply(newSettings);
     window.dispatchEvent(new CustomEvent(SETTINGS_CHANGED_EVENT, { detail: newSettings }));
   }
 };

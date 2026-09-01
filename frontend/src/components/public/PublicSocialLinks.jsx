@@ -60,9 +60,7 @@ const PublicSocialLinks = ({ tone = "light", compact = false }) => {
           rel="noopener noreferrer"
           aria-label={item.label}
           title={item.label}
-          className={`inline-flex items-center justify-center border px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-            compact ? "min-h-9" : "min-h-10"
-          } ${toneClasses}`}
+          className={`inline-flex min-h-11 min-w-11 items-center justify-center border px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${toneClasses}`}
         >
           {icons[item.key] ? <span className="h-[18px] w-[18px]">{icons[item.key]}</span> : <span className="text-xs">{item.text}</span>}
         </a>

@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         // Public palette driven by the theme selected in Admin Settings.
-        charcoal:  { DEFAULT: 'rgb(var(--theme-primary-rgb) / <alpha-value>)', 50: 'rgb(var(--theme-surface-rgb) / <alpha-value>)', 100: 'rgb(var(--theme-border-rgb) / <alpha-value>)', 200: 'rgb(var(--theme-border-rgb) / <alpha-value>)', 900: 'rgb(var(--theme-primary-rgb) / <alpha-value>)' },
+        charcoal:  { DEFAULT: 'rgb(var(--theme-text-rgb) / <alpha-value>)', 50: 'rgb(var(--theme-surface-rgb) / <alpha-value>)', 100: 'rgb(var(--theme-border-rgb) / <alpha-value>)', 200: 'rgb(var(--theme-border-rgb) / <alpha-value>)', 900: 'rgb(var(--theme-primary-rgb) / <alpha-value>)' },
         ivory:     { DEFAULT: 'rgb(var(--theme-bg-rgb) / <alpha-value>)', dark: 'rgb(var(--theme-secondary-rgb) / <alpha-value>)' },
         gold:      { DEFAULT: 'rgb(var(--theme-accent-rgb) / <alpha-value>)', light: 'rgb(var(--theme-accent-light-rgb) / <alpha-value>)', dark: 'rgb(var(--theme-accent-dark-rgb) / <alpha-value>)' },
         sage:      { DEFAULT: '#7C8C72', light: '#9BAD90' },

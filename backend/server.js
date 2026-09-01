@@ -121,7 +121,10 @@ app.use(
         return;
       }
 
-      callback(new Error(`CORS blocked origin: ${origin}`));
+      const error = new Error("CORS origin is not allowed");
+      error.status = 403;
+      error.code = "CORS_ORIGIN_DENIED";
+      callback(error);
     },
     credentials: true,
   })
@@ -165,9 +168,14 @@ app.use((req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
-  res.status(500).json({
+  const status = Number.isInteger(err.status) && err.status >= 400 && err.status < 600
+    ? err.status
+    : 500;
+  res.status(status).json({
     success: false,
-    message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message || "Internal server error",
+    message: status === 403
+      ? "Origin not allowed"
+      : process.env.NODE_ENV === "production" ? "Internal server error" : err.message || "Internal server error",
     errors: [],
   });
 });

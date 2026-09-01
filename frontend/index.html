@@ -11,6 +11,8 @@
     <meta property="og:description" content="Original artworks and selected works from the artist's studio." />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Artist Portfolio</title>
+    <!-- Apply a validated cached theme synchronously before CSS and React paint. -->
+    <script src="/theme-bootstrap.js"></script>
     <!-- Start the image CDN connection before React discovers artwork images. -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
@@ -56,10 +58,10 @@
       </form>
     </div>
     <div id="root">
-      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F8F5F0;color:#1C1C1E;font-family:Arial,sans-serif;padding:24px;text-align:center;">
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--theme-bg);color:var(--theme-text);font-family:Arial,sans-serif;padding:24px;text-align:center;">
         <div>
           <h1 style="font-size:32px;font-weight:400;margin:0 0 12px;">Artist Portfolio</h1>
-          <p style="margin:0;color:#4A4A5A;">Loading website...</p>
+          <p style="margin:0;color:var(--theme-muted);">Loading website...</p>
         </div>
       </div>
     </div>

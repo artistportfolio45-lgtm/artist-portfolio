@@ -117,7 +117,7 @@ const PublicLayout = ({ children }) => {
           ↑
         </button>
       </div>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-charcoal/10 bg-white/95 backdrop-blur-sm lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-charcoal/10 bg-theme-surface-95 backdrop-blur-sm lg:hidden">
         <div className="mx-auto grid w-full max-w-xl grid-cols-4 gap-1 px-2 py-2">
           {[
             { to: "/", label: "Home" },

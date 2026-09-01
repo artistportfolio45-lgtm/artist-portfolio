@@ -10,6 +10,16 @@ test("duplicate fingerprints detect exact and near-identical images without rely
   assert.equal(normalizeFilename(" My-ART_work.JPG "), "my art work");
 });
 
+test("new uploads use Cloudinary's ETag fingerprint so they match fingerprints from legacy scans", async () => {
+  const source = await require("node:fs/promises").readFile(require.resolve("../routes/artworks"), "utf8");
+  assert.match(source, /const cloudinaryFingerprint/);
+  assert.match(source, /contentHash: optionalText\(resource\?\.etag\)/);
+  assert.match(source, /const fingerprint = cloudinaryFingerprint\(uploaded, contentHash\)/);
+  assert.match(source, /const duplicate = await findDuplicateArtwork\(fingerprint\)/);
+  assert.match(source, /fingerprintVersion: 2/);
+  assert.match(source, /artwork\.fingerprintVersion >= 2/);
+});
+
 test("automatic duplicate grouping keeps the oldest artwork", () => {
   const artworks = [
     { _id: "new", contentHash: "same", createdAt: new Date("2026-01-02") },

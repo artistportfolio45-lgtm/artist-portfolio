@@ -52,13 +52,14 @@ const HomeHero = ({ settings, previewMode = "responsive", showScrollIndicator = 
   const { background } = presentation;
   const [failedUrl, setFailedUrl] = useState("");
   const classes = MODE_CLASSES[previewMode] || RESPONSIVE_CLASSES;
-  const requestedWidth = previewMode === "mobile" ? 960 : previewMode === "tablet" ? 1440 : 2400;
+  const heroWidths = [480, 768, 960, 1440, 2400];
+  const requestedWidth = previewMode === "mobile" ? 768 : previewMode === "tablet" ? 1440 : 2400;
   const imageUrl = background?.url
     ? cloudinaryThumbnailUrl(background.url, requestedWidth)
     : "";
   const imageSrcSet = background?.url
-    ? [...new Set([960, 1440, 2400].map((width) => cloudinaryThumbnailUrl(background.url, width)))]
-      .map((url, index) => `${url} ${[960, 1440, 2400][index]}w`)
+    ? [...new Set(heroWidths.map((width) => cloudinaryThumbnailUrl(background.url, width)))]
+      .map((url, index) => `${url} ${heroWidths[index]}w`)
       .join(", ")
     : "";
   const showImage = imageUrl && failedUrl !== imageUrl;
@@ -106,7 +107,7 @@ const HomeHero = ({ settings, previewMode = "responsive", showScrollIndicator = 
 
       <div className={`relative z-10 ${classes.content}`}>
         <div className={classes.inner}>
-          <p className={`eyebrow text-gold ${classes.eyebrow}`}>{presentation.eyebrow}</p>
+          <p className={`eyebrow text-white/80 ${classes.eyebrow}`}>{presentation.eyebrow}</p>
           <h1 className={`font-display font-light leading-tight text-white ${classes.heading}`}>
             {presentation.heading}
             <br />

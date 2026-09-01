@@ -52,7 +52,7 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
           >
             {imageUrl ? (
               <img
-                src={useOriginal ? imageUrl : cloudinaryThumbnailUrl(imageUrl, 960)}
+                src={useOriginal ? imageUrl : cloudinaryThumbnailUrl(imageUrl, 720)}
                 srcSet={!useOriginal ? galleryThumbnailWidths(image.width).map((width) => `${cloudinaryThumbnailUrl(imageUrl, width)} ${width}w`).join(", ") : undefined}
                 sizes="(max-width: 639px) 92vw, (max-width: 1023px) 45vw, 30vw"
                 width={image.width || undefined}
@@ -91,13 +91,13 @@ const ArtworkCard = ({ artwork, variant, onPreview, priority = false }) => {
               <button
                 type="button"
                 onClick={handlePreview}
-                className="bg-white/95 px-3 py-2 text-xs font-label uppercase tracking-widest text-charcoal transition-colors hover:bg-gold hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="min-h-11 bg-theme-surface-95 px-3 py-2 text-xs font-label uppercase tracking-widest text-charcoal transition-colors hover:bg-gold hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 Preview
               </button>
               <Link
                 to={`/artwork/${artwork._id}`}
-                className="bg-charcoal/95 px-3 py-2 text-center text-xs font-label uppercase tracking-widest text-white transition-colors hover:bg-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="inline-flex min-h-11 items-center justify-center bg-theme-primary-95 px-3 py-2 text-center text-xs font-label uppercase tracking-widest text-white transition-colors hover:bg-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 Details
               </Link>

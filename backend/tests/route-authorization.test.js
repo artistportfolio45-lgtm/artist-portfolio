@@ -39,3 +39,10 @@ test("CORS recognizes the production and local frontend origins", () => {
   assert.match(server, /http:\/\/localhost:5173/);
   assert.doesNotMatch(server, /https:\/\/artistportfolio45\.netlify\.app/);
 });
+
+test("CORS rejects unapproved origins with a controlled 403 response", () => {
+  const server = source("../server.js");
+  assert.match(server, /error\.status = 403/);
+  assert.match(server, /error\.code = "CORS_ORIGIN_DENIED"/);
+  assert.match(server, /status === 403[\s\S]*"Origin not allowed"/);
+});

@@ -14,32 +14,43 @@
   .hover\:bg-charcoal:hover {
     background-color: rgb(var(--theme-primary-rgb) / var(--tw-bg-opacity, 1));
   }
+
+  .bg-theme-surface-95 {
+    background-color: rgb(var(--theme-surface-rgb) / 0.95);
+  }
+
+  .bg-theme-primary-95 {
+    background-color: rgb(var(--theme-primary-rgb) / 0.95);
+  }
 }
 
 @layer base {
   :root {
-    --theme-primary: #1C1C1E;
-    --theme-secondary: #F8F5F0;
-    --theme-accent: #C9A84C;
-    --theme-accent-light: #DEC06E;
-    --theme-accent-dark: #A07A28;
-    --theme-bg: #F8F5F0;
+    /* Current production theme: safe first-visit fallback before settings arrive. */
+    --theme-primary: #202020;
+    --theme-secondary: #F3F3F3;
+    --theme-accent: #0067C0;
+    --theme-accent-light: #3888CE;
+    --theme-accent-dark: #004D90;
+    --theme-accent-foreground: #FFFFFF;
+    --theme-accent-readable: #0067C0;
+    --theme-bg: #F3F3F3;
     --theme-surface: #FFFFFF;
-    --theme-text: #1C1C1E;
-    --theme-muted: #4A4A5A;
-    --theme-border: #E8E8E8;
-    --theme-primary-rgb: 28 28 30;
-    --theme-secondary-rgb: 248 245 240;
-    --theme-accent-rgb: 201 168 76;
-    --theme-accent-light-rgb: 222 192 110;
-    --theme-accent-dark-rgb: 160 122 40;
-    --theme-bg-rgb: 248 245 240;
+    --theme-text: #1B1B1B;
+    --theme-muted: #5E5E5E;
+    --theme-border: #DADADA;
+    --theme-primary-rgb: 32 32 32;
+    --theme-secondary-rgb: 243 243 243;
+    --theme-accent-rgb: 0 103 192;
+    --theme-accent-light-rgb: 56 136 206;
+    --theme-accent-dark-rgb: 0 77 144;
+    --theme-bg-rgb: 243 243 243;
     --theme-surface-rgb: 255 255 255;
-    --theme-text-rgb: 28 28 30;
-    --theme-muted-rgb: 74 74 90;
-    --theme-border-rgb: 232 232 232;
-    --theme-button-radius: 0px;
-    --theme-card-radius: 0px;
+    --theme-text-rgb: 27 27 27;
+    --theme-muted-rgb: 94 94 94;
+    --theme-border-rgb: 218 218 218;
+    --theme-button-radius: 24px;
+    --theme-card-radius: 2px;
     --public-sidebar-width: clamp(250px, 17vw, 320px);
   }
 
@@ -71,8 +82,9 @@
   }
 
   .btn-gold {
-    @apply inline-flex min-h-11 items-center justify-center bg-gold text-white px-4 py-2 text-xs font-label font-medium tracking-widest uppercase sm:px-6 sm:text-sm
+    @apply inline-flex min-h-11 items-center justify-center bg-gold px-4 py-2 text-xs font-label font-medium tracking-widest uppercase sm:px-6 sm:text-sm
            hover:bg-gold-dark transition-all duration-300;
+    color: var(--theme-accent-foreground);
     border-radius: var(--theme-button-radius);
   }
 
@@ -107,7 +119,8 @@
 
   /* Section label */
   .eyebrow {
-    @apply text-xs font-label font-medium tracking-[0.25em] uppercase text-gold;
+    @apply text-xs font-label font-medium tracking-[0.25em] uppercase;
+    color: var(--theme-accent-readable);
   }
 
   /* Page section spacing */
@@ -150,6 +163,18 @@
 /* Image aspect ratio helper */
 .aspect-artwork {
   aspect-ratio: 4 / 5;
+}
+
+/*
+ * Button Shape is a site-wide setting.  A number of compact controls are
+ * intentionally authored as plain buttons (pagination, filter controls,
+ * modal actions and admin actions), so styling only .btn-* made the setting
+ * appear inconsistent.  Keep one explicit opt-out for any future control
+ * that genuinely requires a fixed shape.
+ */
+button:not([data-fixed-button-shape]),
+.btn-danger {
+  border-radius: var(--theme-button-radius) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

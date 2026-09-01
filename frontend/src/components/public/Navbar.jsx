@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useSettings } from "../../hooks/useSettings";
 import { publicDataAPI } from "../../services/publicData";
+import { cloudinaryThumbnailUrl } from "../../utils/imageDelivery";
 import PublicSocialLinks from "./PublicSocialLinks";
 
 const navLinks = [
@@ -19,7 +20,9 @@ const Brand = ({ mobile = false, light = false, profile, imageFailed, onImageErr
     <span className={`${mobile ? "h-10 w-10" : "h-16 w-16"} flex aspect-square flex-none items-center justify-center overflow-hidden rounded-full bg-charcoal text-xs font-semibold tracking-widest text-gold ring-1 ring-gold/25`}>
       {showPhoto ? (
       <img
-        src={profile.profilePhoto}
+        src={cloudinaryThumbnailUrl(profile.profilePhoto, mobile ? 96 : 160)}
+        srcSet={`${cloudinaryThumbnailUrl(profile.profilePhoto, 96)} 96w, ${cloudinaryThumbnailUrl(profile.profilePhoto, 160)} 160w`}
+        sizes={mobile ? "40px" : "64px"}
         alt={`${artistName} portrait`}
         className="h-full w-full object-cover"
         onError={onImageError}
@@ -30,7 +33,7 @@ const Brand = ({ mobile = false, light = false, profile, imageFailed, onImageErr
       <span className={`block truncate font-display font-medium ${mobile ? "text-lg" : "text-xl leading-tight"} ${light ? "text-white" : "text-charcoal"}`}>
         {artistName}
       </span>
-      <span className={`block truncate text-[10px] uppercase tracking-widest ${light ? "text-white/65" : "text-slate/55"}`}>
+      <span className={`block truncate text-[10px] uppercase tracking-widest ${light ? "text-white/80" : "text-slate/80"}`}>
         Fine Art Portfolio
       </span>
       {!mobile && <span className="mt-1 block text-[9px] uppercase tracking-widest text-gold">National-Level Artist</span>}
@@ -185,7 +188,7 @@ const Navbar = () => {
           >
             <div className="container-site flex h-full items-center justify-center px-4 py-8">
               <div className="w-full max-w-sm">
-                <p className="mb-5 text-center text-[10px] uppercase tracking-[0.26em] text-gold">Navigation</p>
+                <p className="mb-5 text-center text-[10px] uppercase tracking-[0.26em] text-white/80">Navigation</p>
                 <div className="border-t border-white/15">
                   {navLinks.map((link) => (
                     <NavLink
@@ -194,7 +197,7 @@ const Navbar = () => {
                       end={link.to === "/"}
                       className={({ isActive }) =>
                         `flex min-h-11 items-center justify-between border-b border-white/15 px-1 text-sm uppercase tracking-[0.18em] transition ${
-                          isActive ? "text-gold" : "text-white/80 hover:text-white"
+                          isActive ? "text-white" : "text-white/80 hover:text-white"
                         }`
                       }
                     >

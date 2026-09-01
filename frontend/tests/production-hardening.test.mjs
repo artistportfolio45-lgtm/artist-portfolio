@@ -97,6 +97,12 @@ test("gallery image state is local to each keyed artwork card, so one delivery f
   assert.match(masonry, /Image unavailable/);
 });
 
+test("Button Shape is applied to plain controls as well as shared button classes", async () => {
+  const css = await source("src/index.css");
+  assert.match(css, /button:not\(\[data-fixed-button-shape\]\)/);
+  assert.match(css, /border-radius: var\(--theme-button-radius\) !important/);
+});
+
 test("production snapshot generation has a live Render API fallback", async () => {
   const generator = await source("scripts/generate-public-data.mjs");
   assert.match(generator, /DEFAULT_PRODUCTION_API_URL = "https:\/\/artist-portfolio-0kkz\.onrender\.com\/api"/);
@@ -132,6 +138,19 @@ test("contact selection and artwork detail retain accessible scalable behaviors"
   assert.match(detail, /Read more/);
   assert.match(modal, /Escape/);
   assert.match(modal, /aria-modal="true"/);
+});
+
+test("Netlify Forms backup posts to a published static form endpoint outside the catch-all 404 route", async () => {
+  const [forms, staticForm, redirects] = await Promise.all([
+    source("src/services/netlifyForms.js"),
+    source("public/netlify-forms.html"),
+    source("public/_redirects"),
+  ]);
+  assert.match(forms, /NETLIFY_FORMS_ENDPOINT = "\/netlify-forms\.html"/);
+  assert.match(forms, /fetch\(NETLIFY_FORMS_ENDPOINT/);
+  assert.match(staticForm, /form name="artwork-inquiry"[^>]*data-netlify="true"/);
+  assert.match(staticForm, /form name="contact"[^>]*data-netlify="true"/);
+  assert.match(redirects, /\/api\/public-portfolio\s+\/\.netlify\/functions\/public-portfolio\s+200/);
 });
 
 test("mobile navigation and generated SEO include focus and crawler safeguards", async () => {

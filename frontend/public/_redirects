@@ -1,2 +1,3 @@
 /admin/*    /admin/index.html   200
+/api/public-portfolio  /.netlify/functions/public-portfolio  200
 /*           /404.html     404

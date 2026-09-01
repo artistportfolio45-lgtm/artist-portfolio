@@ -57,6 +57,7 @@ const artworkSchema = new mongoose.Schema(
     originalFilename: { type: String, trim: true, default: "" },
     contentHash: { type: String, trim: true, lowercase: true, sparse: true },
     perceptualHash: { type: String, trim: true, lowercase: true, default: "" },
+    fingerprintVersion: { type: Number, default: 0 },
     clientUploadId: { type: String, unique: true, sparse: true, trim: true },
     uploadBatchId: { type: String, trim: true },
     uploadStatus: { type: String, enum: ["success", "failed"], default: "success" },
