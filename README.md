@@ -31,6 +31,7 @@ Place this `README.md` at the project root, beside `frontend` and `backend`.
 - Admin activity logs
 - MongoDB Atlas database support
 - Responsive Gallery pagination with Previous/Next controls and direct page-number navigation
+- Desktop sidebar Gallery navigation with a hover/focus page-number menu
 - Gallery search and category, availability, year, and sorting controls (Collection, Medium, and Decade filters are intentionally removed)
 - Automatic duplicate detection for bulk uploads and existing artwork libraries
 - Stoppable/resumable duplicate scans with protected original artwork review
@@ -41,6 +42,8 @@ Place this `README.md` at the project root, beside `frontend` and `backend`.
 ### Gallery
 
 The public Gallery supports search, category, availability, year, sorting, Previous/Next navigation, and a direct page-number field. Visitors can enter a page number such as `10` to jump directly to that Gallery page. Page state is preserved in the URL and works across desktop, tablet, and mobile layouts.
+
+On desktop, hovering over or keyboard-focusing the **Gallery** item in the left sidebar opens a numbered Gallery page menu. The menu uses the live Gallery page count, highlights the current page, and preserves the current Gallery filters when a visitor selects another page. Mobile navigation continues to use the existing mobile menu and bottom navigation.
 
 Collection, Medium, and Decade filters are not exposed in the Gallery interface. Legacy URL parameters for those filters are ignored and removed when Gallery state is updated.
 
@@ -60,6 +63,20 @@ POST /api/artworks/duplicates/remove
 ### Upload batch history safety
 
 Batch history can be deleted only after every artwork belonging to that batch has been removed. If even one artwork from the batch remains on the website, the history is kept and the admin control is disabled. This rule is enforced in both the frontend and backend.
+
+### Planned SMS inquiry notifications
+
+The current inquiry flow stores inquiries for the Admin Panel and supports the existing public contact and artwork inquiry forms. SMS notifications are planned but are not integrated yet.
+
+The planned Twilio integration will:
+
+- Keep every inquiry in the Admin Panel regardless of SMS delivery success or failure.
+- Send the customer name, contact details, inquiry type, artwork title when applicable, message, and submission time to an admin-configured mobile number.
+- Add Settings controls for the notification number and an enable/disable switch.
+- Store Twilio credentials only in backend environment variables; never expose them through frontend variables or commit them to Git.
+- Record or display SMS delivery failures without losing the original inquiry.
+
+Twilio is a paid, usage-based SMS provider after its trial. Pricing varies by destination country, message segments, carrier fees, and phone-number type. Review current pricing and India-specific sender requirements before enabling production SMS.
 
 ### Local public-data synchronization
 

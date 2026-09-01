@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useSettings } from "../../hooks/useSettings";
 import { publicDataAPI } from "../../services/publicData";
+import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import { cloudinaryThumbnailUrl } from "../../utils/imageDelivery";
 import PublicSocialLinks from "./PublicSocialLinks";
 
@@ -11,6 +12,7 @@ const navLinks = [
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
+const GALLERY_PAGE_SIZE = 50;
 
 const Brand = ({ mobile = false, light = false, profile, imageFailed, onImageError }) => {
   const artistName = profile?.name?.trim() || "G. N. Ambe";
@@ -47,12 +49,34 @@ const Navbar = () => {
   const { settings } = useSettings();
   const [profile, setProfile] = useState(null);
   const [imageFailed, setImageFailed] = useState(false);
+  const [galleryPageCount, setGalleryPageCount] = useState(1);
   const location = useLocation();
   const menuButtonRef = useRef(null);
   const menuRef = useRef(null);
 
   useEffect(() => {
     publicDataAPI.getProfile({ onLiveData: setProfile }).then(setProfile).catch(() => setProfile(null));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadGalleryPageCount = () => {
+      publicDataAPI.getArtworks({ page: 1, limit: GALLERY_PAGE_SIZE })
+        .then((result) => {
+          if (!active) return;
+          setGalleryPageCount(Math.max(1, Number(result.pagination?.pages) || 1));
+        })
+        .catch(() => {
+          if (active) setGalleryPageCount(1);
+        });
+    };
+
+    loadGalleryPageCount();
+    const unsubscribe = subscribeToArtworkRefresh(loadGalleryPageCount);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => setImageFailed(false), [profile?.profilePhoto]);
@@ -96,6 +120,16 @@ const Navbar = () => {
   const lightMobilePage =
     location.pathname === "/gallery" || location.pathname.startsWith("/artwork/");
   const solidMobileHeader = scrolled || lightMobilePage || menuOpen;
+  const currentGalleryPage = Math.max(1, Number.parseInt(new URLSearchParams(location.search).get("page"), 10) || 1);
+  const galleryPageHref = (pageNumber) => {
+    const params = location.pathname === "/gallery"
+      ? new URLSearchParams(location.search)
+      : new URLSearchParams();
+    if (pageNumber === 1) params.delete("page");
+    else params.set("page", String(pageNumber));
+    const query = params.toString();
+    return query ? `/gallery?${query}` : "/gallery";
+  };
 
   return (
     <>
@@ -112,7 +146,7 @@ const Navbar = () => {
         <nav className="mt-14">
           <ul className="space-y-1">
             {navLinks.map((link) => (
-              <li key={link.to}>
+              <li key={link.to} className={link.to === "/gallery" ? "group/gallery relative" : undefined}>
                 <NavLink
                   to={link.to}
                   end={link.to === "/"}
@@ -129,6 +163,35 @@ const Navbar = () => {
                     —
                   </span>
                 </NavLink>
+                {link.to === "/gallery" && galleryPageCount > 1 && (
+                  <div
+                    className="pointer-events-none absolute left-0 top-full z-[70] mt-1 w-full translate-y-1 bg-white p-4 opacity-0 shadow-xl ring-1 ring-charcoal/10 transition-all duration-200 group-hover/gallery:pointer-events-auto group-hover/gallery:translate-y-0 group-hover/gallery:opacity-100 group-focus-within/gallery:pointer-events-auto group-focus-within/gallery:translate-y-0 group-focus-within/gallery:opacity-100"
+                    role="group"
+                    aria-label="Gallery pages"
+                  >
+                    <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-slate/55">Gallery pages</p>
+                    <div className="grid max-h-[60vh] grid-cols-4 gap-1 overflow-y-auto">
+                      {Array.from({ length: galleryPageCount }, (_, index) => {
+                        const pageNumber = index + 1;
+                        const isCurrent = location.pathname === "/gallery" && currentGalleryPage === pageNumber;
+                        return (
+                          <Link
+                            key={pageNumber}
+                            to={galleryPageHref(pageNumber)}
+                            aria-current={isCurrent ? "page" : undefined}
+                            className={`flex min-h-10 items-center justify-center border text-xs transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+                              isCurrent
+                                ? "border-charcoal bg-charcoal text-white"
+                                : "border-charcoal/15 text-charcoal hover:border-gold hover:text-gold"
+                            }`}
+                          >
+                            {pageNumber}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
