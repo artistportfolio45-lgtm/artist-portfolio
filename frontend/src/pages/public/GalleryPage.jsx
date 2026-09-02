@@ -9,7 +9,7 @@ import { clearGalleryRestoreState, galleryRestoreTargetY, normalizeGalleryPage, 
 import { MAX_SEARCH_QUERY_LENGTH, prepareSearchQuery } from "../../utils/artworkSearch";
 
 const DEFAULT_SORT = "createdAt-desc";
-const GALLERY_PAGE_SIZE = 50;
+const GALLERY_PAGE_SIZE = 100;
 const GALLERY_RESTORE_ANCHOR_SELECTOR = "[data-gallery-artwork-id]";
 const SEARCH_DEBOUNCE_MS = 250;
 const getSearchParam = (params) => params.get("search") || params.get("q") || "";

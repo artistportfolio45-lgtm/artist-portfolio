@@ -15,6 +15,9 @@ test("new uploads use Cloudinary's ETag fingerprint so they match fingerprints f
   assert.match(source, /const cloudinaryFingerprint/);
   assert.match(source, /contentHash: optionalText\(resource\?\.etag\)/);
   assert.match(source, /const fingerprint = cloudinaryFingerprint\(uploaded, contentHash\)/);
+  assert.match(source, /router\.post\("\/", protect, adminOnly, uploadBulkArtwork\.array\("images", 10\)/);
+  assert.match(source, /const firstUpload = await uploadBulkImage\(req\.files\[0\], singleUploadPublicId\)/);
+  assert.match(source, /const fingerprint = cloudinaryFingerprint\(firstUpload, sha256\(req\.files\[0\]\.buffer\)\)/);
   assert.match(source, /const duplicate = await findDuplicateArtwork\(fingerprint\)/);
   assert.match(source, /fingerprintVersion: 2/);
   assert.match(source, /artwork\.fingerprintVersion >= 2/);

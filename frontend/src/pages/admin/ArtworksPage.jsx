@@ -8,7 +8,7 @@ import { artworkAPI } from "../../services/api";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import toast from "react-hot-toast";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 100;
 const TERMINAL_DELETE_STATES = new Set(["stopped", "completed", "completed_with_errors"]);
 const DELETE_SESSION_KEY = "artworkDeleteSession.v1";
 const readDeleteSession = () => {

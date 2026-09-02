@@ -1025,32 +1025,28 @@ router.get("/:id", async (req, res) => {
 // @route   POST /api/artworks
 // @desc    Create new artwork with images
 // @access  Private
-router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (req, res) => {
+router.post("/", protect, adminOnly, uploadBulkArtwork.array("images", 10), async (req, res) => {
   let images = [];
   try {
     const { title, description, category, price, medium, dimensions, collection, series, catalogueNumber, provenance, exhibitionHistory, publications, creationLocation, tags, keywords, publicationStatus, allowLongDescription, isAvailable, isFeatured, year, clientUploadId, uploadBatchId } = req.body;
 
-    images = (req.files || []).map(getCloudinaryFileInfo).filter((img) => img.url && img.publicId);
     if (!optionalText(clientUploadId)) {
-      await discardUploadedImages(images);
       return res.status(400).json({ success: false, message: "clientUploadId is required" });
     }
     if (clientUploadId) {
       const existing = await Artwork.findOne({ clientUploadId });
       if (existing) {
-        await discardUploadedImages(images);
         return res.json({ success: true, message: "Artwork was already uploaded.", artwork: existing });
       }
     }
 
     // Map uploaded files to image objects
-    if (images.length === 0) {
+    if (!req.files?.length) {
       return res.status(400).json({ success: false, message: "Please upload at least one artwork image" });
     }
 
     const normalizedPrice = normalizePrice(price);
     if (invalidPrice(normalizedPrice)) {
-      await discardUploadedImages(images);
       return res.status(400).json({
         success: false,
         message: "Price must be a valid non-negative number",
@@ -1059,11 +1055,32 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
 
     const normalizedYear = normalizeYear(year);
     if (invalidYear(normalizedYear)) {
-      await discardUploadedImages(images);
       return res.status(400).json({
         success: false,
         message: "Year must be a valid non-negative whole number",
       });
+    }
+
+    const singleUploadPublicId = req.files.length === 1 ? clientUploadId : `${clientUploadId}-1`;
+    const firstUpload = await uploadBulkImage(req.files[0], singleUploadPublicId);
+    images = [getCloudinaryFileInfo(firstUpload)].filter((img) => img.url && img.publicId);
+    const fingerprint = cloudinaryFingerprint(firstUpload, sha256(req.files[0].buffer));
+    const duplicate = await findDuplicateArtwork(fingerprint);
+    if (duplicate) {
+      await discardUploadedImages(images);
+      return res.status(409).json({
+        success: false,
+        code: "DUPLICATE_ARTWORK",
+        message: `Duplicate skipped: matches ${duplicate.title || "an existing artwork"}.`,
+        duplicateOf: duplicate,
+      });
+    }
+
+    if (req.files.length > 1) {
+      const remainingUploads = await Promise.all(
+        req.files.slice(1).map((file, index) => uploadBulkImage(file, `${clientUploadId}-${index + 2}`))
+      );
+      images.push(...remainingUploads.map(getCloudinaryFileInfo).filter((img) => img.url && img.publicId));
     }
 
     const draftArtwork = {
@@ -1093,17 +1110,6 @@ router.post("/", protect, adminOnly, uploadArtwork.array("images", 10), async (r
       uploadStatus: "success",
       uploadedBy: uploadedByValue(req.user),
     };
-    const fingerprint = cloudinaryFingerprint(req.files?.[0]);
-    const duplicate = await findDuplicateArtwork(fingerprint);
-    if (duplicate) {
-      await discardUploadedImages(images);
-      return res.status(409).json({
-        success: false,
-        code: "DUPLICATE_ARTWORK",
-        message: `Duplicate skipped: matches ${duplicate.title || "an existing artwork"}.`,
-        duplicateOf: duplicate,
-      });
-    }
     draftArtwork.contentHash = fingerprint.contentHash || undefined;
     draftArtwork.perceptualHash = fingerprint.perceptualHash;
     draftArtwork.fingerprintVersion = 2;

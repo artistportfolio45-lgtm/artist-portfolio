@@ -12,7 +12,7 @@ const navLinks = [
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
-const GALLERY_PAGE_SIZE = 50;
+const GALLERY_PAGE_SIZE = 100;
 
 const Brand = ({ mobile = false, light = false, profile, imageFailed, onImageError }) => {
   const artistName = profile?.name?.trim() || "G. N. Ambe";

@@ -6,7 +6,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { artworkAPI } from "../../services/api";
 import { notifyArtworksChanged } from "../../services/artworkRefresh";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 100;
 const BATCH_LOOKUP_SIZE = 100;
 const ACTIVE_DELETE_JOB_KEY = "uploadHistoryDeletionJob.v1";
 const DELETE_SELECTION_KEY = "uploadHistoryDeleteSelection.v1";
@@ -103,14 +103,13 @@ const UploadHistoryPage = () => {
     setConfirmDelete(true);
 
     const finish = (job) => {
-      const completedIds = new Set(job.items
-        .filter((item) => item.status === "deleted" || item.status === "missing")
-        .map((item) => item.id));
-      setSelectedIds((current) => new Set([...current].filter((id) => !completedIds.has(id))));
+      const retryIds = new Set(job.retryIds || []);
+      setSelectedIds(retryIds);
       setDeleteSummary(job);
       setDeleting(false);
       setDeleteBatchHistoryWithArtworks(false);
       setActiveDeleteJobId("");
+      if (retryIds.size === 0) setConfirmDelete(false);
       setRefreshKey((current) => current + 1);
       notifyArtworksChanged();
 

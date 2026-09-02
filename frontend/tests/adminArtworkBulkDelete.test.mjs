@@ -55,6 +55,8 @@ test("upload history supports artwork deletion choices and independent batch-his
   assert.match(historySource, /artworkAPI\.deleteBatchHistory\(historyBatchToDelete\.uploadBatchId\)/);
   assert.match(historySource, /artworkAPI\.cancelDeletionJob\(activeDeleteJobId\)/);
   assert.match(historySource, /artworkAPI\.getDeletionJob\(activeDeleteJobId/);
+  assert.match(historySource, /const retryIds = new Set\(job\.retryIds \|\| \[\]\)/);
+  assert.match(historySource, /if \(retryIds\.size === 0\) setConfirmDelete\(false\)/);
   assert.match(historySource, /uploadHistoryDeletionJob\.v1/);
   assert.match(historySource, /uploadHistoryDeleteSelection\.v1/);
   assert.match(historySource, /Stop Now/);

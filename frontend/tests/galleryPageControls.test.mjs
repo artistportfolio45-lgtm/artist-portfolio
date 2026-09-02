@@ -22,8 +22,14 @@ test("Gallery only locks mobile filter dialogs and releases the lock when a filt
 
 test("desktop navigation exposes direct Gallery page links and preserves active filters", () => {
   assert.match(navbarSource, /Gallery pages/);
+  assert.match(navbarSource, /GALLERY_PAGE_SIZE = 100/);
   assert.match(navbarSource, /group-hover\/gallery:opacity-100/);
   assert.match(navbarSource, /Array\.from\(\{ length: galleryPageCount \}/);
   assert.match(navbarSource, /new URLSearchParams\(location\.search\)/);
   assert.match(navbarSource, /aria-current=\{isCurrent \? "page" : undefined\}/);
+});
+
+test("public Gallery requests one hundred artworks per page", () => {
+  assert.match(source, /GALLERY_PAGE_SIZE = 100/);
+  assert.match(source, /limit: GALLERY_PAGE_SIZE/);
 });
