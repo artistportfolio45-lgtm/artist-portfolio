@@ -830,6 +830,7 @@ Could not connect to any servers in your MongoDB Atlas cluster.
 One common reason is that your IP isn't whitelisted.
 ```
 
+
 Fix:
 
 1. Go to MongoDB Atlas.
