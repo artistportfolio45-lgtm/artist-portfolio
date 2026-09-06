@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const HERO_BACKGROUND_SOURCES = new Set(["none", "upload", "artwork"]);
 const HERO_BACKGROUND_POSITIONS = new Set(["center", "top", "bottom", "left", "right"]);
 const HERO_UPLOAD_FOLDER = "artist-portfolio/home";
@@ -33,6 +35,9 @@ const normalizeHomeHeroPayload = (payload = {}) => {
   const source = String(payload.heroBackgroundSource || "none").trim().toLowerCase();
   const position = String(payload.heroBackgroundPosition || "center").trim().toLowerCase();
   const overlayOpacity = Number(payload.heroOverlayOpacity ?? 0.55);
+  const recentAdditionsArtworkIds = Array.isArray(payload.recentAdditionsArtworkIds)
+    ? [...new Set(payload.recentAdditionsArtworkIds.map((id) => String(id || "").trim()).filter(Boolean))]
+    : [];
 
   if (!HERO_BACKGROUND_SOURCES.has(source)) {
     throw new HomeHeroValidationError("Choose a valid Hero background source");
@@ -43,11 +48,15 @@ const normalizeHomeHeroPayload = (payload = {}) => {
   if (!Number.isFinite(overlayOpacity) || overlayOpacity < 0.2 || overlayOpacity > 0.9) {
     throw new HomeHeroValidationError("Hero overlay opacity must be between 20% and 90%");
   }
+  if (recentAdditionsArtworkIds.some((id) => !mongoose.isValidObjectId(id))) {
+    throw new HomeHeroValidationError("Recent Additions contains an invalid artwork");
+  }
 
   const normalized = {
     heroBackgroundSource: source,
     heroBackgroundPosition: position,
     heroOverlayOpacity: Math.round(overlayOpacity * 100) / 100,
+    recentAdditionsArtworkIds,
     heroBackgroundAltText: cleanText(payload.heroBackgroundAltText, "heroBackgroundAltText"),
   };
 

@@ -11,6 +11,7 @@ export const filterPublicArtworks = (artworks, params = {}) =>
     if (params.available === "true" && !artwork.isAvailable) return false;
     if (params.available === "false" && artwork.isAvailable) return false;
     if (params.featured === "true" && !artwork.isFeatured) return false;
+    if (Array.isArray(params.ids) && params.ids.length && !params.ids.map(String).includes(String(artwork._id))) return false;
     if (params.collection && !String(artwork.collection || "").toLowerCase().includes(String(params.collection).toLowerCase())) return false;
     if (params.medium && !String(artwork.medium || "").toLowerCase().includes(String(params.medium).toLowerCase())) return false;
     if (params.year && Number(artwork.year) !== Number(params.year)) return false;

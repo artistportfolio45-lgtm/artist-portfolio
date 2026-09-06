@@ -129,6 +129,14 @@ const normalizeArtworksArray = (value) => {
 export const normalizePortfolio = (data) => {
   const payload = unwrap(data) || {};
   const artworks = normalizeArtworksArray(payload.artworks || payload.results || payload.items || []);
+  const settings = payload.settings && typeof payload.settings === "object"
+    ? {
+      ...payload.settings,
+      recentAdditionsArtworkIds: Array.isArray(payload.settings.recentAdditionsArtworkIds)
+        ? payload.settings.recentAdditionsArtworkIds.map((id) => String(id))
+        : [],
+    }
+    : null;
   const categories = [...new Set([
     ...(Array.isArray(payload.categories) ? payload.categories : []),
     ...artworks.map((artwork) => artwork.category || "Uncategorized"),
@@ -140,7 +148,7 @@ export const normalizePortfolio = (data) => {
   return {
     ...emptyPortfolio,
     ...payload,
-    settings: payload.settings || null,
+    settings,
     profile: payload.profile || null,
     about: payload.about || null,
     artworks,

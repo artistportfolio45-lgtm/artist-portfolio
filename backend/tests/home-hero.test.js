@@ -137,4 +137,5 @@ test("Home Hero routes cover upload, artwork selection, removal, replacement, an
   assert.match(cloudinary, /fileSize: 12 \* 1024 \* 1024/);
   assert.match(cloudinary, /ARTWORK_IMAGE_MIME_TYPES\.has\(file\.mimetype\)/);
   assert.match(snapshot, /serializeSettingsWithHero\(settings, heroArtwork\)/);
+  assert.match(snapshot, /recentAdditionsArtworkIds/);
 });

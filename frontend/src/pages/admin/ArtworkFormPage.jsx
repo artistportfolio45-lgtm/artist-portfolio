@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
+import BackButton from "../../components/shared/BackButton";
 import { artworkAPI } from "../../services/api";
 import { notifyArtworksChanged } from "../../services/artworkRefresh";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -270,9 +271,7 @@ const ArtworkFormPage = () => {
       <div className="p-6 md:p-8 max-w-4xl">
         {/* ── Header ─────────────────────────────────────────── */}
         <div className="flex items-center gap-3 mb-8">
-          <Link to="/admin/artworks" className="text-slate/50 hover:text-charcoal transition-colors text-sm">
-            ← Artworks
-          </Link>
+          <BackButton fallbackTo="/admin/artworks" className="text-sm px-3 py-1.5">Artworks</BackButton>
           <span className="text-slate/30">/</span>
           <h1 className="font-display text-3xl font-light text-charcoal">
             {isEdit ? "Edit Artwork" : "New Artwork"}
@@ -608,9 +607,7 @@ const ArtworkFormPage = () => {
                 : isEdit ? "Save Changes" : "Add Artwork"
               }
             </button>
-            <Link to="/admin/artworks" className="btn-secondary">
-              Cancel
-            </Link>
+            <BackButton fallbackTo="/admin/artworks" variant="light" className="btn-secondary" />
           </div>
         </form>
         {previewOpen && <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="artwork-preview-title" onKeyDown={(event) => { if (event.key === "Escape") setPreviewOpen(false); }}>

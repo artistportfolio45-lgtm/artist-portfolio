@@ -204,7 +204,15 @@ const InquiriesPage = () => {
   }, [activeFilters, page, trashView]);
   useEffect(() => { fetchInquiries(); }, [fetchInquiries]);
 
-  const changeFilter = (field, value) => { setFilters((current) => ({ ...current, [field]: value })); setPage(1); };
+  const changeFilter = (field, value) => {
+    setFilters((current) => {
+      if (field === "view" && value === "trash") {
+        return { ...current, isRead: "all", isResolved: "all", view: value };
+      }
+      return { ...current, [field]: value };
+    });
+    setPage(1);
+  };
   const openInquiry = async (inquiry) => {
     setSelectedInquiry(inquiry);
     if (!trashView && !inquiry.isRead) {

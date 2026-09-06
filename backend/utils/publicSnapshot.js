@@ -10,7 +10,7 @@ const { sanitizePublicArtwork } = require("./publicArtwork");
 const PUBLIC_SETTINGS_FIELDS = [
   "websiteTitle", "websiteDescription", "logoUrl", "footerText",
   "heroEyebrow", "heroHeading", "heroHeadingAccent", "heroSubtitle",
-  "heroPrimaryButtonText", "heroSecondaryButtonText", "heroBackgroundSource",
+  "heroPrimaryButtonText", "heroSecondaryButtonText", "recentAdditionsArtworkIds", "heroBackgroundSource",
   "heroBackgroundAltText", "heroBackgroundPosition", "heroOverlayOpacity",
   "primaryColor", "secondaryColor", "accentColor", "themePreset", "themeMode",
   "backgroundColor", "surfaceColor", "textColor", "mutedTextColor", "borderColor",

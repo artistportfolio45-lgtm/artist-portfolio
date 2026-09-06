@@ -76,6 +76,7 @@ const applyHomeHeroContent = (settings, values) => {
     "heroSubtitle",
     "heroPrimaryButtonText",
     "heroSecondaryButtonText",
+    "recentAdditionsArtworkIds",
   ]) {
     if (values[field] !== undefined) settings[field] = values[field];
   }

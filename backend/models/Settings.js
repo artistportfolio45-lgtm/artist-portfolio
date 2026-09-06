@@ -22,6 +22,10 @@ const settingsSchema = new mongoose.Schema(
     },
     heroPrimaryButtonText: { type: String, default: "Explore Gallery" },
     heroSecondaryButtonText: { type: String, default: "Get in Touch" },
+    recentAdditionsArtworkIds: {
+      type: [mongoose.Schema.Types.ObjectId],
+      default: [],
+    },
     heroBackgroundSource: {
       type: String,
       enum: ["none", "upload", "artwork"],

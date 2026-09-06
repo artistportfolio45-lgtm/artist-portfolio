@@ -23,6 +23,7 @@ const toDraft = (settings = {}) => ({
   heroSubtitle: settings.heroSubtitle || "",
   heroPrimaryButtonText: settings.heroPrimaryButtonText || "Explore Gallery",
   heroSecondaryButtonText: settings.heroSecondaryButtonText || "Get in Touch",
+  recentAdditionsArtworkIds: Array.isArray(settings.recentAdditionsArtworkIds) ? settings.recentAdditionsArtworkIds.map(String) : [],
   heroBackgroundSource: settings.heroBackground?.source || settings.heroBackgroundSource || "none",
   heroBackgroundArtworkId:
     settings.heroBackground?.artworkId || settings.heroBackgroundArtworkId || "",
@@ -44,6 +45,7 @@ const homePayload = (draft) => ({
   heroSubtitle: draft.heroSubtitle,
   heroPrimaryButtonText: draft.heroPrimaryButtonText,
   heroSecondaryButtonText: draft.heroSecondaryButtonText,
+  recentAdditionsArtworkIds: draft.recentAdditionsArtworkIds,
   heroBackgroundSource: draft.heroBackgroundSource,
   heroBackgroundArtworkId: draft.heroBackgroundArtworkId || "",
   heroBackgroundAltText: draft.heroBackgroundAltText,
@@ -130,12 +132,11 @@ const HomePageEditor = () => {
 
   const filteredArtworks = useMemo(() => {
     const query = artworkSearch.trim().toLowerCase();
-    if (!query) return artworks;
-    return artworks.filter((artwork) =>
+    return query ? artworks.filter((artwork) =>
       [artwork.title, artwork.category, artwork.medium, artwork.year]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query))
-    );
+    ) : artworks;
   }, [artworkSearch, artworks]);
 
   const setField = (field, value) => {
@@ -207,6 +208,23 @@ const HomePageEditor = () => {
     setShowArtworkPicker(false);
     setError("");
     setSuccess("");
+  };
+
+  const toggleRecentArtwork = (artworkId) => {
+    setDraft((current) => {
+      const ids = current.recentAdditionsArtworkIds || [];
+      const next = ids.includes(artworkId) ? ids.filter((id) => id !== artworkId) : [...ids, artworkId];
+      return { ...current, recentAdditionsArtworkIds: next };
+    });
+    setError("");
+    setSuccess("");
+  };
+
+  const handleRecentArtworkClick = (event, artworkId) => {
+    event.preventDefault();
+    const scrollTop = window.scrollY;
+    toggleRecentArtwork(artworkId);
+    requestAnimationFrame(() => window.scrollTo({ top: scrollTop, behavior: "auto" }));
   };
 
   const removeBackground = () => {
@@ -323,6 +341,31 @@ const HomePageEditor = () => {
 
         {error && <div role="alert" className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
         {success && <div role="status" className="border border-green-200 bg-green-50 p-4 text-sm text-green-800">{success}</div>}
+
+        <section className="bg-white p-5 shadow-sm sm:p-6">
+          <h2 className="mb-2 font-display text-xl font-light">Recent Additions</h2>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-slate/60">Choose any number of published artworks to show on the Home Page. Selected: {draft.recentAdditionsArtworkIds.length}.</p>
+            {draft.recentAdditionsArtworkIds.length > 0 && (
+              <button type="button" className="text-xs uppercase tracking-wider text-red-700 underline" onClick={() => setField("recentAdditionsArtworkIds", [])}>
+                Clear selection
+              </button>
+            )}
+          </div>
+          <input className="input-field mb-4" type="search" placeholder="Search artworks" value={artworkSearch} onChange={(event) => setArtworkSearch(event.target.value)} />
+          {artworksLoading ? <div className="flex justify-center py-8"><LoadingSpinner /></div> : artworkError ? <p role="alert" className="py-4 text-sm text-red-700">{artworkError}</p> : (
+            <div className="grid max-h-[430px] grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
+              {filteredArtworks.map((artwork) => {
+                const image = artwork.images.find((item) => item?.url);
+                const selected = draft.recentAdditionsArtworkIds.includes(String(artwork._id));
+                return <button key={artwork._id} type="button" aria-pressed={selected} className={`overflow-hidden border bg-white text-left transition ${selected ? "border-gold ring-2 ring-gold/30" : "border-gray-200 hover:border-gold"}`} onClick={(event) => handleRecentArtworkClick(event, String(artwork._id))}>
+                  <img src={cloudinaryThumbnailUrl(image.url, 320)} alt="" className="aspect-square w-full object-cover" loading="lazy" />
+                  <span className="block truncate p-2 text-xs text-charcoal">{artwork.title || "Untitled"}{selected ? " (Selected)" : ""}</span>
+                </button>;
+              })}
+            </div>
+          )}
+        </section>
 
         <section className="bg-white p-5 shadow-sm sm:p-6">
           <h2 className="mb-5 font-display text-xl font-light">Hero Content</h2>

@@ -11,17 +11,25 @@ import toast from "react-hot-toast";
 const PAGE_SIZE = 100;
 const TERMINAL_DELETE_STATES = new Set(["stopped", "completed", "completed_with_errors"]);
 const DELETE_SESSION_KEY = "artworkDeleteSession.v1";
+const LIST_STATE_KEY = "artworkListState.v1";
 const readDeleteSession = () => {
   try { return new Set(JSON.parse(localStorage.getItem(DELETE_SESSION_KEY) || "[]")); } catch { return new Set(); }
 };
+const readListState = () => {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(LIST_STATE_KEY) || "null");
+    return saved && typeof saved === "object" ? saved : {};
+  } catch { return {}; }
+};
 
 const ArtworksPage = () => {
+  const savedListState = useRef(readListState());
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [availability, setAvailability] = useState("all");
-  const [sort, setSort] = useState({ key: "createdAt", direction: "desc" });
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(savedListState.current.search || "");
+  const [availability, setAvailability] = useState(savedListState.current.availability || "all");
+  const [sort, setSort] = useState(savedListState.current.sort || { key: "createdAt", direction: "desc" });
+  const [page, setPage] = useState(Number(savedListState.current.page) || 1);
   const [deleting, setDeleting] = useState(null);
   const [selectedIds, setSelectedIds] = useState(readDeleteSession);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -33,6 +41,19 @@ const ArtworksPage = () => {
   const selectAllRef = useRef(null);
   const bulkDeleteLockRef = useRef(false);
   const bulkDeleteJobRef = useRef(null);
+  const listStateRef = useRef({ search, availability, sort, page });
+
+  useEffect(() => {
+    const nextState = { search, availability, sort, page };
+    listStateRef.current = nextState;
+    sessionStorage.setItem(LIST_STATE_KEY, JSON.stringify(nextState));
+  }, [availability, page, search, sort]);
+
+  useEffect(() => {
+    const savedScroll = Number(savedListState.current.scrollY);
+    if (savedScroll > 0) window.requestAnimationFrame(() => window.scrollTo(0, savedScroll));
+    return () => sessionStorage.setItem(LIST_STATE_KEY, JSON.stringify({ ...listStateRef.current, scrollY: window.scrollY }));
+  }, []);
 
   useEffect(() => {
     if (selectedIds.size) localStorage.setItem(DELETE_SESSION_KEY, JSON.stringify([...selectedIds]));

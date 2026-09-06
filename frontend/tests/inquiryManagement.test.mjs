@@ -41,12 +41,23 @@ test("individual selection toggles without duplicate IDs", () => {
 
 test("Inquiries UI exposes filters, pagination, Trash lifecycle and accessible confirmation", async () => {
   const page = await source("src/pages/admin/InquiriesPage.jsx");
-  for (const token of ["Search sender, email, message", "General contact", "Artwork enquiry", "Read + unread", "All resolution", "dateFrom", "dateTo", "Select current page", "Select all", "Restore selected", "Delete selected", "Empty Trash", "Page {page} of {totalPages}"]) assert.ok(page.includes(token), token);
+  for (const token of ["Search sender, email, message", "General contact", "Artwork enquiry", "Read + unread", "All resolution", "dateFrom", "dateTo", "Select current page", "Select all", "Restore selected", "Delete selected", "Empty Trash", "Page {page} of {totalPages}", 'field === "view" && value === "trash"', 'isRead: "all", isResolved: "all"']) assert.ok(page.includes(token), token);
   for (const token of ['role="dialog"', 'aria-modal="true"', "Sender", "Email", "Type", "Artwork", "Submitted", "Type DELETE", "Delete this inquiry? This action cannot be undone."]) assert.ok(page.includes(token), token);
   for (const resultToken of ["already missing", "unchanged", "failed", "resultDetails"]) assert.ok(page.includes(resultToken), resultToken);
   assert.match(page, /overflow-x-hidden/);
   assert.match(page, /requestId !== requestIdRef\.current/);
   assert.match(page, /if \(page > safePages\) setPage\(safePages\)/);
+});
+
+test("home page exposes a full-artworks CTA and admin artwork editing preserves list navigation", async () => {
+  const [home, artworks, form] = await Promise.all([
+    source("src/pages/public/HomePage.jsx"),
+    source("src/pages/admin/ArtworksPage.jsx"),
+    source("src/pages/admin/ArtworkFormPage.jsx"),
+  ]);
+  assert.match(home, /View All Artworks/);
+  for (const token of ["artworkListState.v1", "sessionStorage", "scrollY", "savedListState.current.page"]) assert.ok(artworks.includes(token), token);
+  assert.match(form, /<BackButton fallbackTo="\/admin\/artworks"/);
 });
 
 test("API client uses recoverable and permanent inquiry endpoints", async () => {

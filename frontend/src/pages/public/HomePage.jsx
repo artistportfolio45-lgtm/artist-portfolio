@@ -11,6 +11,7 @@ import HomeHero from "../../components/public/HomeHero";
 import { publicDataAPI } from "../../services/publicData";
 import { subscribeToArtworkRefresh } from "../../services/artworkRefresh";
 import { useSettings } from "../../hooks/useSettings";
+import { settingsAPI } from "../../services/api";
 
 const HomePage = () => {
   const { settings } = useSettings();
@@ -21,24 +22,38 @@ const HomePage = () => {
   const [profile, setProfile] = useState(null);
   const [featuredPreview, setFeaturedPreview] = useState(null);
   const requestIdRef = useRef(0);
+  const recentAdditionsArtworkIdsKey = JSON.stringify(settings?.recentAdditionsArtworkIds || []);
 
   const fetchHomeData = useCallback(() => {
     const requestId = ++requestIdRef.current;
     setLatestLoading(true);
     setFeaturedLoading(true);
+    const recentAdditionsParams = settings?.recentAdditionsArtworkIds?.length
+      ? { ids: settings.recentAdditionsArtworkIds, limit: 10 }
+      : { limit: 9 };
 
     Promise.allSettled([
       publicDataAPI.getArtworks({ featured: "true", limit: 6 }),
-      publicDataAPI.getArtworks({ limit: 9 }),
+      publicDataAPI.getArtworks(recentAdditionsParams),
       publicDataAPI.getProfile(),
+      settingsAPI.get(),
     ])
-      .then(([featuredRes, latestRes, profileRes]) => {
+      .then(([featuredRes, latestRes, profileRes, settingsRes]) => {
         if (requestId !== requestIdRef.current) return;
+        const liveRecentIds = settingsRes.status === "fulfilled"
+          ? settingsRes.value.data?.settings?.recentAdditionsArtworkIds
+          : null;
         if (featuredRes.status === "fulfilled") {
           setFeatured(featuredRes.value.items || []);
         }
 
-        if (latestRes.status === "fulfilled") {
+        if (Array.isArray(liveRecentIds) && liveRecentIds.length) {
+          publicDataAPI.getArtworks({ ids: liveRecentIds, limit: 10 }).then((result) => {
+            if (requestId === requestIdRef.current) {
+              setLatestArtworks(result.items || []);
+            }
+          });
+        } else if (latestRes.status === "fulfilled") {
           setLatestArtworks(latestRes.value.items || []);
         }
 
@@ -53,7 +68,7 @@ const HomePage = () => {
           setFeaturedLoading(false);
         }
       });
-  }, []);
+  }, [recentAdditionsArtworkIdsKey]);
 
   useEffect(() => {
     fetchHomeData();
@@ -139,6 +154,11 @@ const HomePage = () => {
               </div>
             }
           />
+          <div className="mt-8 text-center md:mt-12">
+            <Link to="/gallery" className="btn-secondary">
+              View All Artworks
+            </Link>
+          </div>
         </div>
       </section>
 
